@@ -1,7 +1,7 @@
 #pragma once
 
 #define GLM_ENABLE_EXPERIMENTAL
-#define INSTALL_DIR std::string("../../../")
+#define INSTALL_DIR std::string("../../")
 
 #include <windows.h>
 #include <string>
