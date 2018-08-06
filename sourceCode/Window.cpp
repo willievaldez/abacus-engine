@@ -43,7 +43,7 @@ void Window::initialize_objects()
 	};
 
 	triangle = new GLObject(indices, vertices, normals);
-	shaderProgram = LoadShaders((INSTALL_DIR+"/shader.vert").c_str(), (INSTALL_DIR+"/shader.frag").c_str());
+	shaderProgram = LoadShaders((INSTALL_DIR+"sourceCode/shader.vert").c_str(), (INSTALL_DIR+"sourceCode/shader.frag").c_str());
 }
 
 bool Window::initialize_sound_system()
