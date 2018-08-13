@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{effcf4f6-c9d3-4723-b2cf-5c536b3deaaf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Levels">
+      <UniqueIdentifier>{0d8b8d59-c5f2-46dd-b92a-8e654aea2d54}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sourceCode\GLObject.cpp">
@@ -27,9 +33,6 @@
     <ClCompile Include="..\sourceCode\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\server.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sourceCode\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -38,6 +41,21 @@
     </ClCompile>
     <ClCompile Include="..\sourceCode\glad.c">
       <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sourceCode\Level.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sourceCode\Tile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sourceCode\Player.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sourceCode\Follower.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sourceCode\Unit.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -50,9 +68,6 @@
     <ClInclude Include="..\sourceCode\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sourceCode\server.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\sourceCode\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -62,5 +77,31 @@
     <ClInclude Include="..\sourceCode\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\sourceCode\Level.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sourceCode\Tile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sourceCode\Player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sourceCode\Follower.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sourceCode\Unit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\sourceCode\shader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\sourceCode\shader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\models\Levels\testLevel.csv">
+      <Filter>Levels</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -138,23 +138,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\sourceCode\Follower.cpp" />
     <ClCompile Include="..\sourceCode\glad.c" />
     <ClCompile Include="..\sourceCode\GLObject.cpp" />
+    <ClCompile Include="..\sourceCode\Level.cpp" />
     <ClCompile Include="..\sourceCode\main.cpp" />
     <ClCompile Include="..\sourceCode\Mesh.cpp" />
     <ClCompile Include="..\sourceCode\Model.cpp" />
-    <ClCompile Include="..\sourceCode\server.cpp" />
+    <ClCompile Include="..\sourceCode\Player.cpp" />
     <ClCompile Include="..\sourceCode\Shader.cpp" />
+    <ClCompile Include="..\sourceCode\Tile.cpp" />
+    <ClCompile Include="..\sourceCode\Unit.cpp" />
     <ClCompile Include="..\sourceCode\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\sourceCode\Follower.h" />
     <ClInclude Include="..\sourceCode\GLObject.h" />
+    <ClInclude Include="..\sourceCode\Level.h" />
     <ClInclude Include="..\sourceCode\Mesh.h" />
     <ClInclude Include="..\sourceCode\Model.h" />
-    <ClInclude Include="..\sourceCode\server.h" />
+    <ClInclude Include="..\sourceCode\Player.h" />
     <ClInclude Include="..\sourceCode\Shader.h" />
     <ClInclude Include="..\sourceCode\stdafx.h" />
+    <ClInclude Include="..\sourceCode\Tile.h" />
+    <ClInclude Include="..\sourceCode\Unit.h" />
     <ClInclude Include="..\sourceCode\Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\models\Levels\testLevel.csv" />
+    <None Include="..\sourceCode\shader.frag" />
+    <None Include="..\sourceCode\shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

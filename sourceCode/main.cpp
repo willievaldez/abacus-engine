@@ -13,8 +13,6 @@
 #define EXIT_FAILURE 1
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
 GLFWwindow* window;
 
 int main()
@@ -66,7 +64,7 @@ int main()
 	// do a DRM self check
 	Steamworks_SelfCheck();
 
-	window = Window::create_window(SCR_WIDTH, SCR_HEIGHT);
+	window = Window::create_window(Window::width, Window::height);
 	if (window == NULL) return EXIT_FAILURE;
 
 	if (!Window::initialize_sound_system()) return EXIT_FAILURE;
