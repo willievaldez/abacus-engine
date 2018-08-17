@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp> // translate
 
 
-Unit::Unit(std::vector<GLuint>& indices, std::vector<glm::vec3>& verticies) : GLObject(indices, verticies) {}
+Unit::Unit(const char* asset) : GLObject(asset) {}
 Unit::~Unit() {}
 
 void Unit::render(GLuint& shaderProgram)
@@ -14,15 +14,16 @@ void Unit::render(GLuint& shaderProgram)
 
 	for (glm::vec3 destination : destinations)
 	{
-		glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), destination), glm::vec3(0.5f, 0.5f, 0.5f));
+		glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), destination), glm::vec3(0.35f, 0.35f, 0.35f));
 		GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 		glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
 
-		GLuint colorId = glGetUniformLocation(shaderProgram, "color");
-		glm::vec3 color(1.0f, 0.0f, 0.0f);
-		glUniform3fv(colorId, 1, &color[0]);
+		GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
+		glUniform1i(texBool, true);
 
-		glDrawElements(GL_TRIANGLES, number_of_indices, GL_UNSIGNED_INT, 0);
+		glBindTexture(GL_TEXTURE_2D, GLObject::addAsset("pixelflag.png"));
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	}
 
 	glBindVertexArray(0);

@@ -6,6 +6,10 @@
 #include <GLFW/glfw3.h>
 #include <glm/vec3.hpp>
 #include <vector>
+#include <unordered_map>
+
+#define INSTALL_DIR std::string("../../")
+
 
 class GLObject
 {
@@ -13,7 +17,8 @@ public:
 	int entityId;
 	glm::vec3 color;
 
-	GLObject(std::vector<GLuint>&, std::vector<glm::vec3>&);
+	GLObject();
+	GLObject(const char*);
 	~GLObject();
 
 	virtual void render(GLuint&);
@@ -21,11 +26,19 @@ public:
 	glm::vec3 getPosition();
 	void setPosition(glm::vec3&);
 
+	GLint getTextureID();
+
+	static void setTileSize(float);
+	static void releaseBuffers();
+	static GLint addAsset(const char*);
 protected:
 	//FMOD::Sound* moveSound;
-	GLsizei number_of_indices;
+	GLint textureID;
+
+	bool renderTexture;
 	
-	GLuint VBO, VAO, EBO;
+	static GLuint VBO, VAO, EBO;
 	glm::vec3 position;
+	static std::unordered_map<std::string, GLint> assets;
 
 };

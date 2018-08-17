@@ -64,10 +64,10 @@ int main()
 	// do a DRM self check
 	Steamworks_SelfCheck();
 
+
 	window = Window::create_window(Window::width, Window::height);
 	if (window == NULL) return EXIT_FAILURE;
 
-	if (!Window::initialize_sound_system()) return EXIT_FAILURE;
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -75,7 +75,13 @@ int main()
 		return EXIT_FAILURE;
 	}
 
+	Window::configure_gl_window();
+
+	if (!Window::initialize_sound_system()) return EXIT_FAILURE;
+
+
 	Window::initialize_objects();
+
 
 	std::thread([]() {
 		while (!glfwWindowShouldClose(window))
@@ -92,6 +98,7 @@ int main()
 			}
 		}
 	}).detach();
+
 
 	while (!glfwWindowShouldClose(window))
 	{

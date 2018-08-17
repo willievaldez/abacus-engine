@@ -2,10 +2,8 @@
 layout (location = 0) in vec3 vertex;
 layout (location = 1) in vec2 texCoords;
 
-out vec3 fragVert;
-out vec3 fragNormal;
-out vec2 TexCoords;
-out vec3 fragColor;
+out vec4 fragColor;
+out vec2 fragTexCoords;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -15,6 +13,8 @@ uniform vec3 color;
 
 void main()
 {
-	fragColor = color;
-    gl_Position = projection * view * model * vec4(vertex, 1.0f);
+	fragTexCoords = texCoords;
+	fragColor = vec4(color, 1.0f);
+
+	gl_Position = projection * view * model * vec4(vertex, 1.0f);
 }

@@ -12,57 +12,11 @@ Level::Level(const char* lvlFile)
 	Tile::setTileSize(TILE_SIZE);
 	filepath = INSTALL_DIR + "Models/Levels/" + lvlFile;
 
-	std::string line;
-	std::ifstream myfile(filepath);
-	std::pair<int, int> spawnGridLocation;
-	spawnGridLocation.first = -1;
-	spawnGridLocation.second = -1;
-	if (myfile.is_open())
-	{
-		while (getline(myfile, line))
-		{
-			std::vector<Tile*> gridRow;
-
-			std::stringstream lineStream(line);
-			std::string val;
-			while (getline(lineStream, val, ','))
-			{
-				if (val == "Spawn")
-				{
-					spawnGridLocation.first = gridRow.size();
-					spawnGridLocation.second = tileGrid.size();
-
-					printf("Found spawn location at tile (%d, %d)\n", tileGrid.size(), gridRow.size());
-				}
-				gridRow.push_back(new Tile(val));
-			}
-			tileGrid.push_back(gridRow);
-		}
-
-		if (spawnGridLocation.first == -1)
-		{
-			printf("Error: no spawn location provided. please mark a tile with 'Spawn'\n");
-		}
-		else
-		{
-			spawn.x = (spawnGridLocation.first * TILE_SIZE) + (TILE_SIZE / 2.0f);
-			spawn.y = ((tileGrid.size() - spawnGridLocation.second) * TILE_SIZE) + (TILE_SIZE/2.0f);
-			printf("spwan: (%f, %f)\n", spawn.x, spawn.y);
-		}
-
-	}
-	else
-	{
-		printf("Could not open file %s\n", filepath);
-	}
-
-	printf("Grid len: %d, Grid Width: %d\n", tileGrid.size(), tileGrid[0].size());
-
+	makeLevelFromFile();
 }
 
 void Level::reload()
 {
-
 	for (std::vector<Tile*> tileRow : tileGrid)
 	{
 		tileRow.clear();
@@ -70,6 +24,11 @@ void Level::reload()
 
 	tileGrid.clear();
 
+	makeLevelFromFile();
+}
+
+void Level::makeLevelFromFile()
+{
 	std::string line;
 	std::ifstream myfile(filepath);
 	std::pair<int, int> spawnGridLocation;
@@ -92,7 +51,8 @@ void Level::reload()
 
 					printf("Found spawn location at tile (%d, %d)\n", tileGrid.size(), gridRow.size());
 				}
-				gridRow.push_back(new Tile(val));
+
+				gridRow.push_back(new Tile(val, gridRow.size(), tileGrid.size()));
 			}
 			tileGrid.push_back(gridRow);
 		}
@@ -114,12 +74,25 @@ void Level::reload()
 		printf("Could not open file %s\n", filepath);
 	}
 
+	int numRows = tileGrid.size();
+	glm::vec3 offset(TILE_SIZE / 2.0f, TILE_SIZE * numRows + (TILE_SIZE / 2.0f), 0.0f);
+
+	for (std::vector<Tile*> tileRow : tileGrid)
+	{
+		offset.x = TILE_SIZE / 2.0f;
+		for (Tile* tile : tileRow)
+		{
+			tile->setPosition(offset);
+			offset.x += TILE_SIZE;
+		}
+		offset.y -= TILE_SIZE;
+	}
+
 	printf("Grid len: %d, Grid Width: %d\n", tileGrid.size(), tileGrid[0].size());
 }
 
 Level::~Level()
 {
-
 	Tile::releaseBuffers();
 
 	for (std::vector<Tile*> tileRow : tileGrid)
@@ -135,22 +108,13 @@ void Level::render(GLuint shaderProgram)
 {
 
 	int numRows = tileGrid.size();
-	glm::vec3 offset(TILE_SIZE/2.0f, TILE_SIZE * numRows + (TILE_SIZE/2.0f), 0.0f);
 
 	for (std::vector<Tile*> tileRow : tileGrid)
 	{
-		offset.x = TILE_SIZE / 2.0f;
 		for (Tile* tile : tileRow)
 		{
-			glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), offset);
-			GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
-			glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
-
 			tile->render(shaderProgram);
-
-			offset.x += TILE_SIZE;
 		}
-		offset.y -= TILE_SIZE;
 	}
 
 	for (Unit* entity : entities)
@@ -170,6 +134,15 @@ int Level::addEntity(Unit* entity)
 	entities.push_back(entity);
 	entity->setPosition(spawn); // TODO: how to set position better?
 	return entities.size() - 1;
+}
+
+void Level::buildStructure(GLObject* structure)
+{
+	std::pair<int, int> tileCoords;
+	if (getTileFromCoords(structure->getPosition(), tileCoords) && tileGrid[tileCoords.first][tileCoords.second]->traversable)
+	{
+		tileGrid[tileCoords.first][tileCoords.second]->setAsset(structure->getTextureID());
+	}
 }
 
 void Level::moveEntity(int entityId, glm::vec3 offset)
@@ -229,6 +202,24 @@ bool Level::getTileFromCoords(glm::vec3 dest, std::pair<int, int>& tileCoords)
 
 	tileCoords.second = dest.x / TILE_SIZE;
 	tileCoords.first = ceil(((tileGrid.size() * TILE_SIZE) - dest.y) / TILE_SIZE);
+
+	return true;
+}
+
+bool Level::getCoordsFromTile(std::pair<int, int> tileCoords, glm::vec3& dest)
+{
+	if (tileCoords.first < 0 || tileCoords.first >= tileGrid.size())
+	{
+		return false;
+	}
+	if (tileCoords.second < 0 || tileCoords.second >= tileGrid[0].size())
+	{
+		return false;
+	}
+
+	dest.x = (tileCoords.second * TILE_SIZE) + (TILE_SIZE / 2.0f);
+	dest.y = ((tileGrid.size() - tileCoords.first) * TILE_SIZE) + (TILE_SIZE / 2.0f);
+	dest.z = 0.0f;
 
 	return true;
 }

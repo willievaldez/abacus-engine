@@ -6,7 +6,6 @@
 #include "Unit.h"
 #include "Tile.h"
 
-#define INSTALL_DIR std::string("../../")
 
 
 class Level
@@ -15,8 +14,12 @@ public:
 	Level(const char*);
 	~Level();
 
+	bool getTileFromCoords(glm::vec3, std::pair<int, int>&);
+	bool getCoordsFromTile(std::pair<int, int>, glm::vec3&);
+
 	glm::vec3 getSpawn();
 	int addEntity(Unit*);
+	void buildStructure(GLObject*);
 	void moveEntities();
 	void moveEntity(int, glm::vec3);
 	void moveEntityToDestination(Unit*);
@@ -29,5 +32,5 @@ private:
 	glm::vec3 spawn;
 	std::string filepath;
 
-	bool getTileFromCoords(glm::vec3, std::pair<int, int>&);
+	void makeLevelFromFile();
 };

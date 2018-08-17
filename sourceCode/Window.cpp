@@ -17,9 +17,16 @@ enum FrustumType {
 	Orthographic
 };
 
+enum MouseMode {
+	Select,
+	Build
+};
+
 const char* window_title = "ERASv0.0.1";
 MovementType MOVEMENT = PointAndClick;
 FrustumType FRUSTUM = Orthographic;
+MouseMode MOUSE_MODE = Select;
+
 
 GLuint shaderProgram;
 
@@ -36,9 +43,9 @@ Unit* priest;
 Unit* follower1;
 Unit* follower2;
 Unit* follower3;
-GLObject* selectionObject;
+GLObject* pointer;
 Level* level;
-bool pause = true;
+bool pause = false;
 
 int Window::width = 1280;
 int Window::height = 720;
@@ -52,24 +59,21 @@ FMOD::System* Window::AudioSystem;
 
 void Window::initialize_objects()
 {
+	GLObject::setTileSize(2.0f);
+
 	level = new Level("testLevel.csv");
 
 	cam_look_at = level->getSpawn();
 	cam_pos = cam_look_at;
 	cam_pos.z = 1.0f;
 
-	//triangle = new GLObject((INSTALL_DIR + "/Models/Space_Character.obj").c_str());
-	std::vector<GLuint> indices = { 0,1,2 };
-	std::vector<glm::vec3> vertices = {
-		glm::vec3(-0.5f, -0.5f, 0.0f),
-		glm::vec3(0.5f, -0.5f, 0.0f),
-		glm::vec3(0.0f,  0.5f, 0.0f)
-	};
+	GLObject::addAsset("pixelflag.png");
 
-	priest = new Unit(indices, vertices);
-	follower1 = new Unit(indices, vertices);
-	follower2 = new Unit(indices, vertices);
-	follower3 = new Unit(indices, vertices);
+	priest = new Unit("datASSet.png");
+	follower1 = new Unit("datASSet.png");
+	follower2 = new Unit("datASSet.png");
+	follower3 = new Unit("datASSet.png");
+	pointer = new GLObject("botboi.png");
 
 	activeUnit = priest;
 	priest->entityId = level->addEntity(priest);
@@ -114,6 +118,9 @@ void Window::clean_up()
 	delete follower2;
 	delete follower3;
 	delete level;
+	delete pointer;
+
+	GLObject::releaseBuffers();
 
 	glDeleteProgram(shaderProgram);
 }
@@ -129,7 +136,7 @@ void setup_callbacks(GLFWwindow* window)
 	glfwSetErrorCallback(error_callback);
 	glfwSetKeyCallback(window, Window::key_callback);
 	glfwSetScrollCallback(window, Window::scroll_callback);
-	//glfwSetCursorPosCallback(window, Window::cursor_pos_callback);
+	glfwSetCursorPosCallback(window, Window::cursor_pos_callback);
 	glfwSetFramebufferSizeCallback(window, Window::resize_callback);
 	glfwSetMouseButtonCallback(window, Window::mouse_button_callback);
 }
@@ -180,8 +187,14 @@ GLFWwindow* Window::create_window(int width, int height)
 
 	setup_callbacks(window);
 
-
 	return window;
+}
+
+void Window::configure_gl_window()
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glCullFace(GL_BACK);
 }
 
 void Window::resize_callback(GLFWwindow* window, int width, int height)
@@ -271,7 +284,6 @@ void Window::display_callback(GLFWwindow* window)
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glDepthMask(GL_TRUE);
 
 
 	// Use the shader of programID
@@ -285,6 +297,28 @@ void Window::display_callback(GLFWwindow* window)
 	glUniform3f(MatrixID, (cam_pos.x), (cam_pos.y), (cam_pos.z));
 
 	level->render(shaderProgram);
+
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	glm::vec3 mouseWorldSpace((xpos - (Window::width / 2.0)) / (FOV / 2.0f), ((Window::height / 2.0) - ypos) / (FOV / 2.0f), 0.0f);
+	mouseWorldSpace.x += cam_pos.x;
+	mouseWorldSpace.y += cam_pos.y;
+
+	if (MOUSE_MODE == MouseMode::Select)
+	{
+
+	}
+	else if (MOUSE_MODE == MouseMode::Build)
+	{
+		std::pair<int, int> tileCoords;
+		glm::vec3 tileCenter;
+		if (level->getTileFromCoords(mouseWorldSpace, tileCoords) && level->getCoordsFromTile(tileCoords, tileCenter))
+		{
+			pointer->setPosition(tileCenter);
+			pointer->render(shaderProgram);
+		}
+
+	}
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -304,11 +338,28 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 	{
 		pause = !pause;
 	}
+	if (action == GLFW_PRESS && key == GLFW_KEY_B)
+	{
+		if (MOUSE_MODE == MouseMode::Build)
+			MOUSE_MODE = MouseMode::Select;
+		else MOUSE_MODE = MouseMode::Build;
+	}
+	if (MOUSE_MODE == MouseMode::Build)
+	{
+
+		//if (action == GLFW_PRESS && key == GLFW_KEY_1)
+
+		//else if(action == GLFW_PRESS && key == GLFW_KEY_2)
+		//else if (action == GLFW_PRESS && key == GLFW_KEY_3)
+		//else if (action == GLFW_PRESS && key == GLFW_KEY_4)
+
+	}
+	
 }
 
 void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	//std::cout << (xpos - (Window::width/2.0))/(FOV/2.0f) << " , " << ((Window::height/2.0) - ypos)/(FOV/2.0f) << std::endl;
+
 
 
 }
@@ -350,21 +401,28 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 
 	if (action == GLFW_PRESS)
 	{
-		if (button == GLFW_MOUSE_BUTTON_2 && activeUnit)
+		if (MOUSE_MODE == MouseMode::Select)
 		{
-			if (key_press[GLFW_KEY_LEFT_SHIFT])
+			if (button == GLFW_MOUSE_BUTTON_2 && activeUnit)
 			{
-				activeUnit->addToDestinationQueue(mouseWorldSpace);
+				if (key_press[GLFW_KEY_LEFT_SHIFT])
+				{
+					activeUnit->addToDestinationQueue(mouseWorldSpace);
+				}
+				else
+				{
+					activeUnit->setDestination(mouseWorldSpace);
+				}
 			}
-			else
+			else if (button == GLFW_MOUSE_BUTTON_1)
 			{
-				activeUnit->setDestination(mouseWorldSpace);
+				Unit* selectedUnit = level->selectUnit(mouseWorldSpace);
+				if (selectedUnit) activeUnit = selectedUnit;
 			}
 		}
-		else if (button == GLFW_MOUSE_BUTTON_1)
+		else if (MOUSE_MODE == MouseMode::Build)
 		{
-			Unit* selectedUnit = level->selectUnit(mouseWorldSpace);
-			if (selectedUnit) activeUnit = selectedUnit;
+			level->buildStructure(pointer);
 		}
 	}
 	else if (action == GLFW_RELEASE)

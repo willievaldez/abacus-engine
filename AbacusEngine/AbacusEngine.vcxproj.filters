@@ -27,12 +27,6 @@
     <ClCompile Include="..\sourceCode\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sourceCode\Model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sourceCode\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -60,12 +54,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sourceCode\GLObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sourceCode\Shader.h">

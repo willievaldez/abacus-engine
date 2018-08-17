@@ -25,6 +25,7 @@ public:
 	static bool initialize_sound_system();
 	static void clean_up();
 	static GLFWwindow* create_window(int width, int height);
+	static void configure_gl_window();
 	static void resize_callback(GLFWwindow* window, int width, int height);
 	static void idle_callback();
 	static void display_callback(GLFWwindow*);

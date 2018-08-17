@@ -5,7 +5,7 @@
 class Unit : public GLObject
 {
 public:
-	Unit(std::vector<GLuint>&, std::vector<glm::vec3>&);
+	Unit(const char*);
 	~Unit();
 
 	void render(GLuint&) override;
