@@ -16,6 +16,10 @@ public:
 	void setDestination(glm::vec3);
 	void popDestination();
 	glm::vec3 getDestination();
+	bool takeDamage(float);
 private:
+	void drawHealthBar(GLuint&);
+
 	std::vector<glm::vec3> destinations;
+	float health;
 };

@@ -38,6 +38,7 @@ protected:
 	bool renderTexture;
 	
 	static GLuint VBO, VAO, EBO;
+	static float tileSize;
 	glm::vec3 position;
 	static std::unordered_map<std::string, GLint> assets;
 

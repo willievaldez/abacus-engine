@@ -5,6 +5,7 @@
 
 #include "Unit.h"
 #include "Tile.h"
+#include "Spawner.h"
 
 
 
@@ -17,6 +18,7 @@ public:
 	bool getTileFromCoords(glm::vec3, std::pair<int, int>&);
 	bool getCoordsFromTile(std::pair<int, int>, glm::vec3&);
 
+	void update(clock_t);
 	glm::vec3 getSpawn();
 	int addEntity(Unit*);
 	void buildStructure(GLObject*);
@@ -29,8 +31,10 @@ public:
 private:
 	std::vector<std::vector<Tile*>> tileGrid;
 	std::vector<Unit*> entities;
+	std::vector<Spawner*> spawners;
 	glm::vec3 spawn;
 	std::string filepath;
+	clock_t tickTime;
 
 	void makeLevelFromFile();
 };

@@ -1,9 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <chrono>
 #include <thread>
-#include <ctime>
 #include <steam/steam_api.h> // I changed some function calls to "safe function calls" in matchmaking
 
 #include "stdafx.h"
@@ -87,14 +85,16 @@ int main()
 		while (!glfwWindowShouldClose(window))
 		{
 			clock_t begin = clock();
-			Window::idle_callback();
+			Window::idle_callback(begin);
 			clock_t end = clock();
 
-			if (10 - (end - begin) < 0) {
+			float milisecondsElapsed = 1000.0f * (end - begin) / CLOCKS_PER_SEC;
+
+			if ((1000/60) - (milisecondsElapsed) < 0) {
 				std::cout << "WARNING: TICK RATE IS TOO SLOW" << std::endl;
 			}
 			else {
-				std::this_thread::sleep_for(std::chrono::milliseconds(10 - (end - begin)));
+				std::this_thread::sleep_for(std::chrono::milliseconds((int)((1000 / 60) - (milisecondsElapsed))));
 			}
 		}
 	}).detach();

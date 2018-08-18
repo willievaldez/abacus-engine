@@ -45,7 +45,6 @@ Unit* follower2;
 Unit* follower3;
 GLObject* pointer;
 Level* level;
-bool pause = false;
 
 int Window::width = 1280;
 int Window::height = 720;
@@ -75,17 +74,22 @@ void Window::initialize_objects()
 	follower3 = new Unit("datASSet.png");
 	pointer = new GLObject("botboi.png");
 
+	glm::vec3 spawn = level->getSpawn();
 	activeUnit = priest;
 	priest->entityId = level->addEntity(priest);
 	priest->color = glm::vec3(0.0f, 0.0f, 1.0f);
+	priest->setPosition(spawn);
 	follower1->entityId = level->addEntity(follower1);
 	follower1->color = glm::vec3(0.4f, 0.4f, 1.0f);
+	follower1->setPosition(spawn);
 	follower1->setDestination(priest->getPosition() + glm::vec3(0.0f, 2.0f, 0.0f));
 	follower2->entityId = level->addEntity(follower2);
 	follower2->color = glm::vec3(0.4f, 0.4f, 1.0f);
+	follower2->setPosition(spawn);
 	follower2->setDestination(priest->getPosition() + glm::vec3(-2.0f, -0.2f, 0.0f));
 	follower3->entityId = level->addEntity(follower3);
 	follower3->color = glm::vec3(0.4f, 0.4f, 1.0f);
+	follower3->setPosition(spawn);
 	follower3->setDestination(priest->getPosition() + glm::vec3(2.0f, -0.2f, 0.0f));
 
 	shaderProgram = LoadShaders((INSTALL_DIR+"sourceCode/shader.vert").c_str(), (INSTALL_DIR+"sourceCode/shader.frag").c_str());
@@ -221,7 +225,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 	}
 }
 
-void Window::idle_callback()
+void Window::idle_callback(clock_t time)
 {
 	if (MOVEMENT == MovementType::Keyboard)
 	{
@@ -259,16 +263,13 @@ void Window::idle_callback()
 			velocity.x += 1.0f;
 		}
 
-
-		if (!pause) level->moveEntities();
-
 		if (!glm::length(velocity) == 0.0f) {
 			cam_pos += velocity / 7.0f;
 			cam_look_at += velocity / 7.0f;
 		}
 	}
 
-
+	level->update(time);
 
 }
 
@@ -333,10 +334,6 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 	if (action == GLFW_PRESS && key == GLFW_KEY_R)
 	{
 		level->reload();
-	}
-	if (action == GLFW_PRESS && key == GLFW_KEY_P)
-	{
-		pause = !pause;
 	}
 	if (action == GLFW_PRESS && key == GLFW_KEY_B)
 	{

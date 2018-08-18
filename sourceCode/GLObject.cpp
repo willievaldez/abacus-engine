@@ -9,9 +9,12 @@
 
 GLuint GLObject::VAO, GLObject::VBO, GLObject::EBO;
 std::unordered_map<std::string, GLint> GLObject::assets;
+float GLObject::tileSize;
 
 void GLObject::setTileSize(float tileSize)
 {
+	GLObject::tileSize = tileSize;
+
 	float tilePt = tileSize / 2.0f;
 
 	std::vector<glm::vec3> tilePoints = { glm::vec3(-tilePt,tilePt, 0.0f), glm::vec3(tilePt,tilePt, 0.0f), glm::vec3(tilePt,-tilePt, 0.0f), glm::vec3(-tilePt,-tilePt, 0.0f) };
@@ -145,8 +148,6 @@ void GLObject::render(GLuint& shaderProgram)
 
 		GLuint colorId = glGetUniformLocation(shaderProgram, "color");
 		glUniform3fv(colorId, 1, &color[0]);
-
-
 	}
 	else
 	{

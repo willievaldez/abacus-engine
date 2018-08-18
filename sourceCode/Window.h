@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <chrono>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -27,7 +28,7 @@ public:
 	static GLFWwindow* create_window(int width, int height);
 	static void configure_gl_window();
 	static void resize_callback(GLFWwindow* window, int width, int height);
-	static void idle_callback();
+	static void idle_callback(clock_t);
 	static void display_callback(GLFWwindow*);
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);

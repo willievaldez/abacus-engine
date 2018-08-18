@@ -5,6 +5,7 @@
 #include <sstream>
 
 
+
 #define TILE_SIZE 2.0f
 
 Level::Level(const char* lvlFile)
@@ -13,6 +14,8 @@ Level::Level(const char* lvlFile)
 	filepath = INSTALL_DIR + "Models/Levels/" + lvlFile;
 
 	makeLevelFromFile();
+
+	tickTime = clock();
 }
 
 void Level::reload()
@@ -34,6 +37,7 @@ void Level::makeLevelFromFile()
 	std::pair<int, int> spawnGridLocation;
 	spawnGridLocation.first = -1;
 	spawnGridLocation.second = -1;
+	std::vector<std::pair<int, int>> spawnerLocations;
 	if (myfile.is_open())
 	{
 		while (getline(myfile, line))
@@ -51,27 +55,43 @@ void Level::makeLevelFromFile()
 
 					printf("Found spawn location at tile (%d, %d)\n", tileGrid.size(), gridRow.size());
 				}
+				else if (val == "Summoning Circle")
+				{
+					spawnerLocations.push_back(std::pair<int, int>(gridRow.size(), tileGrid.size()));
+				}
 
-				gridRow.push_back(new Tile(val, gridRow.size(), tileGrid.size()));
+				gridRow.push_back(new Tile(val));
 			}
 			tileGrid.push_back(gridRow);
 		}
 
-		if (spawnGridLocation.first == -1)
-		{
-			printf("Error: no spawn location provided. please mark a tile with 'Spawn'\n");
-		}
-		else
-		{
-			spawn.x = (spawnGridLocation.first * TILE_SIZE) + (TILE_SIZE / 2.0f);
-			spawn.y = ((tileGrid.size() - spawnGridLocation.second) * TILE_SIZE) + (TILE_SIZE / 2.0f);
-			printf("spwan: (%f, %f)\n", spawn.x, spawn.y);
-		}
 
 	}
 	else
 	{
 		printf("Could not open file %s\n", filepath);
+	}
+
+	// parse real position of player spawn location
+	if (spawnGridLocation.first == -1)
+	{
+		printf("Error: no spawn location provided. please mark a tile with 'Spawn'\n");
+	}
+	else
+	{
+		spawn.x = (spawnGridLocation.first * TILE_SIZE) + (TILE_SIZE / 2.0f);
+		spawn.y = ((tileGrid.size() - spawnGridLocation.second) * TILE_SIZE) + (TILE_SIZE / 2.0f);
+		printf("spwan: (%f, %f)\n", spawn.x, spawn.y);
+	}
+
+	// parse real position of enemy spawner location
+	for (std::pair<int, int> spawnerLocation : spawnerLocations)
+	{
+		glm::vec3 spawnPos;
+		spawnPos.x = (spawnerLocation.first * TILE_SIZE) + (TILE_SIZE / 2.0f);
+		spawnPos.y = ((tileGrid.size() - spawnerLocation.second) * TILE_SIZE) + (TILE_SIZE / 2.0f);
+		spawnPos.z = 0.0f;
+		spawners.push_back(new Spawner(spawnPos));
 	}
 
 	int numRows = tileGrid.size();
@@ -89,6 +109,20 @@ void Level::makeLevelFromFile()
 	}
 
 	printf("Grid len: %d, Grid Width: %d\n", tileGrid.size(), tileGrid[0].size());
+}
+
+void Level::update(clock_t tick)
+{
+	for (Spawner* spawner : spawners)
+	{
+		Enemy* newEnemy = spawner->spawn(tick);
+		if (newEnemy)
+		{
+			addEntity(newEnemy);
+		}
+	}
+
+	moveEntities();
 }
 
 Level::~Level()
@@ -132,7 +166,6 @@ glm::vec3 Level::getSpawn()
 int Level::addEntity(Unit* entity)
 {
 	entities.push_back(entity);
-	entity->setPosition(spawn); // TODO: how to set position better?
 	return entities.size() - 1;
 }
 
