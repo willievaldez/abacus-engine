@@ -4,7 +4,7 @@ Spawner::Spawner(glm::vec3& pos)
 {
 	position = pos;
 	lastUpdateTime = clock();
-	period = std::chrono::milliseconds(5000);
+	period = 5000;
 }
 
 Spawner::~Spawner()
@@ -12,11 +12,15 @@ Spawner::~Spawner()
 
 }
 
-Enemy* Spawner::spawn(clock_t time)
+Unit* Spawner::spawn(clock_t time)
 {
-	//if (time - lastUpdateTime >= period)
-	//{
+	Unit* newEnemy = nullptr;
+	float elapsedTime = (time - lastUpdateTime) / CLOCKS_PER_SEC;
+	if (time - lastUpdateTime >= period)
+	{
+		lastUpdateTime = time;
 
-	//}
-	return nullptr;
+		newEnemy = new Unit(position);
+	}
+	return newEnemy;
 }

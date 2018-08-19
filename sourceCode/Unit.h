@@ -6,6 +6,7 @@ class Unit : public GLObject
 {
 public:
 	Unit(const char*);
+	Unit(glm::vec3&);
 	~Unit();
 
 	void render(GLuint&) override;
@@ -17,9 +18,13 @@ public:
 	void popDestination();
 	glm::vec3 getDestination();
 	bool takeDamage(float);
+	void targetNearestEntity(std::vector<Unit*>);
+
+	GLObject* target;
 private:
 	void drawHealthBar(GLuint&);
 
 	std::vector<glm::vec3> destinations;
 	float health;
+	bool friendly;
 };

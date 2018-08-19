@@ -138,7 +138,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\sourceCode\Enemy.cpp" />
     <ClCompile Include="..\sourceCode\Follower.cpp" />
     <ClCompile Include="..\sourceCode\glad.c" />
     <ClCompile Include="..\sourceCode\GLObject.cpp" />
@@ -152,7 +151,6 @@
     <ClCompile Include="..\sourceCode\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\sourceCode\Enemy.h" />
     <ClInclude Include="..\sourceCode\Follower.h" />
     <ClInclude Include="..\sourceCode\GLObject.h" />
     <ClInclude Include="..\sourceCode\Level.h" />

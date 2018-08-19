@@ -5,6 +5,16 @@
 
 Unit::Unit(const char* asset) : GLObject(asset) {
 	health = 100.0f;
+	friendly = true;
+}
+
+Unit::Unit(glm::vec3& pos)
+{
+	health = 100.0f;
+	color = glm::vec3(0.5f, 0.0f, 0.0f);
+	renderTexture = false;
+	position = pos;
+	friendly = false;
 }
 
 Unit::~Unit() {}
@@ -60,6 +70,21 @@ void Unit::drawHealthBar(GLuint& shaderProgram)
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
+void Unit::targetNearestEntity(std::vector<Unit*> entities)
+{
+	float dist = 10000.0f;
+	for (Unit* entity : entities)
+	{
+		if (this == entity || entity->friendly == this->friendly) continue;
+		float distToEntity = glm::length(entity->getPosition() - getPosition());
+		if (distToEntity < dist)
+		{
+			dist = distToEntity;
+			target = entity;
+		}
+	}
+}
+
 void Unit::addDestination(glm::vec3& dest)
 {
 	destinations.push_back(dest);
@@ -74,6 +99,7 @@ void Unit::setDestination(glm::vec3 dest)
 {
 	destinations.clear();
 	destinations.push_back(dest);
+	target = nullptr;
 }
 
 glm::vec3 Unit::getDestination()

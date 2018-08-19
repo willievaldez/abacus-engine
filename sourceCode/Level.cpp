@@ -69,7 +69,7 @@ void Level::makeLevelFromFile()
 	}
 	else
 	{
-		printf("Could not open file %s\n", filepath);
+		printf("Could not open file %s\n", filepath.c_str());
 	}
 
 	// parse real position of player spawn location
@@ -115,10 +115,11 @@ void Level::update(clock_t tick)
 {
 	for (Spawner* spawner : spawners)
 	{
-		Enemy* newEnemy = spawner->spawn(tick);
+		Unit* newEnemy = spawner->spawn(tick);
 		if (newEnemy)
 		{
 			addEntity(newEnemy);
+			newEnemy->targetNearestEntity(entities);
 		}
 	}
 
@@ -185,6 +186,31 @@ void Level::moveEntity(int entityId, glm::vec3 offset)
 	//entities[entityId]->move(offset);
 }
 
+void Level::moveEntityToTarget(Unit* entity)
+{
+	glm::vec3 simplePath = entity->target->getPosition() - entity->getPosition();
+	std::pair<int, int> sourceTile, destTile;
+	if (getTileFromCoords(entity->getPosition(), sourceTile) && getTileFromCoords(entity->target->getPosition(), destTile) && tileGrid[destTile.first][destTile.second]->traversable)
+	{
+		glm::vec3 newPosition;
+		if (glm::length(simplePath) < 0.1f)
+		{
+			newPosition = entity->getPosition() + simplePath;
+			entity->target = nullptr;
+		}
+		else
+		{
+			newPosition = entity->getPosition() + (glm::normalize(simplePath) / 10.0f);
+		}
+
+		entity->setPosition(newPosition);
+	}
+	else
+	{
+		entity->target = nullptr;
+	}
+}
+
 void Level::moveEntityToDestination(Unit* entity)
 {
 	glm::vec3 simplePath = entity->getDestination() - entity->getPosition();
@@ -214,7 +240,11 @@ void Level::moveEntities()
 {
 	for (Unit* entity : entities)
 	{
-		if (entity->hasDestination())
+		if (entity->target)
+		{
+			moveEntityToTarget(entity);
+		}
+		else if (entity->hasDestination())
 		{
 			moveEntityToDestination(entity);
 		}

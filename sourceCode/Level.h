@@ -8,7 +8,6 @@
 #include "Spawner.h"
 
 
-
 class Level
 {
 public:
@@ -25,6 +24,7 @@ public:
 	void moveEntities();
 	void moveEntity(int, glm::vec3);
 	void moveEntityToDestination(Unit*);
+	void moveEntityToTarget(Unit*);
 	void render(GLuint);
 	void reload();
 	Unit* selectUnit(glm::vec3&);
