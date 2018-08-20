@@ -138,26 +138,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\sourceCode\Follower.cpp" />
     <ClCompile Include="..\sourceCode\glad.c" />
     <ClCompile Include="..\sourceCode\GLObject.cpp" />
     <ClCompile Include="..\sourceCode\Level.cpp" />
     <ClCompile Include="..\sourceCode\main.cpp" />
-    <ClCompile Include="..\sourceCode\Player.cpp" />
     <ClCompile Include="..\sourceCode\Shader.cpp" />
     <ClCompile Include="..\sourceCode\Spawner.cpp" />
+    <ClCompile Include="..\sourceCode\Structure.cpp" />
     <ClCompile Include="..\sourceCode\Tile.cpp" />
     <ClCompile Include="..\sourceCode\Unit.cpp" />
     <ClCompile Include="..\sourceCode\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\sourceCode\Follower.h" />
     <ClInclude Include="..\sourceCode\GLObject.h" />
     <ClInclude Include="..\sourceCode\Level.h" />
-    <ClInclude Include="..\sourceCode\Player.h" />
     <ClInclude Include="..\sourceCode\Shader.h" />
     <ClInclude Include="..\sourceCode\Spawner.h" />
     <ClInclude Include="..\sourceCode\stdafx.h" />
+    <ClInclude Include="..\sourceCode\Structure.h" />
     <ClInclude Include="..\sourceCode\Tile.h" />
     <ClInclude Include="..\sourceCode\Unit.h" />
     <ClInclude Include="..\sourceCode\Window.h" />

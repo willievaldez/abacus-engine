@@ -20,7 +20,7 @@ public:
 	void update(clock_t);
 	glm::vec3 getSpawn();
 	int addEntity(Unit*);
-	void buildStructure(GLObject*);
+	Structure* placeStructure(GLObject*);
 	void moveEntities();
 	void moveEntity(int, glm::vec3);
 	void moveEntityToDestination(Unit*);
@@ -32,6 +32,7 @@ private:
 	std::vector<std::vector<Tile*>> tileGrid;
 	std::vector<Unit*> entities;
 	std::vector<Spawner*> spawners;
+	std::vector<Structure*> structures;
 	glm::vec3 spawn;
 	std::string filepath;
 	clock_t tickTime;

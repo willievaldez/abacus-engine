@@ -10,6 +10,7 @@ public:
 	~Unit();
 
 	void render(GLuint&) override;
+	void drawSelectedMarker(GLuint&);
 
 	bool hasDestination();
 	void addDestination(glm::vec3&);
@@ -21,10 +22,12 @@ public:
 	void targetNearestEntity(std::vector<Unit*>);
 
 	GLObject* target;
+	bool friendly;
+	bool isDead;
+	float speed;
 private:
 	void drawHealthBar(GLuint&);
 
 	std::vector<glm::vec3> destinations;
 	float health;
-	bool friendly;
 };

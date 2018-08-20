@@ -38,7 +38,7 @@ std::map <int, bool> key_press;
 
 glm::vec2 center((float)Window::width / 2.0f, (float)Window::height / 2.0f);
 
-Unit* activeUnit;
+std::vector<Unit*> activeUnits;
 Unit* priest;
 Unit* follower1;
 Unit* follower2;
@@ -66,7 +66,7 @@ void Window::initialize_objects()
 	cam_pos = cam_look_at;
 	cam_pos.z = 1.0f;
 
-	GLObject::addAsset("pixelflag.png");
+	GLObject::Asset("pixelflag.png");
 
 	priest = new Unit("datASSet.png");
 	follower1 = new Unit("datASSet.png");
@@ -75,20 +75,20 @@ void Window::initialize_objects()
 	pointer = new GLObject("botboi.png");
 
 	glm::vec3 spawn = level->getSpawn();
-	activeUnit = priest;
+	activeUnits.push_back(priest);
+
 	priest->entityId = level->addEntity(priest);
-	priest->color = glm::vec3(0.0f, 0.0f, 1.0f);
 	priest->setPosition(spawn);
+
 	follower1->entityId = level->addEntity(follower1);
-	follower1->color = glm::vec3(0.4f, 0.4f, 1.0f);
 	follower1->setPosition(spawn);
 	follower1->setDestination(priest->getPosition() + glm::vec3(0.0f, 2.0f, 0.0f));
+
 	follower2->entityId = level->addEntity(follower2);
-	follower2->color = glm::vec3(0.4f, 0.4f, 1.0f);
 	follower2->setPosition(spawn);
 	follower2->setDestination(priest->getPosition() + glm::vec3(-2.0f, -0.2f, 0.0f));
+
 	follower3->entityId = level->addEntity(follower3);
-	follower3->color = glm::vec3(0.4f, 0.4f, 1.0f);
 	follower3->setPosition(spawn);
 	follower3->setDestination(priest->getPosition() + glm::vec3(2.0f, -0.2f, 0.0f));
 
@@ -140,7 +140,7 @@ void setup_callbacks(GLFWwindow* window)
 	glfwSetErrorCallback(error_callback);
 	glfwSetKeyCallback(window, Window::key_callback);
 	glfwSetScrollCallback(window, Window::scroll_callback);
-	glfwSetCursorPosCallback(window, Window::cursor_pos_callback);
+	//glfwSetCursorPosCallback(window, Window::cursor_pos_callback);
 	glfwSetFramebufferSizeCallback(window, Window::resize_callback);
 	glfwSetMouseButtonCallback(window, Window::mouse_button_callback);
 }
@@ -245,7 +245,9 @@ void Window::idle_callback(clock_t time)
 
 
 		if (!glm::length(velocity) == 0.0f)
-			level->moveEntity(activeUnit->entityId, velocity);
+		{
+			// put player movement method call here
+		}
 	}
 	else if (MOVEMENT == MovementType::PointAndClick)
 	{
@@ -268,6 +270,16 @@ void Window::idle_callback(clock_t time)
 			cam_look_at += velocity / 7.0f;
 		}
 	}
+
+	// TODO: remove unit from activeUnits if dead
+	//for (auto activeUnit = activeUnits.begin(); activeUnit != activeUnits.end(); activeUnit++)
+	//{
+	//	if ((*activeUnit)->isDead)
+	//	{
+	//		activeUnits.erase(activeUnit);
+	//		activeUnit--;
+	//	}
+	//}
 
 	level->update(time);
 
@@ -298,6 +310,23 @@ void Window::display_callback(GLFWwindow* window)
 	glUniform3f(MatrixID, (cam_pos.x), (cam_pos.y), (cam_pos.z));
 
 	level->render(shaderProgram);
+
+	for (Unit* activeUnit : activeUnits)
+	{
+		activeUnit->drawSelectedMarker(shaderProgram);
+	}
+
+	if (!activeUnits.empty() && activeUnits[0]->target)
+	{
+		if (activeUnits[0]->target->OBJECT_TYPE == ObjectType::UNIT)
+		{
+			((Unit*) (activeUnits[0]->target))->drawSelectedMarker(shaderProgram);
+		}
+		else if (activeUnits[0]->target->OBJECT_TYPE == ObjectType::STRUCTURE)
+		{
+
+		}
+	}
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
@@ -400,26 +429,62 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 	{
 		if (MOUSE_MODE == MouseMode::Select)
 		{
-			if (button == GLFW_MOUSE_BUTTON_2 && activeUnit)
+			Unit* selectedUnit = level->selectUnit(mouseWorldSpace);
+
+			if (button == GLFW_MOUSE_BUTTON_2)
 			{
-				if (key_press[GLFW_KEY_LEFT_SHIFT])
+
+				if (selectedUnit)
 				{
-					activeUnit->addToDestinationQueue(mouseWorldSpace);
+					for (Unit* activeUnit : activeUnits)
+					{
+						activeUnit->target = selectedUnit;
+					}
 				}
 				else
 				{
-					activeUnit->setDestination(mouseWorldSpace);
+					if (key_press[GLFW_KEY_LEFT_SHIFT])
+					{
+						for (Unit* activeUnit : activeUnits)
+						{
+							activeUnit->addToDestinationQueue(mouseWorldSpace);
+						}
+					}
+					else
+					{
+						for (Unit* activeUnit : activeUnits)
+						{
+							activeUnit->setDestination(mouseWorldSpace);
+						}
+					}
 				}
+
 			}
 			else if (button == GLFW_MOUSE_BUTTON_1)
 			{
-				Unit* selectedUnit = level->selectUnit(mouseWorldSpace);
-				if (selectedUnit) activeUnit = selectedUnit;
+				if (selectedUnit)
+				{
+					if (!key_press[GLFW_KEY_LEFT_SHIFT])
+					{
+						activeUnits.clear();
+					}
+
+					activeUnits.push_back(selectedUnit);
+
+				}
 			}
 		}
 		else if (MOUSE_MODE == MouseMode::Build)
 		{
-			level->buildStructure(pointer);
+			Structure* newStructure = level->placeStructure(pointer);
+
+			if (newStructure)
+			{
+				for (Unit* activeUnit : activeUnits)
+				{
+					activeUnit->target = newStructure;
+				}
+			}
 		}
 	}
 	else if (action == GLFW_RELEASE)

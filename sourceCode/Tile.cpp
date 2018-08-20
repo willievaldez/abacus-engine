@@ -5,6 +5,8 @@
 
 Tile::Tile(std::string token)
 {
+	OBJECT_TYPE = ObjectType::STRUCTURE;
+
 	if (token == "W")
 	{
 		renderTexture = false;
@@ -16,7 +18,7 @@ Tile::Tile(std::string token)
 		renderTexture = true;
 		traversable = true;
 		color = glm::vec3(1.0f);
-		textureID = GLObject::addAsset("pentagram.png");
+		textureID = GLObject::Asset("pentagram.png");
 	}
 	else
 	{
@@ -57,6 +59,11 @@ void Tile::render(GLuint& shaderProgram)
 
 	glBindVertexArray(0);
 	glUniform1i(texBool, false);
+
+	if (structure)
+	{
+		structure->render(shaderProgram);
+	}
 }
 
 void Tile::setColor(glm::vec3 newColor)
@@ -64,8 +71,7 @@ void Tile::setColor(glm::vec3 newColor)
 	color = newColor;
 }
 
-void Tile::setAsset(GLint texID)
+void Tile::addStructure(Structure* newStructure)
 {
-	renderTexture = true;
-	textureID = texID;
+	structure = newStructure;
 }

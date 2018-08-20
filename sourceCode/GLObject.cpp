@@ -98,7 +98,7 @@ GLint TextureFromFile(std::string filename)
 }
 
 
-GLint GLObject::addAsset(const char* textureFile)
+GLint GLObject::Asset(const char* textureFile)
 {
 	if (GLObject::assets.find(textureFile) == GLObject::assets.end())
 	{
@@ -110,14 +110,16 @@ GLint GLObject::addAsset(const char* textureFile)
 
 GLObject::GLObject()
 {
+	OBJECT_TYPE = ObjectType::GENERIC;
 	position = glm::vec3(0.0f);
 	renderTexture = false;
 }
 
 GLObject::GLObject(const char* textureFile)
 {
+	OBJECT_TYPE = ObjectType::GENERIC;
 	position = glm::vec3(0.0f);
-	textureID = GLObject::addAsset(textureFile);
+	textureID = GLObject::Asset(textureFile);
 	renderTexture = true;
 }
 
@@ -136,7 +138,7 @@ void GLObject::releaseBuffers()
 void GLObject::render(GLuint& shaderProgram) 
 {
 
-	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), position);
+	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), position), glm::vec3(0.65f, 0.65f, 0.65f));
 
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);

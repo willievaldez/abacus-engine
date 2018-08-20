@@ -42,16 +42,13 @@
     <ClCompile Include="..\sourceCode\Tile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sourceCode\Follower.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sourceCode\Unit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\sourceCode\Spawner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sourceCode\Structure.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -74,16 +71,13 @@
     <ClInclude Include="..\sourceCode\Tile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\sourceCode\Player.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Follower.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\sourceCode\Unit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sourceCode\Spawner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sourceCode\Structure.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

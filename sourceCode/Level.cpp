@@ -123,6 +123,14 @@ void Level::update(clock_t tick)
 		}
 	}
 
+	for (Structure* structure : structures)
+	{
+		if (structure->built)
+		{
+			structure->damageEnemyWithinRange(entities);
+		}
+	}
+
 	moveEntities();
 }
 
@@ -170,13 +178,20 @@ int Level::addEntity(Unit* entity)
 	return entities.size() - 1;
 }
 
-void Level::buildStructure(GLObject* structure)
+Structure* Level::placeStructure(GLObject* structure)
 {
 	std::pair<int, int> tileCoords;
 	if (getTileFromCoords(structure->getPosition(), tileCoords) && tileGrid[tileCoords.first][tileCoords.second]->traversable)
 	{
-		tileGrid[tileCoords.first][tileCoords.second]->setAsset(structure->getTextureID());
+		glm::vec3 tilePos = tileGrid[tileCoords.first][tileCoords.second]->getPosition();
+		Structure* newStructure = new Structure(tilePos);
+		tileGrid[tileCoords.first][tileCoords.second]->addStructure(newStructure);
+		structures.push_back(newStructure);
+
+		return newStructure;
 	}
+
+	return nullptr;
 }
 
 void Level::moveEntity(int entityId, glm::vec3 offset)
@@ -188,27 +203,42 @@ void Level::moveEntity(int entityId, glm::vec3 offset)
 
 void Level::moveEntityToTarget(Unit* entity)
 {
+
 	glm::vec3 simplePath = entity->target->getPosition() - entity->getPosition();
 	std::pair<int, int> sourceTile, destTile;
-	if (getTileFromCoords(entity->getPosition(), sourceTile) && getTileFromCoords(entity->target->getPosition(), destTile) && tileGrid[destTile.first][destTile.second]->traversable)
+	if (getTileFromCoords(entity->getPosition(), sourceTile) 
+		&& getTileFromCoords(entity->target->getPosition(), destTile) 
+		&& tileGrid[destTile.first][destTile.second]->traversable)
 	{
 		glm::vec3 newPosition;
-		if (glm::length(simplePath) < 0.1f)
-		{
-			newPosition = entity->getPosition() + simplePath;
-			entity->target = nullptr;
-		}
-		else
+		if (glm::length(simplePath) > 1.0f)
 		{
 			newPosition = entity->getPosition() + (glm::normalize(simplePath) / 10.0f);
+			entity->setPosition(newPosition);
+		}
+		else if (glm::length(simplePath) < 1.5f)
+		{
+			if (entity->target->OBJECT_TYPE == ObjectType::UNIT)
+			{
+				((Unit*)(entity->target))->takeDamage(0.2f);
+				if (((Unit*)(entity->target))->isDead)
+				{
+					entity->targetNearestEntity(entities);
+				}
+			}
+			else if (entity->target->OBJECT_TYPE == ObjectType::STRUCTURE)
+			{
+				((Structure*)(entity->target))->build(0.5f);
+				if (((Structure*)(entity->target))->built)
+				{
+					entity->target = nullptr;
+				}
+			}
+
 		}
 
-		entity->setPosition(newPosition);
 	}
-	else
-	{
-		entity->target = nullptr;
-	}
+
 }
 
 void Level::moveEntityToDestination(Unit* entity)
@@ -240,13 +270,16 @@ void Level::moveEntities()
 {
 	for (Unit* entity : entities)
 	{
-		if (entity->target)
+		if (!entity->isDead)
 		{
-			moveEntityToTarget(entity);
-		}
-		else if (entity->hasDestination())
-		{
-			moveEntityToDestination(entity);
+			if (entity->target)
+			{
+				moveEntityToTarget(entity);
+			}
+			else if (entity->hasDestination())
+			{
+				moveEntityToDestination(entity);
+			}
 		}
 	}
 }

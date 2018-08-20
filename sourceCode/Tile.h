@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GLObject.h"
-
+#include "Structure.h"
 
 class Tile : public GLObject
 {
@@ -11,9 +11,9 @@ public:
 
 	void render(GLuint&) override;
 	void setColor(glm::vec3);
-	void setAsset(GLint);
+	void addStructure(Structure*);
 	bool traversable;
 
 private:
-
+	Structure* structure;
 };

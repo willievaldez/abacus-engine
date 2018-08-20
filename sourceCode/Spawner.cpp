@@ -4,7 +4,7 @@ Spawner::Spawner(glm::vec3& pos)
 {
 	position = pos;
 	lastUpdateTime = clock();
-	period = 5000;
+	period = 10000;
 }
 
 Spawner::~Spawner()

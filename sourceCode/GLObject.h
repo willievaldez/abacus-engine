@@ -10,10 +10,18 @@
 
 #define INSTALL_DIR std::string("../../")
 
+enum ObjectType
+{
+	GENERIC,
+	UNIT,
+	STRUCTURE
+};
+
 
 class GLObject
 {
 public:
+	ObjectType OBJECT_TYPE;
 	int entityId;
 	glm::vec3 color;
 
@@ -30,7 +38,7 @@ public:
 
 	static void setTileSize(float);
 	static void releaseBuffers();
-	static GLint addAsset(const char*);
+	static GLint Asset(const char*);
 protected:
 	//FMOD::Sound* moveSound;
 	GLint textureID;
