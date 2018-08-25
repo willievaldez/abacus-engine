@@ -128,38 +128,6 @@ void Unit::targetNearestEntity(std::vector<GLObject*> entities, bool targetStruc
 	}
 }
 
-//void Unit::addDestination(glm::vec3& dest)
-//{
-//	destinations.push_back(dest);
-//}
-//
-//void Unit::addToDestinationQueue(glm::vec3& dest)
-//{
-//	destinations.insert(destinations.begin(), dest);
-//}
-//
-//void Unit::setDestination(glm::vec3 dest)
-//{
-//	destinations.clear();
-//	destinations.push_back(dest);
-//	target = nullptr;
-//}
-//
-//glm::vec3 Unit::getDestination()
-//{
-//	return destinations.back();
-//}
-//
-//void Unit::popDestination()
-//{
-//	destinations.pop_back();
-//}
-//
-//bool Unit::hasDestination()
-//{
-//	return destinations.size() > 0;
-//}
-
 bool Unit::takeDamage(float dmg)
 {
 	health -= dmg;
