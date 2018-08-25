@@ -1,20 +1,18 @@
 #pragma once
 
 #include <glm/vec3.hpp>
-#include <chrono>
 
+#include "Structure.h"
 #include "Unit.h"
 
-class Spawner
+class Spawner : public Structure
 {
 public:
-	Spawner(glm::vec3&);
+	Spawner(glm::vec3&, bool);
 	~Spawner();
 
 	Unit* spawn(clock_t);
 
 private:
-	glm::vec3 position;
-	float period;
-	clock_t lastUpdateTime;
+	GLint spawnedTexture;
 };

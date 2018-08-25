@@ -1,5 +1,4 @@
 #include "Window.h"
-#include "Shader.h"
 #include "Level.h"
 #include "Unit.h"
 
@@ -22,13 +21,10 @@ enum MouseMode {
 	Build
 };
 
-const char* window_title = "ERASv0.0.1";
+const char* window_title = "Occultech v0.0.1";
 MovementType MOVEMENT = PointAndClick;
 FrustumType FRUSTUM = Orthographic;
 MouseMode MOUSE_MODE = Select;
-
-
-GLuint shaderProgram;
 
 // Default camera parameters
 glm::vec3 cam_pos(0.0f, 0.0f, 1.0f);		// e  | Position of camera
@@ -36,13 +32,8 @@ glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);	// d  | This is where the camera looks 
 glm::vec3 cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
 std::map <int, bool> key_press;
 
-glm::vec2 center((float)Window::width / 2.0f, (float)Window::height / 2.0f);
-
-std::vector<Unit*> activeUnits;
-Unit* priest;
-Unit* follower1;
-Unit* follower2;
-Unit* follower3;
+std::vector<GLint> structures;
+int whichStructure;
 GLObject* pointer;
 Level* level;
 
@@ -61,38 +52,24 @@ void Window::initialize_objects()
 	GLObject::setTileSize(2.0f);
 
 	level = new Level("testLevel.csv");
+	glm::vec3 spawn = level->getSpawn();
 
-	cam_look_at = level->getSpawn();
+	cam_look_at = spawn;
 	cam_pos = cam_look_at;
 	cam_pos.z = 1.0f;
 
 	GLObject::Asset("pixelflag.png");
-
-	priest = new Unit("datASSet.png");
-	follower1 = new Unit("datASSet.png");
-	follower2 = new Unit("datASSet.png");
-	follower3 = new Unit("datASSet.png");
-	pointer = new GLObject("botboi.png");
-
-	glm::vec3 spawn = level->getSpawn();
-	activeUnits.push_back(priest);
-
-	priest->entityId = level->addEntity(priest);
-	priest->setPosition(spawn);
-
-	follower1->entityId = level->addEntity(follower1);
-	follower1->setPosition(spawn);
-	follower1->setDestination(priest->getPosition() + glm::vec3(0.0f, 2.0f, 0.0f));
-
-	follower2->entityId = level->addEntity(follower2);
-	follower2->setPosition(spawn);
-	follower2->setDestination(priest->getPosition() + glm::vec3(-2.0f, -0.2f, 0.0f));
-
-	follower3->entityId = level->addEntity(follower3);
-	follower3->setPosition(spawn);
-	follower3->setDestination(priest->getPosition() + glm::vec3(2.0f, -0.2f, 0.0f));
-
-	shaderProgram = LoadShaders((INSTALL_DIR+"sourceCode/shader.vert").c_str(), (INSTALL_DIR+"sourceCode/shader.frag").c_str());
+	GLObject::Asset("datASSet.png");
+	GLObject::Asset("demongrunt.png");
+	GLObject::Asset("gravestone.png");
+	GLObject::Asset("greentarget.png");
+	GLObject::Asset("greentarget.png");
+	GLObject::Asset("redtarget.png");
+	GLObject::Asset("pentagram.png");
+	structures.push_back(GLObject::Asset("AstroChurch.png"));
+	structures.push_back(GLObject::Asset("turret.png"));
+	whichStructure = 0;
+	pointer = new GLObject(structures[whichStructure]);
 }
 
 bool Window::initialize_sound_system()
@@ -117,16 +94,10 @@ bool Window::initialize_sound_system()
 
 void Window::clean_up()
 {
-	delete priest;
-	delete follower1;
-	delete follower2;
-	delete follower3;
 	delete level;
 	delete pointer;
 
 	GLObject::releaseBuffers();
-
-	glDeleteProgram(shaderProgram);
 }
 
 
@@ -206,8 +177,6 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 	Window::width = width;
 	Window::height = height;
 
-	center = glm::vec2((float)Window::width / 2.0f, (float)Window::height / 2.0f);
-
 	// Set the viewport size
 	glViewport(0, 0, width, height);
 
@@ -266,20 +235,10 @@ void Window::idle_callback(clock_t time)
 		}
 
 		if (!glm::length(velocity) == 0.0f) {
-			cam_pos += velocity / 7.0f;
-			cam_look_at += velocity / 7.0f;
+			cam_pos += velocity / 5.0f;
+			cam_look_at += velocity / 5.0f;
 		}
 	}
-
-	// TODO: remove unit from activeUnits if dead
-	//for (auto activeUnit = activeUnits.begin(); activeUnit != activeUnits.end(); activeUnit++)
-	//{
-	//	if ((*activeUnit)->isDead)
-	//	{
-	//		activeUnits.erase(activeUnit);
-	//		activeUnit--;
-	//	}
-	//}
 
 	level->update(time);
 
@@ -298,35 +257,10 @@ void Window::display_callback(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-
-	// Use the shader of programID
-	glUseProgram(shaderProgram);
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
-	GLuint MatrixID = glGetUniformLocation(shaderProgram, "view");
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &Window::V[0][0]);
-	MatrixID = glGetUniformLocation(shaderProgram, "projection");
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &Window::P[0][0]);
-	MatrixID = glGetUniformLocation(shaderProgram, "cameraPos");
-	glUniform3f(MatrixID, (cam_pos.x), (cam_pos.y), (cam_pos.z));
+	GLObject::useShaderProgram(P, V);
 
-	level->render(shaderProgram);
-
-	for (Unit* activeUnit : activeUnits)
-	{
-		activeUnit->drawSelectedMarker(shaderProgram);
-	}
-
-	if (!activeUnits.empty() && activeUnits[0]->target)
-	{
-		if (activeUnits[0]->target->OBJECT_TYPE == ObjectType::UNIT)
-		{
-			((Unit*) (activeUnits[0]->target))->drawSelectedMarker(shaderProgram);
-		}
-		else if (activeUnits[0]->target->OBJECT_TYPE == ObjectType::STRUCTURE)
-		{
-
-		}
-	}
+	level->render();
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
@@ -345,7 +279,7 @@ void Window::display_callback(GLFWwindow* window)
 		if (level->getTileFromCoords(mouseWorldSpace, tileCoords) && level->getCoordsFromTile(tileCoords, tileCenter))
 		{
 			pointer->setPosition(tileCenter);
-			pointer->render(shaderProgram);
+			pointer->render();
 		}
 
 	}
@@ -373,9 +307,16 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 	if (MOUSE_MODE == MouseMode::Build)
 	{
 
-		//if (action == GLFW_PRESS && key == GLFW_KEY_1)
-
-		//else if(action == GLFW_PRESS && key == GLFW_KEY_2)
+		if (action == GLFW_PRESS && key == GLFW_KEY_1)
+		{
+			whichStructure = 0;
+			pointer->setTextureID(structures[0]);
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_2)
+		{
+			whichStructure = 1;
+			pointer->setTextureID(structures[1]);
+		}
 		//else if (action == GLFW_PRESS && key == GLFW_KEY_3)
 		//else if (action == GLFW_PRESS && key == GLFW_KEY_4)
 
@@ -429,61 +370,22 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 	{
 		if (MOUSE_MODE == MouseMode::Select)
 		{
-			Unit* selectedUnit = level->selectUnit(mouseWorldSpace);
-
-			if (button == GLFW_MOUSE_BUTTON_2)
+			if (button == GLFW_MOUSE_BUTTON_1)
 			{
-
-				if (selectedUnit)
-				{
-					for (Unit* activeUnit : activeUnits)
-					{
-						activeUnit->target = selectedUnit;
-					}
-				}
-				else
-				{
-					if (key_press[GLFW_KEY_LEFT_SHIFT])
-					{
-						for (Unit* activeUnit : activeUnits)
-						{
-							activeUnit->addToDestinationQueue(mouseWorldSpace);
-						}
-					}
-					else
-					{
-						for (Unit* activeUnit : activeUnits)
-						{
-							activeUnit->setDestination(mouseWorldSpace);
-						}
-					}
-				}
-
+				level->selectUnit(mouseWorldSpace, key_press[GLFW_KEY_LEFT_SHIFT]);
 			}
-			else if (button == GLFW_MOUSE_BUTTON_1)
+			else if (button == GLFW_MOUSE_BUTTON_2)
 			{
-				if (selectedUnit)
-				{
-					if (!key_press[GLFW_KEY_LEFT_SHIFT])
-					{
-						activeUnits.clear();
-					}
-
-					activeUnits.push_back(selectedUnit);
-
-				}
+				level->addTarget(mouseWorldSpace, key_press[GLFW_KEY_LEFT_SHIFT]);
 			}
 		}
 		else if (MOUSE_MODE == MouseMode::Build)
 		{
-			Structure* newStructure = level->placeStructure(pointer);
+			level->placeStructure(mouseWorldSpace, structures[whichStructure]);
 
-			if (newStructure)
+			if (!key_press[GLFW_KEY_LEFT_SHIFT])
 			{
-				for (Unit* activeUnit : activeUnits)
-				{
-					activeUnit->target = newStructure;
-				}
+				MOUSE_MODE = MouseMode::Select;
 			}
 		}
 	}

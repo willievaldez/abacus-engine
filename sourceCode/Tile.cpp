@@ -13,13 +13,6 @@ Tile::Tile(std::string token)
 		traversable = false;
 		color = glm::vec3(0.0f);
 	}
-	else if (token == "Summoning Circle")
-	{
-		renderTexture = true;
-		traversable = true;
-		color = glm::vec3(1.0f);
-		textureID = GLObject::Asset("pentagram.png");
-	}
 	else
 	{
 		renderTexture = false;
@@ -34,7 +27,7 @@ Tile::~Tile()
 
 }
 
-void Tile::render(GLuint& shaderProgram)
+void Tile::render()
 {
 	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), position);
 
@@ -62,7 +55,7 @@ void Tile::render(GLuint& shaderProgram)
 
 	if (structure)
 	{
-		structure->render(shaderProgram);
+		structure->render();
 	}
 }
 

@@ -1,15 +1,13 @@
 #include "Structure.h"
 
-#include <glm/gtc/matrix_transform.hpp> // length
-
-
-Structure::Structure(glm::vec3& pos) : GLObject("botboi.png")
+Structure::Structure(glm::vec3& pos, GLint texID) : GLObject(texID)
 {
 	OBJECT_TYPE = ObjectType::STRUCTURE;
+	STRUCTURE_TYPE = StructureType::GENERIC_TYPE;
 	built = false;
 	health = 0.0f;
-	range = 5.0f;
-	power = 0.3f;
+	lastUpdateTime = clock();
+	period = 10000;
 
 	position = pos;
 }
@@ -29,21 +27,26 @@ void Structure::build(float progress)
 	}
 }
 
-void Structure::render(GLuint& shaderProgram)
+void Structure::render()
 {
 	if (!built)
 	{
-		drawHealthBar(shaderProgram);
+		drawHealthBar();
 	}
 	else
 	{
-		GLObject::render(shaderProgram);
+		GLObject::render();
 	}
 
 
 }
 
-void Structure::drawHealthBar(GLuint& shaderProgram)
+void Structure::update(clock_t tick)
+{
+	
+}
+
+void Structure::drawHealthBar()
 {
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
@@ -71,15 +74,4 @@ void Structure::drawHealthBar(GLuint& shaderProgram)
 
 	glBindVertexArray(0);
 
-}
-
-void Structure::damageEnemyWithinRange(std::vector<Unit*> entities)
-{
-	for (Unit* entity : entities)
-	{
-		if (!entity->friendly && glm::length(entity->getPosition() - position) <= range)
-		{
-			entity->takeDamage(power);
-		}
-	}
 }

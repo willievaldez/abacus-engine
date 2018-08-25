@@ -1,5 +1,7 @@
 #include "GLObject.h"
 
+#include "Shader.h"
+
 #include <glm/gtc/matrix_transform.hpp> // translate
 #include <string> // string
 
@@ -7,7 +9,7 @@
 
 #include <std_image.h>
 
-GLuint GLObject::VAO, GLObject::VBO, GLObject::EBO;
+GLuint GLObject::VAO, GLObject::VBO, GLObject::EBO, GLObject::shaderProgram;
 std::unordered_map<std::string, GLint> GLObject::assets;
 float GLObject::tileSize;
 
@@ -69,6 +71,17 @@ void GLObject::setTileSize(float tileSize)
 
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 
+	shaderProgram = LoadShaders((INSTALL_DIR + "sourceCode/shader.vert").c_str(), (INSTALL_DIR + "sourceCode/shader.frag").c_str());
+}
+
+void GLObject::useShaderProgram(glm::mat4 P, glm::mat4 V)
+{
+	// Use the shader of programID
+	glUseProgram(shaderProgram);
+	GLuint MatrixID = glGetUniformLocation(shaderProgram, "view");
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &V[0][0]);
+	MatrixID = glGetUniformLocation(shaderProgram, "projection");
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &P[0][0]);
 }
 
 GLint TextureFromFile(std::string filename)
@@ -115,13 +128,15 @@ GLObject::GLObject()
 	renderTexture = false;
 }
 
-GLObject::GLObject(const char* textureFile)
+GLObject::GLObject(GLint texID)
 {
 	OBJECT_TYPE = ObjectType::GENERIC;
 	position = glm::vec3(0.0f);
-	textureID = GLObject::Asset(textureFile);
+	textureID = texID;
 	renderTexture = true;
 }
+
+GLObject::GLObject(const char* textureFile) : GLObject(GLObject::Asset(textureFile)) {}
 
 GLObject::~GLObject()
 {
@@ -133,12 +148,14 @@ void GLObject::releaseBuffers()
 	glDeleteVertexArrays(1, &GLObject::VAO);
 	glDeleteBuffers(1, &GLObject::VBO);
 	glDeleteBuffers(1, &GLObject::EBO);
+
+	glDeleteProgram(shaderProgram);
 }
 
-void GLObject::render(GLuint& shaderProgram) 
+void GLObject::render()
 {
 
-	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), position), glm::vec3(0.65f, 0.65f, 0.65f));
+	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), position), glm::vec3(1.0f, 1.0f, 1.0f));
 
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
@@ -169,6 +186,31 @@ void GLObject::render(GLuint& shaderProgram)
 }
 
 
+void GLObject::drawSelectedMarker(bool green)
+{
+	glBindVertexArray(VAO);
+
+	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), position), glm::vec3(0.9f, 0.9f, 1.0f));
+	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
+
+	GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
+	glUniform1i(texBool, true);
+
+	if (green)
+	{
+		glBindTexture(GL_TEXTURE_2D, GLObject::Asset("greentarget.png"));
+	}
+	else
+	{
+		glBindTexture(GL_TEXTURE_2D, GLObject::Asset("redtarget.png"));
+	}
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray(0);
+}
+
 void GLObject::setPosition(glm::vec3& pos)
 {
 	position = pos;
@@ -179,7 +221,7 @@ glm::vec3 GLObject::getPosition()
 	return position;
 }
 
-GLint GLObject::getTextureID()
+void GLObject::setTextureID(GLint id)
 {
-	return textureID;
+	textureID = id;
 }

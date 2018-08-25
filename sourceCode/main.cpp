@@ -12,7 +12,6 @@
 
 bool useSteam = false;
 
-// settings
 GLFWwindow* window;
 
 int main()
@@ -27,7 +26,7 @@ int main()
 
 			// Once you get a public Steam AppID assigned for this game, you need to replace k_uAppIdInvalid with it and
 			// removed steam_appid.txt from the game depot.
-
+			OutputDebugString("Invalid App ID\n");
 			return EXIT_FAILURE;
 		}
 
@@ -35,7 +34,6 @@ int main()
 		if (!Steamworks_InitCEGLibrary())
 		{
 			OutputDebugString("Steamworks_InitCEGLibrary() failed\n");
-			//Alert("Fatal Error", "Steam must be running to play this game (InitDrmLibrary() failed).\n");
 			return EXIT_FAILURE;
 		}
 
@@ -70,18 +68,24 @@ int main()
 	
 
 	window = Window::create_window(Window::width, Window::height);
-	if (window == NULL) return EXIT_FAILURE;
+	if (window == NULL) {
+		OutputDebugString("Failed to create window\n");
+		return EXIT_FAILURE;
+	}
 
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
+		OutputDebugString("Failed to initialize GLAD\n");
 		return EXIT_FAILURE;
 	}
 
 	Window::configure_gl_window();
 
-	if (!Window::initialize_sound_system()) return EXIT_FAILURE;
+	if (!Window::initialize_sound_system()) {
+		OutputDebugString("Failed to initialize sound system\n");
+		return EXIT_FAILURE;
+	}
 
 
 	Window::initialize_objects();
@@ -97,7 +101,7 @@ int main()
 			float milisecondsElapsed = 1000.0f * (end - begin) / CLOCKS_PER_SEC;
 
 			if ((1000/60) - (milisecondsElapsed) < 0) {
-				std::cout << "WARNING: TICK RATE IS TOO SLOW" << std::endl;
+				printf("WARNING: TICK RATE IS TOO SLOW\n");
 			}
 			else {
 				std::this_thread::sleep_for(std::chrono::milliseconds((int)((1000 / 60) - (milisecondsElapsed))));

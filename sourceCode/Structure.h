@@ -1,23 +1,32 @@
 #pragma once
 
-#include "Unit.h" // Unit, GLObject
+#include "GLObject.h"
+#include <chrono>
+
+enum StructureType
+{
+	SPAWNER,
+	TURRET,
+	GENERIC_TYPE
+};
 
 class Structure : public GLObject
 {
 public:
-	Structure(glm::vec3&);
+	Structure(glm::vec3&, GLint);
 	~Structure();
 
-	void render(GLuint&) override;
+	void update(clock_t);
+	void render() override;
 	void build(float);
-	void damageEnemyWithinRange(std::vector<Unit*>);
 
 	bool built;
+	StructureType STRUCTURE_TYPE;
 
-private:
-	float range;
+protected:
+	bool friendly;
 	float health;
-	float power;
-
-	void drawHealthBar(GLuint&);
+	float period;
+	clock_t lastUpdateTime;
+	void drawHealthBar();
 };

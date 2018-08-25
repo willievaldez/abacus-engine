@@ -146,6 +146,7 @@
     <ClCompile Include="..\sourceCode\Spawner.cpp" />
     <ClCompile Include="..\sourceCode\Structure.cpp" />
     <ClCompile Include="..\sourceCode\Tile.cpp" />
+    <ClCompile Include="..\sourceCode\Turret.cpp" />
     <ClCompile Include="..\sourceCode\Unit.cpp" />
     <ClCompile Include="..\sourceCode\Window.cpp" />
   </ItemGroup>
@@ -157,6 +158,7 @@
     <ClInclude Include="..\sourceCode\stdafx.h" />
     <ClInclude Include="..\sourceCode\Structure.h" />
     <ClInclude Include="..\sourceCode\Tile.h" />
+    <ClInclude Include="..\sourceCode\Turret.h" />
     <ClInclude Include="..\sourceCode\Unit.h" />
     <ClInclude Include="..\sourceCode\Window.h" />
   </ItemGroup>

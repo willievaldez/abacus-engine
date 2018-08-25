@@ -7,6 +7,7 @@
 #include <glm/vec3.hpp>
 #include <vector>
 #include <unordered_map>
+#include <glm/gtc/matrix_transform.hpp> // glm::mat4, glm::transform, glm::length
 
 #define INSTALL_DIR std::string("../../")
 
@@ -27,27 +28,29 @@ public:
 
 	GLObject();
 	GLObject(const char*);
+	GLObject(GLint);
 	~GLObject();
 
-	virtual void render(GLuint&);
-	
+	virtual void render();
+
+	void drawSelectedMarker(bool);
+
 	glm::vec3 getPosition();
 	void setPosition(glm::vec3&);
+	void setTextureID(GLint);
 
-	GLint getTextureID();
-
+	static void useShaderProgram(glm::mat4, glm::mat4);
 	static void setTileSize(float);
 	static void releaseBuffers();
 	static GLint Asset(const char*);
 protected:
 	//FMOD::Sound* moveSound;
 	GLint textureID;
-
+	glm::vec3 position;
 	bool renderTexture;
 	
 	static GLuint VBO, VAO, EBO;
 	static float tileSize;
-	glm::vec3 position;
 	static std::unordered_map<std::string, GLint> assets;
-
+	static GLuint shaderProgram;
 };

@@ -7,7 +7,6 @@
 #include "Tile.h"
 #include "Spawner.h"
 
-
 class Level
 {
 public:
@@ -19,19 +18,23 @@ public:
 
 	void update(clock_t);
 	glm::vec3 getSpawn();
-	int addEntity(Unit*);
-	Structure* placeStructure(GLObject*);
-	void moveEntities();
-	void moveEntity(int, glm::vec3);
-	void moveEntityToDestination(Unit*);
-	void moveEntityToTarget(Unit*);
-	void render(GLuint);
+	int addUnit(Unit*);
+	void moveUnits(std::vector<Unit*>& units);
+	void moveUnitToDestination(Unit*);
+	void moveUnitToTarget(Unit*);
+	void render();
 	void reload();
-	Unit* selectUnit(glm::vec3&);
+	void addTarget(glm::vec3&, bool);
+	void selectUnit(glm::vec3&, bool);
+	GLObject* getEntityFromCoords(glm::vec3&);
+	void placeStructure(glm::vec3&, GLint);
+
 private:
 	std::vector<std::vector<Tile*>> tileGrid;
-	std::vector<Unit*> entities;
-	std::vector<Spawner*> spawners;
+	std::vector<GLObject*> entities;
+	std::vector<Unit*> friendlyUnits;
+	std::vector<Unit*> enemyUnits;
+	std::vector<Unit*> unitGroups[5];
 	std::vector<Structure*> structures;
 	glm::vec3 spawn;
 	std::string filepath;
