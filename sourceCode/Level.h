@@ -26,7 +26,7 @@ public:
 	void reload();
 	void addTarget(glm::vec3&, bool);
 	void selectUnit(glm::vec3&, bool);
-	GLObject* getEntityFromCoords(glm::vec3&);
+	std::vector<GLObject*> getEntitiesFromCoords(glm::vec3&);
 	void placeStructure(glm::vec3&, GLint);
 
 private:
@@ -35,6 +35,7 @@ private:
 	std::vector<Unit*> friendlyUnits;
 	std::vector<Unit*> enemyUnits;
 	std::vector<Unit*> unitGroups[5];
+	std::vector<Unit*> deadUnits;
 	std::vector<Structure*> structures;
 	glm::vec3 spawn;
 	std::string filepath;

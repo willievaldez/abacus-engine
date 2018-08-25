@@ -176,9 +176,14 @@ void Level::render()
 		}
 	}
 
-	for (int i = 0; i < entities.size(); i++)
+	for (int i = 0; i < enemyUnits.size(); i++)
 	{
-		entities[i]->render();
+		enemyUnits[i]->render();
+	}
+
+	for (int i = 0; i < friendlyUnits.size(); i++)
+	{
+		friendlyUnits[i]->render();
 	}
 
 	if (!unitGroups[0].empty())
@@ -366,33 +371,42 @@ bool Level::getCoordsFromTile(std::pair<int, int> tileCoords, glm::vec3& dest)
 	return true;
 }
 
-GLObject* Level::getEntityFromCoords(glm::vec3& coords)
+std::vector<GLObject*> Level::getEntitiesFromCoords(glm::vec3& coords)
 {
+	std::vector<GLObject*> targetedEntities;
 	for (GLObject* entity : entities)
 	{
 		glm::vec3 distToEntity = entity->getPosition() - coords;
 		if (glm::length(distToEntity) < 0.6f)
 		{
-			return entity;
+			targetedEntities.push_back(entity);
 		}
 	}
 
-	return nullptr;
+	return targetedEntities;
 }
 
 void Level::addTarget(glm::vec3& coords, bool modifier)
 {
-	GLObject* targetedEntity = getEntityFromCoords(coords);
+	std::vector<GLObject*> targetedEntities = getEntitiesFromCoords(coords);
+	GLObject* validTarget = nullptr;
+	for (GLObject* targetedEntity : targetedEntities)
+	{
+		if (targetedEntity->OBJECT_TYPE == ObjectType::UNIT
+			&& !((Unit*)targetedEntity)->isDead
+			&& !((Unit*)targetedEntity)->friendly)
+			validTarget = targetedEntity;
+		else if (targetedEntity->OBJECT_TYPE == ObjectType::STRUCTURE
+			&& !((Structure*)targetedEntity)->built)
+			validTarget = targetedEntity;
+	}
 
 	for (Unit* activeUnit : unitGroups[0])
 	{
 		if (!modifier) activeUnit->destinations.clear();
-		if (targetedEntity
-			&& targetedEntity->OBJECT_TYPE == ObjectType::UNIT
-			&& !((Unit*)targetedEntity)->isDead
-			&& ((Unit*)targetedEntity)->friendly != activeUnit->friendly)
+		if (validTarget)
 		{
-			activeUnit->target = targetedEntity;
+			activeUnit->target = validTarget;
 		}
 		else activeUnit->destinations.push_back(coords);
 	}
@@ -400,28 +414,38 @@ void Level::addTarget(glm::vec3& coords, bool modifier)
 
 void Level::selectUnit(glm::vec3& coords, bool modifier)
 {
-	GLObject* targetedEntity = getEntityFromCoords(coords);
-
-	if (targetedEntity)
+	std::vector<GLObject*> targetedEntities = getEntitiesFromCoords(coords);
+	Unit* targetedUnit = nullptr;
+	for (GLObject* targetedEntity : targetedEntities)
 	{
-		if (targetedEntity->OBJECT_TYPE == ObjectType::UNIT)
-		{
-			Unit* targetedUnit = (Unit*)targetedEntity;
+		if (targetedEntity
+			&& targetedEntity->OBJECT_TYPE == ObjectType::UNIT
+			&& !((Unit*)targetedEntity)->isDead
+			&& ((Unit*)targetedEntity)->friendly)
+			targetedUnit = (Unit*)targetedEntity;
+	}
 
-			if (modifier)
+	if (targetedUnit)
+	{
+		/*if (targetedEntity->OBJECT_TYPE == ObjectType::UNIT)
+		{*/
+			if (targetedUnit->friendly && !targetedUnit->isDead)
 			{
+				if (!modifier)
+				{
+					unitGroups[0].clear();
+
+				}
+
 				unitGroups[0].push_back(targetedUnit);
 			}
-			else
-			{
-				unitGroups[0].clear();
-				unitGroups[0].push_back(targetedUnit);
-			}
-		}
-		else if (targetedEntity->OBJECT_TYPE == ObjectType::STRUCTURE)
-		{
-			// TODO: show range and what not
-		}
+
+			
+		//}
+		//else if (targetedEntity->OBJECT_TYPE == ObjectType::STRUCTURE)
+		//{
+		//	// TODO: show range and what not
+		//}
 	}
 	else
 	{
