@@ -1,28 +1,33 @@
 #pragma once
 
 #include "GLObject.h"
+#include "Action.h"
+
+#include <chrono>
+
+class Action;
 
 class Unit : public GLObject
 {
 public:
-	Unit(GLint);
-	Unit(const char*);
-	Unit(glm::vec3&);
+	Unit(GLint, bool);
+	Unit(const char*, bool);
+	Unit(glm::vec3&, bool);
 	~Unit();
 
 	void render() override;
+	void update(clock_t);
 
 	bool takeDamage(float);
-	void targetNearestEntity(std::vector<GLObject*>, bool=false);
-
-	GLObject* target;
-	std::vector<glm::vec3> destinations;
+	void addAction(Action*, bool);
+	void drawActions();
 
 	bool friendly;
 	bool isDead;
 	float speed;
 private:
 	void drawHealthBar();
-
+	Action* idleAction;
 	float health;
+	std::vector<Action*> actions;
 };

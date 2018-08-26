@@ -138,6 +138,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\sourceCode\Action.cpp" />
     <ClCompile Include="..\sourceCode\glad.c" />
     <ClCompile Include="..\sourceCode\GLObject.cpp" />
     <ClCompile Include="..\sourceCode\Level.cpp" />
@@ -151,6 +152,7 @@
     <ClCompile Include="..\sourceCode\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\sourceCode\Action.h" />
     <ClInclude Include="..\sourceCode\GLObject.h" />
     <ClInclude Include="..\sourceCode\Level.h" />
     <ClInclude Include="..\sourceCode\Shader.h" />

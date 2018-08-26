@@ -5,13 +5,13 @@
 #include "Structure.h"
 #include "Unit.h"
 
+class Unit;
 class Turret : public Structure
 {
 public:
 	Turret(glm::vec3&);
 	~Turret();
 
-	Unit* spawn(clock_t);
 	void damageEnemyWithinRange(std::vector<Unit*>);
 
 private:

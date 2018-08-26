@@ -54,6 +54,9 @@
     <ClCompile Include="..\sourceCode\Turret.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\sourceCode\Action.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\sourceCode\GLObject.h">
@@ -84,6 +87,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\sourceCode\Turret.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sourceCode\Action.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

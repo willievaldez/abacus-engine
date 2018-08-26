@@ -31,8 +31,7 @@ Unit* Spawner::spawn(clock_t time)
 	{
 		lastUpdateTime = time;
 
-		unit = new Unit(spawnedTexture);
-		unit->friendly = friendly;
+		unit = new Unit(spawnedTexture, friendly);
 		glm::vec3 spawnPos = position + glm::vec3(-0.5f, 0.5f, 0.0f);
 		unit->setPosition(spawnPos);
 	}

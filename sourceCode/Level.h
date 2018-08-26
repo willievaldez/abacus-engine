@@ -5,7 +5,10 @@
 
 #include "Unit.h"
 #include "Tile.h"
-#include "Spawner.h"
+#include "Structure.h"
+
+class Tile;
+class Unit;
 
 class Level
 {
@@ -16,12 +19,18 @@ public:
 	bool getTileFromCoords(glm::vec3, std::pair<int, int>&);
 	bool getCoordsFromTile(std::pair<int, int>, glm::vec3&);
 
-	void update(clock_t);
+	void update(clock_t&);
 	glm::vec3 getSpawn();
+	const std::vector<std::vector<Tile*>>& getTileGrid();
+	const std::vector<Unit*>& getFriendlyUnits();
+	const std::vector<Unit*>& getEnemyUnits();
+	const std::vector<Structure*>& getStructures();
+
+
 	int addUnit(Unit*);
-	void moveUnits(std::vector<Unit*>& units);
-	void moveUnitToDestination(Unit*);
-	void moveUnitToTarget(Unit*);
+	void updateUnits(std::vector<Unit*>& units, clock_t&);
+	//void moveUnitToDestination(Unit*);
+	//void moveUnitToTarget(Unit*);
 	void render();
 	void reload();
 	void addTarget(glm::vec3&, bool);

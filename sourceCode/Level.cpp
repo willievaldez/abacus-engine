@@ -14,8 +14,9 @@ Level::Level(const char* lvlFile)
 	filepath = INSTALL_DIR + "Models/Levels/" + lvlFile;
 
 	makeLevelFromFile();
+	Action::setLevel(this);
 
-	Unit* priest = new Unit("datASSet.png");
+	Unit* priest = new Unit("datASSet.png", true);
 	addUnit(priest);
 	priest->setPosition(spawn);
 	unitGroups[0].push_back(priest);
@@ -26,6 +27,11 @@ void Level::reload()
 {
 	for (std::vector<Tile*> tileRow : tileGrid)
 	{
+		for (Tile* tile : tileRow)
+		{
+			delete tile;
+		}
+
 		tileRow.clear();
 	}
 
@@ -118,7 +124,7 @@ void Level::makeLevelFromFile()
 	printf("Grid len: %d, Grid Width: %d\n", tileGrid.size(), tileGrid[0].size());
 }
 
-void Level::update(clock_t tick)
+void Level::update(clock_t& tick)
 {
 	for (Structure* structure : structures)
 	{
@@ -133,24 +139,43 @@ void Level::update(clock_t tick)
 				Unit* unit = ((Spawner*)structure)->spawn(tick);
 				if (unit)
 				{
-					if (!unit->friendly)
-					{
-						unit->targetNearestEntity(entities);
-					}
+					//if (!unit->friendly)
+					//{
+					//	unit->targetNearestEntity(entities);
+					//}
 					addUnit(unit);
 				}
 			}
 		}
 	}
 
-	moveUnits(friendlyUnits);
-	moveUnits(enemyUnits);
+	for (int i = 0; i < entities.size(); i++)
+	{
+		while (i < entities.size() 
+			&& entities[i]->OBJECT_TYPE == ObjectType::UNIT
+			&& ((Unit*)entities[i])->isDead)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				auto it = std::find(unitGroups[j].begin(), unitGroups[j].end(), *(entities.begin() + i));
+				if (it != unitGroups[j].end())
+				{
+					unitGroups[j].erase(it);
+				}
+			}
+
+			deadUnits.push_back((Unit*)*(entities.begin() + i));
+			entities.erase(entities.begin() + i);
+			printf("deleting entity, size: %d\n", entities.size());
+		}
+	}
+
+	updateUnits(friendlyUnits, tick);
+	updateUnits(enemyUnits, tick);
 }
 
 Level::~Level()
 {
-	Tile::releaseBuffers();
-
 	for (std::vector<Tile*> tileRow : tileGrid)
 	{
 		for (Tile* tile : tileRow)
@@ -176,6 +201,11 @@ void Level::render()
 		}
 	}
 
+	for (int i = 0; i < deadUnits.size(); i++)
+	{
+		deadUnits[i]->render();
+	}
+
 	for (int i = 0; i < enemyUnits.size(); i++)
 	{
 		enemyUnits[i]->render();
@@ -188,7 +218,7 @@ void Level::render()
 
 	if (!unitGroups[0].empty())
 	{
-		if (unitGroups[0][0]->target)
+		/*if (unitGroups[0][0]->target)
 		{
 			bool green = true;
 			if (unitGroups[0][0]->target->OBJECT_TYPE == ObjectType::UNIT)
@@ -200,10 +230,11 @@ void Level::render()
 				green = true;
 			}
 			unitGroups[0][0]->target->drawSelectedMarker(green);
-		}
+		}*/
 
 		for (Unit* unit : unitGroups[0])
 		{
+			unit->drawActions();
 			unit->drawSelectedMarker(true);
 		}
 	}
@@ -214,6 +245,26 @@ glm::vec3 Level::getSpawn()
 {
 	return spawn;
 }
+
+const std::vector<std::vector<Tile*>>& Level::getTileGrid()
+{
+	return tileGrid;
+}
+
+const std::vector<Unit*>& Level::getFriendlyUnits()
+{
+	return friendlyUnits;
+}
+
+const std::vector<Unit*>& Level::getEnemyUnits()
+{
+	return enemyUnits;
+}
+const std::vector<Structure*>& Level::getStructures()
+{
+	return structures;
+}
+
 
 int Level::addUnit(Unit* unit)
 {
@@ -240,104 +291,119 @@ void Level::placeStructure(glm::vec3& coords, GLint type)
 			entities.push_back(structure);
 			structures.push_back(structure);
 
+			BuildOrRepairAction* buildAction = new BuildOrRepairAction(structure);
+
 			for (Unit* unit : unitGroups[0])
 			{
-				unit->target = structure;
+				//unit->target = structure;
+				unit->addAction(buildAction, true);
 			}
 		}
 
 	}
 }
 
-void Level::moveUnitToTarget(Unit* unit)
-{
+//void Level::moveUnitToTarget(Unit* unit)
+//{
 
-	glm::vec3 simplePath = unit->target->getPosition() - unit->getPosition();
-	std::pair<int, int> sourceTile, destTile;
-	if (getTileFromCoords(unit->getPosition(), sourceTile)
-		&& getTileFromCoords(unit->target->getPosition(), destTile)
-		&& tileGrid[destTile.first][destTile.second]->traversable)
-	{
-		glm::vec3 newPosition;
-		if (glm::length(simplePath) > 1.0f)
-		{
-			newPosition = unit->getPosition() + (glm::normalize(simplePath) / 10.0f);
-			unit->setPosition(newPosition);
-		}
-		else if (glm::length(simplePath) < 1.5f)
-		{
-			if (unit->target->OBJECT_TYPE == ObjectType::UNIT)
-			{
-				((Unit*)(unit->target))->takeDamage(0.2f);
-				if (((Unit*)(unit->target))->isDead)
-				{
-					unit->target = nullptr;
-					if (!unit->friendly)
-					{
-						unit->targetNearestEntity(entities);
+	//glm::vec3 simplePath = unit->target->getPosition() - unit->getPosition();
+	//std::pair<int, int> sourceTile, destTile;
+	//if (getTileFromCoords(unit->getPosition(), sourceTile)
+	//	&& getTileFromCoords(unit->target->getPosition(), destTile)
+	//	&& tileGrid[destTile.first][destTile.second]->traversable)
+	//{
+	//	glm::vec3 newPosition;
+	//	if (glm::length(simplePath) > 1.0f)
+	//	{
+	//		newPosition = unit->getPosition() + (glm::normalize(simplePath) / 10.0f);
+	//		unit->setPosition(newPosition);
+	//	}
+	//	else if (glm::length(simplePath) < 1.5f)
+	//	{
+	//		if (unit->target->OBJECT_TYPE == ObjectType::UNIT)
+	//		{
+	//			((Unit*)(unit->target))->takeDamage(0.2f);
+	//			if (((Unit*)(unit->target))->isDead)
+	//			{
+	//				unit->target = nullptr;
+	//				if (!unit->friendly)
+	//				{
+	//					unit->targetNearestEntity(entities);
 
-					}
-				}
-			}
-			else if (unit->target->OBJECT_TYPE == ObjectType::STRUCTURE)
-			{
-				((Structure*)(unit->target))->build(0.5f);
-				if (((Structure*)(unit->target))->built)
-				{
-					unit->target = nullptr;
-				}
-			}
+	//				}
+	//			}
+	//		}
+	//		else if (unit->target->OBJECT_TYPE == ObjectType::STRUCTURE)
+	//		{
+	//			((Structure*)(unit->target))->build(0.5f);
+	//			if (((Structure*)(unit->target))->built)
+	//			{
+	//				unit->target = nullptr;
+	//			}
+	//		}
 
-		}
+	//	}
 
-	}
+	//}
 
-}
+//}
 
-void Level::moveUnitToDestination(Unit* entity)
-{
-	glm::vec3 simplePath = entity->destinations.back() - entity->getPosition();
-	std::pair<int, int> sourceTile, destTile;
-	if (getTileFromCoords(entity->getPosition(), sourceTile) && getTileFromCoords(entity->destinations.back(), destTile) && tileGrid[destTile.first][destTile.second]->traversable)
-	{
-		glm::vec3 newPosition;
-		if (glm::length(simplePath) < 0.1f)
-		{
-			newPosition = entity->getPosition() + simplePath;
-			entity->destinations.pop_back();
-		}
-		else
-		{
-			newPosition = entity->getPosition() + (glm::normalize(simplePath) / 10.0f);
-		}
+//void Level::moveUnitToDestination(Unit* entity)
+//{
+//	glm::vec3 simplePath = entity->destinations.back() - entity->getPosition();
+//	std::pair<int, int> sourceTile, destTile;
+//	if (getTileFromCoords(entity->getPosition(), sourceTile) && getTileFromCoords(entity->destinations.back(), destTile) && tileGrid[destTile.first][destTile.second]->traversable)
+//	{
+//		glm::vec3 newPosition;
+//		if (glm::length(simplePath) < 0.1f)
+//		{
+//			newPosition = entity->getPosition() + simplePath;
+//			entity->destinations.pop_back();
+//		}
+//		else
+//		{
+//			newPosition = entity->getPosition() + (glm::normalize(simplePath) / 10.0f);
+//		}
+//
+//		entity->setPosition(newPosition);
+//	}
+//	else
+//	{
+//		entity->destinations.pop_back();
+//	}
+//}
 
-		entity->setPosition(newPosition);
-	}
-	else
-	{
-		entity->destinations.pop_back();
-	}
-}
-
-void Level::moveUnits(std::vector<Unit*>& units)
+void Level::updateUnits(std::vector<Unit*>& units, clock_t& tick)
 {
 	for (int i = 0; i < units.size(); i++)
 	{
 		while (i < units.size() && units[i]->isDead)
 		{
+			if (units[i]->friendly)
+			{
+				printf("deleting friendly unit, ");
+			}
+			else
+			{
+				printf("deleting enemy unit, ");
+			}
+			deadUnits.push_back(*(units.begin() + i));
 			units.erase(units.begin()+i);
+			printf("size: %d\n", units.size());
 		}
 
 		if (i >= units.size()) break;
 
-		if (units[i]->target)
+		units[i]->update(tick);
+
+		/*if (units[i]->target)
 		{
 			moveUnitToTarget(units[i]);
 		}
 		else if (!units[i]->destinations.empty())
 		{
 			moveUnitToDestination(units[i]);
-		}
+		}*/
 
 	}
 }
@@ -389,26 +455,40 @@ std::vector<GLObject*> Level::getEntitiesFromCoords(glm::vec3& coords)
 void Level::addTarget(glm::vec3& coords, bool modifier)
 {
 	std::vector<GLObject*> targetedEntities = getEntitiesFromCoords(coords);
-	GLObject* validTarget = nullptr;
+	Action* targetAction = nullptr;
 	for (GLObject* targetedEntity : targetedEntities)
 	{
 		if (targetedEntity->OBJECT_TYPE == ObjectType::UNIT
 			&& !((Unit*)targetedEntity)->isDead
 			&& !((Unit*)targetedEntity)->friendly)
-			validTarget = targetedEntity;
+		{
+			targetAction = new TargetAction((Unit*)targetedEntity);
+			break;
+		}
 		else if (targetedEntity->OBJECT_TYPE == ObjectType::STRUCTURE
 			&& !((Structure*)targetedEntity)->built)
-			validTarget = targetedEntity;
+		{
+			targetAction = new BuildOrRepairAction((Structure*)targetedEntity);
+		}
 	}
 
 	for (Unit* activeUnit : unitGroups[0])
 	{
-		if (!modifier) activeUnit->destinations.clear();
-		if (validTarget)
+		//if (!modifier) activeUnit->destinations.clear();
+		//if (validTarget)
+		//{
+		//	activeUnit->target = validTarget;
+		//}
+		//else activeUnit->destinations.push_back(coords);
+		if (targetAction)
 		{
-			activeUnit->target = validTarget;
+			activeUnit->addAction(targetAction, !modifier);
 		}
-		else activeUnit->destinations.push_back(coords);
+		else
+		{
+			MoveAction* moveAction = new MoveAction(coords);
+			activeUnit->addAction(moveAction, !modifier);
+		}
 	}
 }
 
@@ -421,8 +501,11 @@ void Level::selectUnit(glm::vec3& coords, bool modifier)
 		if (targetedEntity
 			&& targetedEntity->OBJECT_TYPE == ObjectType::UNIT
 			&& !((Unit*)targetedEntity)->isDead
-			&& ((Unit*)targetedEntity)->friendly)
+			&& ((Unit*)targetedEntity)->friendly
+			&& std::find(unitGroups[0].begin(), unitGroups[0].end(), targetedEntity) == unitGroups[0].end())
+		{
 			targetedUnit = (Unit*)targetedEntity;
+		}
 	}
 
 	if (targetedUnit)
@@ -436,7 +519,7 @@ void Level::selectUnit(glm::vec3& coords, bool modifier)
 					unitGroups[0].clear();
 
 				}
-
+				printf("adding unit to selection, size: %d\n", unitGroups[0].size());
 				unitGroups[0].push_back(targetedUnit);
 			}
 

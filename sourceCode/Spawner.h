@@ -5,6 +5,8 @@
 #include "Structure.h"
 #include "Unit.h"
 
+class Unit;
+
 class Spawner : public Structure
 {
 public:

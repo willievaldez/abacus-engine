@@ -2,18 +2,27 @@
 
 #include <glm/gtc/matrix_transform.hpp> // translate
 
-Unit::Unit(GLint texID) : GLObject(texID)
+Unit::Unit(GLint texID, bool isFriendly) : GLObject(texID)
 {
 	OBJECT_TYPE = ObjectType::UNIT;
 	health = 100.0f;
 	speed = 0.15f;
-	friendly = true;
+	friendly = isFriendly;
 	isDead = false;
+
+	if (friendly)
+	{
+		idleAction = new IdleDefendAction(10.0f);
+	}
+	else
+	{
+		idleAction = new IdleAttackAction();
+	}
 }
 
-Unit::Unit(const char* asset) : Unit(GLObject::Asset(asset)) {}
+Unit::Unit(const char* asset, bool isFriendly) : Unit(GLObject::Asset(asset), isFriendly) {}
 
-Unit::Unit(glm::vec3& pos)
+Unit::Unit(glm::vec3& pos, bool isFriendly)
 {
 	OBJECT_TYPE = ObjectType::UNIT;
 	health = 100.0f;
@@ -21,11 +30,22 @@ Unit::Unit(glm::vec3& pos)
 	color = glm::vec3(0.5f, 0.0f, 0.0f);
 	renderTexture = false;
 	position = pos;
-	friendly = false;
+	friendly = isFriendly;
 	isDead = false;
+
+	if (friendly)
+	{
+		idleAction = new IdleDefendAction(10.0f);
+	}
+	else
+	{
+		idleAction = new IdleAttackAction();
+	}
 }
 
-Unit::~Unit() {}
+Unit::~Unit() {
+	delete idleAction;
+}
 
 void Unit::render()
 {
@@ -53,25 +73,46 @@ void Unit::render()
 
 		glBindVertexArray(VAO);
 
-		for (glm::vec3 destination : destinations)
-		{
-			glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), destination), glm::vec3(0.35f, 0.35f, 0.35f));
-			GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
-			glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
+		//for (glm::vec3 destination : destinations)
+		//{
+		//	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), destination), glm::vec3(0.35f, 0.35f, 0.35f));
+		//	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
+		//	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
 
-			GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
-			glUniform1i(texBool, true);
+		//	GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
+		//	glUniform1i(texBool, true);
 
-			glBindTexture(GL_TEXTURE_2D, GLObject::Asset("pixelflag.png"));
+		//	glBindTexture(GL_TEXTURE_2D, GLObject::Asset("pixelflag.png"));
 
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		}
+		//	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//}
 
 		drawHealthBar();
 
 		glBindVertexArray(0);
 	}
+}
 
+void Unit::update(clock_t tick)
+{
+	if (actions.size() == 0)
+	{
+		idleAction->execute(tick, this);
+	}
+	else if (actions.back()->execute(tick, this)) {
+		delete *(actions.begin() + actions.size() - 1);
+		actions.pop_back();
+	}
+}
+
+void Unit::addAction(Action* action, bool clearActions)
+{
+	if (clearActions) actions.clear();
+	actions.push_back(action);
+}
+
+void Unit::drawActions()
+{
 
 }
 
@@ -100,33 +141,33 @@ void Unit::drawHealthBar()
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-void Unit::targetNearestEntity(std::vector<GLObject*> entities, bool targetStructure)
-{
-	float dist = 10000.0f;
-	for (GLObject* entity : entities)
-	{
-		if (targetStructure && entity->OBJECT_TYPE == ObjectType::STRUCTURE)
-		{
-			float distToEntity = glm::length(entity->getPosition() - getPosition());
-			if (distToEntity < dist)
-			{
-				dist = distToEntity;
-				target = entity;
-			}
-		}
-		else if (entity->OBJECT_TYPE == ObjectType::UNIT)
-		{
-			if (this == entity || ((Unit*)entity)->friendly == this->friendly || ((Unit*)entity)->isDead) continue;
-			float distToEntity = glm::length(entity->getPosition() - getPosition());
-			if (distToEntity < dist)
-			{
-				dist = distToEntity;
-				target = entity;
-			}
-		}
-
-	}
-}
+//void Unit::targetNearestEntity(std::vector<GLObject*> entities, bool targetStructure)
+//{
+//	float dist = 10000.0f;
+//	for (GLObject* entity : entities)
+//	{
+//		if (targetStructure && entity->OBJECT_TYPE == ObjectType::STRUCTURE)
+//		{
+//			float distToEntity = glm::length(entity->getPosition() - getPosition());
+//			if (distToEntity < dist)
+//			{
+//				dist = distToEntity;
+//				target = entity;
+//			}
+//		}
+//		else if (entity->OBJECT_TYPE == ObjectType::UNIT)
+//		{
+//			if (this == entity || ((Unit*)entity)->friendly == this->friendly || ((Unit*)entity)->isDead) continue;
+//			float distToEntity = glm::length(entity->getPosition() - getPosition());
+//			if (distToEntity < dist)
+//			{
+//				dist = distToEntity;
+//				target = entity;
+//			}
+//		}
+//
+//	}
+//}
 
 bool Unit::takeDamage(float dmg)
 {
