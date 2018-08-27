@@ -29,8 +29,7 @@ public:
 
 	int addUnit(Unit*);
 	void updateUnits(std::vector<Unit*>& units, clock_t&);
-	//void moveUnitToDestination(Unit*);
-	//void moveUnitToTarget(Unit*);
+
 	void render();
 	void reload();
 	void addTarget(glm::vec3&, bool);

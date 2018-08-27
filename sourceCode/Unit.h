@@ -31,5 +31,4 @@ private:
 	Action* idleAction;
 	Action* currentAction;
 	float health;
-	//std::vector<Action*> actions;
 };

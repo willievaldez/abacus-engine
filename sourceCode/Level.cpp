@@ -291,76 +291,6 @@ void Level::placeStructure(glm::vec3& coords, GLint type)
 	}
 }
 
-//void Level::moveUnitToTarget(Unit* unit)
-//{
-
-	//glm::vec3 simplePath = unit->target->getPosition() - unit->getPosition();
-	//std::pair<int, int> sourceTile, destTile;
-	//if (getTileFromCoords(unit->getPosition(), sourceTile)
-	//	&& getTileFromCoords(unit->target->getPosition(), destTile)
-	//	&& tileGrid[destTile.first][destTile.second]->traversable)
-	//{
-	//	glm::vec3 newPosition;
-	//	if (glm::length(simplePath) > 1.0f)
-	//	{
-	//		newPosition = unit->getPosition() + (glm::normalize(simplePath) / 10.0f);
-	//		unit->setPosition(newPosition);
-	//	}
-	//	else if (glm::length(simplePath) < 1.5f)
-	//	{
-	//		if (unit->target->OBJECT_TYPE == ObjectType::UNIT)
-	//		{
-	//			((Unit*)(unit->target))->takeDamage(0.2f);
-	//			if (((Unit*)(unit->target))->isDead)
-	//			{
-	//				unit->target = nullptr;
-	//				if (!unit->friendly)
-	//				{
-	//					unit->targetNearestEntity(entities);
-
-	//				}
-	//			}
-	//		}
-	//		else if (unit->target->OBJECT_TYPE == ObjectType::STRUCTURE)
-	//		{
-	//			((Structure*)(unit->target))->build(0.5f);
-	//			if (((Structure*)(unit->target))->built)
-	//			{
-	//				unit->target = nullptr;
-	//			}
-	//		}
-
-	//	}
-
-	//}
-
-//}
-
-//void Level::moveUnitToDestination(Unit* entity)
-//{
-//	glm::vec3 simplePath = entity->destinations.back() - entity->getPosition();
-//	std::pair<int, int> sourceTile, destTile;
-//	if (getTileFromCoords(entity->getPosition(), sourceTile) && getTileFromCoords(entity->destinations.back(), destTile) && tileGrid[destTile.first][destTile.second]->traversable)
-//	{
-//		glm::vec3 newPosition;
-//		if (glm::length(simplePath) < 0.1f)
-//		{
-//			newPosition = entity->getPosition() + simplePath;
-//			entity->destinations.pop_back();
-//		}
-//		else
-//		{
-//			newPosition = entity->getPosition() + (glm::normalize(simplePath) / 10.0f);
-//		}
-//
-//		entity->setPosition(newPosition);
-//	}
-//	else
-//	{
-//		entity->destinations.pop_back();
-//	}
-//}
-
 void Level::updateUnits(std::vector<Unit*>& units, clock_t& tick)
 {
 	for (int i = 0; i < units.size(); i++)
@@ -383,15 +313,6 @@ void Level::updateUnits(std::vector<Unit*>& units, clock_t& tick)
 		if (i >= units.size()) break;
 
 		units[i]->update(tick);
-
-		/*if (units[i]->target)
-		{
-			moveUnitToTarget(units[i]);
-		}
-		else if (!units[i]->destinations.empty())
-		{
-			moveUnitToDestination(units[i]);
-		}*/
 
 	}
 }
