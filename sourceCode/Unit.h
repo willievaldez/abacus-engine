@@ -16,6 +16,7 @@ public:
 	~Unit();
 
 	void render() override;
+	void renderGravestone();
 	void update(clock_t);
 
 	bool takeDamage(float);
@@ -28,6 +29,7 @@ public:
 private:
 	void drawHealthBar();
 	Action* idleAction;
+	Action* currentAction;
 	float health;
-	std::vector<Action*> actions;
+	//std::vector<Action*> actions;
 };

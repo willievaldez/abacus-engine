@@ -18,6 +18,7 @@ Unit::Unit(GLint texID, bool isFriendly) : GLObject(texID)
 	{
 		idleAction = new IdleAttackAction();
 	}
+
 }
 
 Unit::Unit(const char* asset, bool isFriendly) : Unit(GLObject::Asset(asset), isFriendly) {}
@@ -41,83 +42,33 @@ Unit::Unit(glm::vec3& pos, bool isFriendly)
 	{
 		idleAction = new IdleAttackAction();
 	}
+
 }
 
 Unit::~Unit() {
+	Action* actionToDelete = nullptr;
+	while (currentAction)
+	{
+		actionToDelete = currentAction;
+		currentAction = currentAction->nextAction;
+		delete actionToDelete;
+	}
 	delete idleAction;
 }
 
 void Unit::render()
 {
-	if (isDead)
-	{
-		glBindVertexArray(VAO);
-
-		glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), position);
-		GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
-		glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
-
-		GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
-		glUniform1i(texBool, true);
-
-		glBindTexture(GL_TEXTURE_2D, GLObject::Asset("gravestone.png"));
-
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-		glBindVertexArray(0);
-	}
-
-	else
-	{
-		GLObject::render();
-
-		glBindVertexArray(VAO);
-
-		//for (glm::vec3 destination : destinations)
-		//{
-		//	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), destination), glm::vec3(0.35f, 0.35f, 0.35f));
-		//	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
-		//	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
-
-		//	GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
-		//	glUniform1i(texBool, true);
-
-		//	glBindTexture(GL_TEXTURE_2D, GLObject::Asset("pixelflag.png"));
-
-		//	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		//}
-
-		drawHealthBar();
-
-		glBindVertexArray(0);
-	}
+	GLObject::render();
+	drawHealthBar();
 }
 
-void Unit::update(clock_t tick)
-{
-	if (actions.size() == 0)
-	{
-		idleAction->execute(tick, this);
-	}
-	else if (actions.back()->execute(tick, this)) {
-		delete *(actions.begin() + actions.size() - 1);
-		actions.pop_back();
-	}
-}
-
-void Unit::addAction(Action* action, bool clearActions)
-{
-	if (clearActions) actions.clear();
-	actions.push_back(action);
-}
-
-void Unit::drawActions()
-{
-
-}
 
 void Unit::drawHealthBar()
 {
+
+	glBindVertexArray(VAO);
+
+
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
 	GLuint colorId = glGetUniformLocation(shaderProgram, "color");
@@ -139,35 +90,80 @@ void Unit::drawHealthBar()
 	glm::vec3 green(0.0f, 1.0f, 0.0f);
 	glUniform3fv(colorId, 1, &green[0]);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray(0);
+
 }
 
-//void Unit::targetNearestEntity(std::vector<GLObject*> entities, bool targetStructure)
-//{
-//	float dist = 10000.0f;
-//	for (GLObject* entity : entities)
-//	{
-//		if (targetStructure && entity->OBJECT_TYPE == ObjectType::STRUCTURE)
-//		{
-//			float distToEntity = glm::length(entity->getPosition() - getPosition());
-//			if (distToEntity < dist)
-//			{
-//				dist = distToEntity;
-//				target = entity;
-//			}
-//		}
-//		else if (entity->OBJECT_TYPE == ObjectType::UNIT)
-//		{
-//			if (this == entity || ((Unit*)entity)->friendly == this->friendly || ((Unit*)entity)->isDead) continue;
-//			float distToEntity = glm::length(entity->getPosition() - getPosition());
-//			if (distToEntity < dist)
-//			{
-//				dist = distToEntity;
-//				target = entity;
-//			}
-//		}
-//
-//	}
-//}
+
+void Unit::renderGravestone()
+{
+	glBindVertexArray(VAO);
+
+	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), position);
+	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
+
+	GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
+	glUniform1i(texBool, true);
+
+	glBindTexture(GL_TEXTURE_2D, GLObject::Asset("gravestone.png"));
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray(0);
+}
+
+void Unit::update(clock_t tick)
+{
+	if (!currentAction) idleAction->execute(tick, this);
+
+	else if (currentAction->execute(tick, this))
+	{
+		Action* actionToDelete = currentAction;
+		currentAction = currentAction->nextAction;
+		delete actionToDelete;
+	}
+}
+
+void Unit::addAction(Action* action, bool clearActions)
+{
+	if (clearActions)
+	{
+		Action* actionToDelete = nullptr;
+		Action* cachedAction = currentAction;
+		while (cachedAction && cachedAction != idleAction)
+		{
+			actionToDelete = cachedAction;
+			cachedAction = cachedAction->nextAction;
+			delete actionToDelete;
+		}
+		idleAction->nextAction = nullptr;
+		currentAction = nullptr;
+	}
+
+	if (!currentAction) currentAction = action;
+	else 
+	{
+		Action* traversalAction = currentAction;
+		while (traversalAction->nextAction)
+		{
+			traversalAction = traversalAction->nextAction;
+		}
+
+		traversalAction->nextAction = action;
+	}
+}
+
+void Unit::drawActions()
+{
+	Action* actionToDraw = currentAction;
+	while (actionToDraw)
+	{
+		actionToDraw->draw();
+		actionToDraw = actionToDraw->nextAction;
+	}
+}
 
 bool Unit::takeDamage(float dmg)
 {

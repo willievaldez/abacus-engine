@@ -5,6 +5,7 @@ Level* Action::level;
 Action::Action()
 {
 	lastUpdateInterval = clock();
+	nextAction = nullptr;
 }
 
 Action::~Action()
@@ -16,6 +17,9 @@ void Action::setLevel(Level* lvl)
 {
 	Action::level = lvl;
 }
+
+
+// TARGET ACTION ------------------------------------------------
 
 TargetAction::TargetAction(Unit* target)
 {
@@ -51,6 +55,12 @@ bool TargetAction::execute(clock_t& tick, Unit* unit)
 	return false;
 }
 
+void TargetAction::draw()
+{
+	target->drawSelectedMarker(false);
+}
+
+// MOVE ACTION ------------------------------------------------
 
 MoveAction::MoveAction(glm::vec3& dest)
 {
@@ -90,6 +100,14 @@ bool MoveAction::execute(clock_t& tick, Unit* unit)
 	}
 
 }
+
+void MoveAction::draw()
+{
+	GLObject::drawDestinationFlag(destination);
+}
+
+// IDLE DEFEND ACTION ------------------------------------------------
+
 
 IdleDefendAction::IdleDefendAction(float range)
 {
@@ -140,8 +158,16 @@ bool IdleDefendAction::execute(clock_t& tick, Unit* unit)
 		}
 	}
 
-	return true;
+	return false;
 }
+
+void IdleDefendAction::draw()
+{
+
+}
+
+// IDLE ATTACK ACTION ------------------------------------------------
+
 
 IdleAttackAction::IdleAttackAction()
 {
@@ -184,8 +210,16 @@ bool IdleAttackAction::execute(clock_t& tick, Unit* unit)
 		unit->addAction(new TargetAction(target), false);
 	}
 
-	return true;
+	return false;
 }
+
+void IdleAttackAction::draw()
+{
+
+}
+
+// BUILD OR REPAIR ACTION ------------------------------------------------
+
 
 BuildOrRepairAction::BuildOrRepairAction(Structure* structure)
 {
@@ -220,4 +254,9 @@ bool BuildOrRepairAction::execute(clock_t& tick, Unit* unit)
 	}
 
 	return false;
+}
+
+void BuildOrRepairAction::draw()
+{
+	target->drawSelectedMarker(true);
 }

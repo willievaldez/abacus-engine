@@ -74,7 +74,7 @@ void GLObject::setTileSize(float tileSize)
 	shaderProgram = LoadShaders((INSTALL_DIR + "sourceCode/shader.vert").c_str(), (INSTALL_DIR + "sourceCode/shader.frag").c_str());
 }
 
-void GLObject::useShaderProgram(glm::mat4 P, glm::mat4 V)
+void GLObject::useShaderProgram(glm::mat4& P, glm::mat4& V)
 {
 	// Use the shader of programID
 	glUseProgram(shaderProgram);
@@ -185,6 +185,23 @@ void GLObject::render()
 
 }
 
+void GLObject::drawDestinationFlag(glm::vec3& dest)
+{
+	glBindVertexArray(VAO);
+
+	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), dest), glm::vec3(0.5f, 0.5f, 1.0f));
+	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
+
+	GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
+	glUniform1i(texBool, true);
+
+	glBindTexture(GL_TEXTURE_2D, GLObject::Asset("pixelflag.png"));
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray(0);
+}
 
 void GLObject::drawSelectedMarker(bool green)
 {

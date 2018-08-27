@@ -15,6 +15,9 @@ public:
 
 	static void setLevel(Level*);
 	virtual bool execute(clock_t&, Unit*) = 0;
+	virtual void draw() = 0;
+
+	Action* nextAction;
 
 protected:
 	clock_t lastUpdateInterval;
@@ -28,6 +31,7 @@ public:
 	~TargetAction();
 
 	bool execute(clock_t&, Unit*) override;
+	void draw() override;
 
 private:
 	Unit * target;
@@ -40,6 +44,7 @@ public:
 	~BuildOrRepairAction();
 
 	bool execute(clock_t&, Unit*) override;
+	void draw() override;
 
 private:
 	Structure* target;
@@ -52,6 +57,7 @@ public:
 	~MoveAction();
 
 	bool execute(clock_t&, Unit*) override;
+	void draw() override;
 
 private:
 	glm::vec3 destination;
@@ -65,9 +71,9 @@ public:
 	~IdleDefendAction();
 
 	bool execute(clock_t&, Unit*) override;
+	void draw() override;
 
 private:
-	glm::vec3 destination;
 	float range;
 };
 
@@ -78,5 +84,6 @@ public:
 	~IdleAttackAction();
 
 	bool execute(clock_t&, Unit*) override;
+	void draw() override;
 
 };

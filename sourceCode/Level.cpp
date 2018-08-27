@@ -139,10 +139,7 @@ void Level::update(clock_t& tick)
 				Unit* unit = ((Spawner*)structure)->spawn(tick);
 				if (unit)
 				{
-					//if (!unit->friendly)
-					//{
-					//	unit->targetNearestEntity(entities);
-					//}
+					printf("spawned unit/n");
 					addUnit(unit);
 				}
 			}
@@ -203,7 +200,7 @@ void Level::render()
 
 	for (int i = 0; i < deadUnits.size(); i++)
 	{
-		deadUnits[i]->render();
+		deadUnits[i]->renderGravestone();
 	}
 
 	for (int i = 0; i < enemyUnits.size(); i++)
@@ -218,23 +215,14 @@ void Level::render()
 
 	if (!unitGroups[0].empty())
 	{
-		/*if (unitGroups[0][0]->target)
+		// draw only the actions of the most recently selected unit
+		if (unitGroups[0].size() > 0)
 		{
-			bool green = true;
-			if (unitGroups[0][0]->target->OBJECT_TYPE == ObjectType::UNIT)
-			{
-				green = ((Unit*)(unitGroups[0][0]->target))->friendly;
-			}
-			else if (unitGroups[0][0]->target->OBJECT_TYPE == ObjectType::STRUCTURE)
-			{
-				green = true;
-			}
-			unitGroups[0][0]->target->drawSelectedMarker(green);
-		}*/
+			unitGroups[0].back()->drawActions();
+		}
 
 		for (Unit* unit : unitGroups[0])
 		{
-			unit->drawActions();
 			unit->drawSelectedMarker(true);
 		}
 	}
@@ -455,33 +443,33 @@ std::vector<GLObject*> Level::getEntitiesFromCoords(glm::vec3& coords)
 void Level::addTarget(glm::vec3& coords, bool modifier)
 {
 	std::vector<GLObject*> targetedEntities = getEntitiesFromCoords(coords);
-	Action* targetAction = nullptr;
+	GLObject* target = nullptr;
 	for (GLObject* targetedEntity : targetedEntities)
 	{
-		if (targetedEntity->OBJECT_TYPE == ObjectType::UNIT
+		if ((targetedEntity->OBJECT_TYPE == ObjectType::UNIT
 			&& !((Unit*)targetedEntity)->isDead
 			&& !((Unit*)targetedEntity)->friendly)
+			|| (targetedEntity->OBJECT_TYPE == ObjectType::STRUCTURE
+				&& !((Structure*)targetedEntity)->built))
 		{
-			targetAction = new TargetAction((Unit*)targetedEntity);
+			target = targetedEntity;
 			break;
-		}
-		else if (targetedEntity->OBJECT_TYPE == ObjectType::STRUCTURE
-			&& !((Structure*)targetedEntity)->built)
-		{
-			targetAction = new BuildOrRepairAction((Structure*)targetedEntity);
 		}
 	}
 
 	for (Unit* activeUnit : unitGroups[0])
 	{
-		//if (!modifier) activeUnit->destinations.clear();
-		//if (validTarget)
-		//{
-		//	activeUnit->target = validTarget;
-		//}
-		//else activeUnit->destinations.push_back(coords);
-		if (targetAction)
+		if (target)
 		{
+			Action* targetAction = nullptr;
+			if (target->OBJECT_TYPE == ObjectType::UNIT)
+			{
+				targetAction = new TargetAction((Unit*)target);
+			}
+			else if (target->OBJECT_TYPE == ObjectType::STRUCTURE)
+			{
+				targetAction = new BuildOrRepairAction((Structure*)target);
+			}
 			activeUnit->addAction(targetAction, !modifier);
 		}
 		else
@@ -508,17 +496,15 @@ void Level::selectUnit(glm::vec3& coords, bool modifier)
 		}
 	}
 
+	if (!modifier)
+		unitGroups[0].clear();
+
 	if (targetedUnit)
 	{
 		/*if (targetedEntity->OBJECT_TYPE == ObjectType::UNIT)
 		{*/
 			if (targetedUnit->friendly && !targetedUnit->isDead)
 			{
-				if (!modifier)
-				{
-					unitGroups[0].clear();
-
-				}
 				printf("adding unit to selection, size: %d\n", unitGroups[0].size());
 				unitGroups[0].push_back(targetedUnit);
 			}
@@ -530,9 +516,6 @@ void Level::selectUnit(glm::vec3& coords, bool modifier)
 		//	// TODO: show range and what not
 		//}
 	}
-	else
-	{
-		unitGroups[0].clear();
-	}
+
 
 }

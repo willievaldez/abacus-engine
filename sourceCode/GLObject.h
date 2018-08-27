@@ -39,10 +39,11 @@ public:
 	void setPosition(glm::vec3&);
 	void setTextureID(GLint);
 
-	static void useShaderProgram(glm::mat4, glm::mat4);
+	static void useShaderProgram(glm::mat4&, glm::mat4&);
 	static void setTileSize(float);
 	static void releaseBuffers();
 	static GLint Asset(const char*);
+	static void drawDestinationFlag(glm::vec3&);
 protected:
 	//FMOD::Sound* moveSound;
 	GLint textureID;
