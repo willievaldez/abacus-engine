@@ -269,9 +269,11 @@ void Window::display_callback(GLFWwindow* window)
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
-	glm::vec3 mouseWorldSpace((xpos - (Window::width / 2.0)) / (FOV / 2.0f), ((Window::height / 2.0) - ypos) / (FOV / 2.0f), 0.0f);
-	mouseWorldSpace.x += cam_pos.x;
-	mouseWorldSpace.y += cam_pos.y;
+	glm::vec4 mouseWorldSpaceVec4((xpos - (Window::width / 2.0)) / (FOV / 2.0f), ((Window::height / 2.0) - ypos) / (FOV / 2.0f), 0.0f, 1.0f);
+	mouseWorldSpaceVec4.x += cam_pos.x;
+	mouseWorldSpaceVec4.y += cam_pos.y;
+
+	glm::vec3 mouseWorldSpace = glm::inverse(GLObject::isometricSkew) * mouseWorldSpaceVec4;
 
 	if (MOUSE_MODE == MouseMode::Select)
 	{
@@ -395,6 +397,7 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 	{
 		if (MOUSE_MODE == MouseMode::Select)
 		{
+
 			if (button == GLFW_MOUSE_BUTTON_1)
 			{
 				level->selectUnit(mouseWorldSpace, key_press[GLFW_KEY_LEFT_SHIFT]);
