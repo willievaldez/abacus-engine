@@ -11,6 +11,7 @@ public:
 	~Tile();
 
 	void render() override;
+	void render(float);
 	void setColor(glm::vec3);
 	void addStructure(Structure*);
 	bool traversable;

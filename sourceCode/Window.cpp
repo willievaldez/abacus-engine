@@ -31,6 +31,8 @@ glm::vec3 cam_pos(0.0f, 0.0f, 1.0f);		// e  | Position of camera
 glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
 glm::vec3 cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
 std::map <int, bool> key_press;
+float rot = 0.0f;
+float disp = 10.0f;
 
 std::vector<GLint> structures;
 int whichStructure;
@@ -46,6 +48,7 @@ glm::mat4 Window::V;
 
 FMOD::System* Window::AudioSystem;
 
+GLObject* tileGrid;
 
 void Window::initialize_objects()
 {
@@ -57,6 +60,8 @@ void Window::initialize_objects()
 	cam_look_at = spawn;
 	cam_pos = cam_look_at;
 	cam_pos.z = 1.0f;
+
+	tileGrid = new GLObject("isogrid.png");
 
 	GLObject::Asset("pixelflag.png");
 	GLObject::Asset("datASSet.png");
@@ -96,7 +101,7 @@ void Window::clean_up()
 {
 	delete level;
 	delete pointer;
-
+	delete tileGrid;
 	GLObject::releaseBuffers();
 }
 
@@ -241,7 +246,6 @@ void Window::idle_callback(clock_t time)
 	}
 
 	level->update(time);
-
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -252,7 +256,7 @@ void Window::display_callback(GLFWwindow* window)
 		return;
 	}
 
-	glClearColor(0.0f, 0.1f, 0.1f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -260,7 +264,8 @@ void Window::display_callback(GLFWwindow* window)
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	GLObject::useShaderProgram(P, V);
 
-	level->render();
+	level->render(rot);
+	tileGrid->render(disp);
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
@@ -293,6 +298,17 @@ void Window::display_callback(GLFWwindow* window)
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	key_press[key] = !(action == GLFW_RELEASE);
+
+	//if (action == GLFW_PRESS && key == GLFW_KEY_LEFT)
+	//{
+	//	printf("displacement: %d\n", disp);
+	//	disp--;
+	//}
+	//if (action == GLFW_PRESS && key == GLFW_KEY_RIGHT)
+	//{
+	//	printf("displacement: %d\n", disp);
+	//	disp++;
+	//}
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_R)
 	{
@@ -332,29 +348,36 @@ void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 }
 
 void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-	if (FRUSTUM == FrustumType::Perspective)
+	if (key_press[GLFW_KEY_LEFT_CONTROL])
 	{
-		cam_pos.z += yoffset;
-		cam_look_at.z += yoffset;
+		printf("angle: %f\n",rot);
+		rot += yoffset * 0.01f;
 	}
-	else if (FRUSTUM == FrustumType::Orthographic)
-	{
-		if (yoffset > 0.0f) // zoom in
+	else {
+		if (FRUSTUM == FrustumType::Perspective)
 		{
-			if (FOV < 200.0f)
-			{
-				FOV += 5.0f;
-			}
+			cam_pos.z += yoffset;
+			cam_look_at.z += yoffset;
 		}
-		else // zoom out
+		else if (FRUSTUM == FrustumType::Orthographic)
 		{
-			if (FOV > 10.0f)
+			if (yoffset > 0.0f) // zoom in
 			{
-				FOV -= 5.0f;
+				if (FOV < 200.0f)
+				{
+					FOV += 5.0f;
+				}
 			}
-		}
+			else // zoom out
+			{
+				if (FOV > 10.0f)
+				{
+					FOV -= 5.0f;
+				}
+			}
 
-		P = glm::ortho(-width / FOV, width / FOV, -height / FOV, height / FOV, 0.1f, 100.0f);
+			P = glm::ortho(-width / FOV, width / FOV, -height / FOV, height / FOV, 0.1f, 100.0f);
+		}
 	}
 }
 
@@ -362,9 +385,11 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 {
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
-	glm::vec3 mouseWorldSpace((xpos - (Window::width / 2.0)) / (FOV / 2.0f), ((Window::height / 2.0) - ypos) / (FOV / 2.0f), 0.0f);
-	mouseWorldSpace.x += cam_pos.x;
-	mouseWorldSpace.y += cam_pos.y;
+	glm::vec4 mouseWorldSpaceVec4((xpos - (Window::width / 2.0)) / (FOV / 2.0f), ((Window::height / 2.0) - ypos) / (FOV / 2.0f), 0.0f, 1.0f);
+	mouseWorldSpaceVec4.x += cam_pos.x;
+	mouseWorldSpaceVec4.y += cam_pos.y;
+
+	glm::vec3 mouseWorldSpace = glm::inverse(GLObject::isometricSkew) * mouseWorldSpaceVec4;
 
 	if (action == GLFW_PRESS)
 	{

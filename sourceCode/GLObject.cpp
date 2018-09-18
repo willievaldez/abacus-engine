@@ -3,6 +3,7 @@
 #include "Shader.h"
 
 #include <glm/gtc/matrix_transform.hpp> // translate
+#include <glm/gtc/type_ptr.hpp> // make_mat4
 #include <string> // string
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -12,9 +13,19 @@
 GLuint GLObject::VAO, GLObject::VBO, GLObject::EBO, GLObject::shaderProgram;
 std::unordered_map<std::string, GLint> GLObject::assets;
 float GLObject::tileSize;
+glm::mat4 GLObject::isometricSkew;
 
 void GLObject::setTileSize(float tileSize)
 {
+	float skewArray[16] = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.19f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+
+	isometricSkew = glm::make_mat4(skewArray) * glm::rotate(glm::mat4(1.0f), glm::radians(-22.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
 	GLObject::tileSize = tileSize;
 
 	float tilePt = tileSize / 2.0f;
@@ -154,8 +165,44 @@ void GLObject::releaseBuffers()
 
 void GLObject::render()
 {
+	glm::vec4 isometricPositionVec4 = GLObject::isometricSkew * glm::vec4(position, 1.0f);
+	glm::vec3 isometricPosition = isometricPositionVec4;
+	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), isometricPosition);
 
-	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), position), glm::vec3(1.0f, 1.0f, 1.0f));
+	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
+
+	if (!renderTexture)
+	{
+		GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
+		glUniform1i(texBool, false);
+
+		GLuint colorId = glGetUniformLocation(shaderProgram, "color");
+		glUniform3fv(colorId, 1, &color[0]);
+	}
+	else
+	{
+		GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
+		glUniform1i(texBool, true);
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+	}
+
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+	GLuint texBool = glGetUniformLocation(shaderProgram, "useTex");
+	glUniform1i(texBool, false);
+
+}
+
+void GLObject::render(float disp)
+{
+
+	glm::vec4 isometricPositionVec4 = GLObject::isometricSkew * glm::vec4(position, 1.0f);
+	glm::vec3 isometricPosition = isometricPositionVec4;
+	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), isometricPosition);
 
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
@@ -189,7 +236,10 @@ void GLObject::drawDestinationFlag(glm::vec3& dest)
 {
 	glBindVertexArray(VAO);
 
-	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), dest), glm::vec3(0.5f, 0.5f, 1.0f));
+	glm::vec4 isometricPositionVec4 = GLObject::isometricSkew * glm::vec4(dest, 1.0f);
+	glm::vec3 isometricPosition = isometricPositionVec4;
+
+	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), isometricPosition), glm::vec3(0.5f, 0.5f, 1.0f));
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
 
@@ -207,7 +257,9 @@ void GLObject::drawSelectedMarker(bool green)
 {
 	glBindVertexArray(VAO);
 
-	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), position), glm::vec3(0.9f, 0.9f, 1.0f));
+	glm::vec4 isometricPositionVec4 = GLObject::isometricSkew * glm::vec4(position, 1.0f);
+	glm::vec3 isometricPosition = isometricPositionVec4;
+	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), isometricPosition), glm::vec3(0.9f, 0.9f, 1.0f));
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
 

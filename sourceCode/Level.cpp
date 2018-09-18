@@ -187,14 +187,15 @@ Level::~Level()
 	}
 }
 
-void Level::render()
+void Level::render(float rot)
 {
 
+	
 	for (std::vector<Tile*> tileRow : tileGrid)
 	{
 		for (Tile* tile : tileRow)
 		{
-			tile->render();
+			tile->render(rot);
 		}
 	}
 

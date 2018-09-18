@@ -32,6 +32,7 @@ public:
 	~GLObject();
 
 	virtual void render();
+	void render(float);
 
 	void drawSelectedMarker(bool);
 
@@ -44,6 +45,8 @@ public:
 	static void releaseBuffers();
 	static GLint Asset(const char*);
 	static void drawDestinationFlag(glm::vec3&);
+
+	static glm::mat4 isometricSkew;
 protected:
 	//FMOD::Sound* moveSound;
 	GLint textureID;

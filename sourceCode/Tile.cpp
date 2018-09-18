@@ -2,7 +2,6 @@
 
 #include <glm/gtc/matrix_transform.hpp> // translate
 
-
 Tile::Tile(std::string token)
 {
 	OBJECT_TYPE = ObjectType::STRUCTURE;
@@ -29,7 +28,12 @@ Tile::~Tile()
 
 void Tile::render()
 {
-	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), position);
+
+}
+
+void Tile::render(float debugFloat)
+{
+	glm::mat4 toWorld = GLObject::isometricSkew * glm::translate(glm::mat4(1.0f), position);
 
 	glBindVertexArray(VAO);
 

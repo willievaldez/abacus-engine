@@ -30,7 +30,7 @@ public:
 	int addUnit(Unit*);
 	void updateUnits(std::vector<Unit*>& units, clock_t&);
 
-	void render();
+	void render(float);
 	void reload();
 	void addTarget(glm::vec3&, bool);
 	void selectUnit(glm::vec3&, bool);

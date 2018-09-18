@@ -76,7 +76,9 @@ void Unit::drawHealthBar()
 	glUniform1i(texBool, false);
 
 
-	glm::vec3 healthBarPosition(position.x, position.y + GLObject::tileSize / 1.9f, position.z);
+
+	glm::vec4 isometricPosition = GLObject::isometricSkew * glm::vec4(position, 1.0f);
+	glm::vec3 healthBarPosition(isometricPosition.x, isometricPosition.y + GLObject::tileSize / 1.9f, isometricPosition.z);
 
 	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), healthBarPosition), glm::vec3(0.9f, 0.05f, 1.0f));
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
@@ -100,7 +102,9 @@ void Unit::renderGravestone()
 {
 	glBindVertexArray(VAO);
 
-	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), position);
+	glm::vec4 isometricPosition = GLObject::isometricSkew * glm::vec4(position, 1.0f);
+	
+	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(isometricPosition));
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
 
