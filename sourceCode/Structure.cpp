@@ -7,7 +7,7 @@ Structure::Structure(glm::vec3& pos, GLint texID) : GLObject(texID)
 	built = false;
 	health = 0.0f;
 	lastUpdateTime = clock();
-	period = 10000;
+	period = 20000;
 
 	position = pos;
 }

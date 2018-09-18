@@ -8,6 +8,7 @@ Spawner::Spawner(glm::vec3& pos, bool friendlySpawner) : Structure(pos, 0)
 	{
 		textureID = GLObject::Asset("AstroChurch.png");
 		spawnedTexture = GLObject::Asset("botboi.png");
+		period = 10000;
 	}
 	else
 	{
@@ -15,6 +16,8 @@ Spawner::Spawner(glm::vec3& pos, bool friendlySpawner) : Structure(pos, 0)
 		health = 100.0f;
 		textureID = GLObject::Asset("pentagram.png");
 		spawnedTexture = GLObject::Asset("demongrunt.png");
+		period = 20000;
+
 	}
 }
 
