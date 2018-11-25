@@ -8,7 +8,7 @@
 #include <map>
 #include <chrono>
 
-#include <glad/glad.h>
+#include <glad/glad.h> // gl function calls
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>

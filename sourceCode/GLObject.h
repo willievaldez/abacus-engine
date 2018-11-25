@@ -1,13 +1,10 @@
 #pragma once
 
-#define GLM_ENABLE_EXPERIMENTAL
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/vec3.hpp>
-#include <vector>
 #include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp> // glm::mat4, glm::transform, glm::length
+
+#include "Asset.h"
 
 #define INSTALL_DIR std::string("../../")
 
@@ -18,43 +15,48 @@ enum ObjectType
 	STRUCTURE
 };
 
+enum State
+{
+	IDLE,
+	MOVING,
+	ATTACKING
+};
+
 
 class GLObject
 {
+
 public:
+
 	ObjectType OBJECT_TYPE;
 	int entityId;
-	glm::vec3 color;
 
 	GLObject();
 	GLObject(const char*);
-	GLObject(GLint);
+	GLObject(Asset*);
 	~GLObject();
 
-	virtual void render();
-	void render(float);
-
-	void drawSelectedMarker(bool);
+	virtual void draw();
 
 	glm::vec3 getPosition();
 	void setPosition(glm::vec3&);
-	void setTextureID(GLint);
+
+	const State& getState();
+	void setState(State);
 
 	static void useShaderProgram(glm::mat4&, glm::mat4&);
-	static void setTileSize(float);
+	static void initialize();
 	static void releaseBuffers();
-	static GLint Asset(const char*);
-	static void drawDestinationFlag(glm::vec3&);
+	static Asset* GLAsset(const char*);
+	static void setIsometricSkew(float, float);
+	static const glm::mat4 getIsometricSkew();
+	static void drawDebugLine(glm::vec3, glm::vec3);
 
-	static glm::mat4 isometricSkew;
 protected:
 	//FMOD::Sound* moveSound;
-	GLint textureID;
 	glm::vec3 position;
-	bool renderTexture;
-	
-	static GLuint VBO, VAO, EBO;
-	static float tileSize;
-	static std::unordered_map<std::string, GLint> assets;
-	static GLuint shaderProgram;
+	State currentState;
+	Asset* asset;
+
+	static std::unordered_map<std::string, Asset*> assets;
 };

@@ -4,13 +4,10 @@
 #include <fstream>
 #include <sstream>
 
-
-
-#define TILE_SIZE 2.0f
+#include "Config.h"
 
 Level::Level(const char* lvlFile)
 {
-	Tile::setTileSize(TILE_SIZE);
 	filepath = INSTALL_DIR + "Models/Levels/" + lvlFile;
 
 	makeLevelFromFile();
@@ -89,23 +86,23 @@ void Level::makeLevelFromFile()
 	}
 	else
 	{
-		spawn.x = (spawnGridLocation.first * TILE_SIZE) + (TILE_SIZE / 2.0f);
-		spawn.y = ((tileGrid.size() - spawnGridLocation.second) * TILE_SIZE) + (TILE_SIZE / 2.0f);
+		spawn.x = (spawnGridLocation.first * config::tileSize) + (config::tileSize / 2.0f);
+		spawn.y = ((tileGrid.size() - spawnGridLocation.second) * config::tileSize) + (config::tileSize / 2.0f);
 		printf("spwan: (%f, %f)\n", spawn.x, spawn.y);
 	}
 
 	int numRows = tileGrid.size();
-	glm::vec3 offset(TILE_SIZE / 2.0f, TILE_SIZE * numRows + (TILE_SIZE / 2.0f), 0.0f);
+	glm::vec3 offset(config::tileSize / 2.0f, config::tileSize * numRows + (config::tileSize / 2.0f), 0.0f);
 
 	for (std::vector<Tile*> tileRow : tileGrid)
 	{
-		offset.x = TILE_SIZE / 2.0f;
+		offset.x = config::tileSize / 2.0f;
 		for (Tile* tile : tileRow)
 		{
 			tile->setPosition(offset);
-			offset.x += TILE_SIZE;
+			offset.x += config::tileSize;
 		}
-		offset.y -= TILE_SIZE;
+		offset.y -= config::tileSize;
 	}
 
 
@@ -113,11 +110,11 @@ void Level::makeLevelFromFile()
 	for (std::pair<int, int> spawnerLocation : spawnerLocations)
 	{
 		glm::vec3 spawnPos;
-		spawnPos.x = (spawnerLocation.first * TILE_SIZE) + (TILE_SIZE / 2.0f);
-		spawnPos.y = ((tileGrid.size() - spawnerLocation.second) * TILE_SIZE) + (TILE_SIZE / 2.0f);
+		spawnPos.x = (spawnerLocation.first * config::tileSize) + (config::tileSize / 2.0f);
+		spawnPos.y = ((tileGrid.size() - spawnerLocation.second) * config::tileSize) + (config::tileSize / 2.0f);
 		spawnPos.z = 0.0f;
 
-		placeStructure(spawnPos, GLObject::Asset("pentagram.png"));
+		placeStructure(spawnPos, GLObject::GLAsset("pentagram.png"));
 
 	}
 
@@ -187,31 +184,48 @@ Level::~Level()
 	}
 }
 
-void Level::render(float rot)
+void Level::render(float skew, float rot)
 {
+	//for (std::vector<Tile*> tileRow : tileGrid)
+	//{
+	//	for (Tile* tile : tileRow)
+	//	{
+	//		tile->renderFloor();
+	//	}
+	//}
 
-	
+	//for (std::vector<Tile*> tileRow : tileGrid)
+	//{
+	//	for (Tile* tile : tileRow)
+	//	{
+	//		tile->renderStructure();
+	//	}
+	//}
+
+	GLObject::setIsometricSkew(skew, rot);
+
 	for (std::vector<Tile*> tileRow : tileGrid)
 	{
 		for (Tile* tile : tileRow)
 		{
-			tile->render(rot);
+			tile->draw();
 		}
 	}
 
 	for (int i = 0; i < deadUnits.size(); i++)
 	{
-		deadUnits[i]->renderGravestone();
+		glm::vec3 pos = deadUnits[i]->getPosition();
+		GLObject::GLAsset("gravestone.png")->render(pos);
 	}
 
 	for (int i = 0; i < enemyUnits.size(); i++)
 	{
-		enemyUnits[i]->render();
+		enemyUnits[i]->draw();
 	}
 
 	for (int i = 0; i < friendlyUnits.size(); i++)
 	{
-		friendlyUnits[i]->render();
+		friendlyUnits[i]->draw();
 	}
 
 	if (!unitGroups[0].empty())
@@ -224,7 +238,8 @@ void Level::render(float rot)
 
 		for (Unit* unit : unitGroups[0])
 		{
-			unit->drawSelectedMarker(true);
+			glm::vec3 pos = unit->getPosition();
+			GLObject::GLAsset("greentarget.png")->render(pos);
 		}
 	}
 
@@ -263,16 +278,15 @@ int Level::addUnit(Unit* unit)
 	return entities.size() - 1;
 }
 
-void Level::placeStructure(glm::vec3& coords, GLint type)
+void Level::placeStructure(glm::vec3& coords, Asset* type)
 {
 	std::pair<int, int> tileCoords;
 	if (getTileFromCoords(coords, tileCoords) && tileGrid[tileCoords.first][tileCoords.second]->traversable)
 	{
 		glm::vec3 tilePos = tileGrid[tileCoords.first][tileCoords.second]->getPosition();
 		Structure* structure = nullptr;
-		if (type == GLObject::Asset("turret.png")) structure = new Turret(tilePos);
-		else if (type == GLObject::Asset("AstroChurch.png")) structure = new Spawner(tilePos, true);
-		else if (type == GLObject::Asset("pentagram.png")) structure = new Spawner(tilePos, false);
+		if (type == GLObject::GLAsset("turret.png")) structure = new Turret(tilePos);
+		else if (type == GLObject::GLAsset("AstroChurch.png") || type == GLObject::GLAsset("pentagram.png")) structure = new Spawner(tilePos, type);
 
 		if (structure)
 		{
@@ -321,13 +335,13 @@ void Level::updateUnits(std::vector<Unit*>& units, clock_t& tick)
 bool Level::getTileFromCoords(glm::vec3 dest, std::pair<int, int>& tileCoords)
 {
 	if (dest.x < 0.0f || dest.y < 0.0f
-		|| dest.x >(tileGrid[0].size() * TILE_SIZE) || dest.y >(tileGrid.size() * TILE_SIZE))
+		|| dest.x >(tileGrid[0].size() * config::tileSize) || dest.y >(tileGrid.size() * config::tileSize))
 	{
 		return false;
 	}
 
-	tileCoords.second = dest.x / TILE_SIZE;
-	tileCoords.first = ceil(((tileGrid.size() * TILE_SIZE) - dest.y) / TILE_SIZE);
+	tileCoords.second = dest.x / config::tileSize;
+	tileCoords.first = ceil(((tileGrid.size() * config::tileSize) - dest.y) / config::tileSize);
 
 	return true;
 }
@@ -340,8 +354,8 @@ bool Level::getCoordsFromTile(std::pair<int, int> tileCoords, glm::vec3& dest)
 		return false;
 	}
 
-	dest.x = (tileCoords.second * TILE_SIZE) + (TILE_SIZE / 2.0f);
-	dest.y = ((tileGrid.size() - tileCoords.first) * TILE_SIZE) + (TILE_SIZE / 2.0f);
+	dest.x = (tileCoords.second * config::tileSize) + (config::tileSize / 2.0f);
+	dest.y = ((tileGrid.size() - tileCoords.first) * config::tileSize) + (config::tileSize / 2.0f);
 	dest.z = 0.0f;
 
 	return true;

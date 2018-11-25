@@ -1,6 +1,5 @@
 #pragma once
 
-#include <glad/glad.h>
 #include <vector>
 
 #include "Unit.h"
@@ -30,12 +29,12 @@ public:
 	int addUnit(Unit*);
 	void updateUnits(std::vector<Unit*>& units, clock_t&);
 
-	void render(float);
+	void render(float, float);
 	void reload();
 	void addTarget(glm::vec3&, bool);
 	void selectUnit(glm::vec3&, bool);
 	std::vector<GLObject*> getEntitiesFromCoords(glm::vec3&);
-	void placeStructure(glm::vec3&, GLint);
+	void placeStructure(glm::vec3&, Asset*);
 
 private:
 	std::vector<std::vector<Tile*>> tileGrid;

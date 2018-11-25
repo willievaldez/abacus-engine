@@ -13,11 +13,11 @@ enum StructureType
 class Structure : public GLObject
 {
 public:
-	Structure(glm::vec3&, GLint);
+	Structure(glm::vec3&, Asset*);
 	~Structure();
 
 	void update(clock_t);
-	void render() override;
+	void draw() override;
 	void build(float);
 
 	bool built;
@@ -28,5 +28,5 @@ protected:
 	float health;
 	float period;
 	clock_t lastUpdateTime;
-	void drawHealthBar();
+	//void drawHealthBar();
 };

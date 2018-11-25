@@ -10,9 +10,11 @@ public:
 	Tile(std::string);
 	~Tile();
 
-	void render() override;
-	void render(float);
-	void setColor(glm::vec3);
+	//void renderFloor();
+	//void renderStructure();
+
+	void draw() override;
+	//void render(float);
 	void addStructure(Structure*);
 	bool traversable;
 

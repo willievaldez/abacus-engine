@@ -1,23 +1,21 @@
 #include "Spawner.h"
 
-Spawner::Spawner(glm::vec3& pos, bool friendlySpawner) : Structure(pos, 0)
+Spawner::Spawner(glm::vec3& pos, Asset* asset) : Structure(pos, asset)
 {
 	STRUCTURE_TYPE = StructureType::SPAWNER;
-	friendly = friendlySpawner;
-	if (friendly)
+	if (asset == GLObject::GLAsset("AstroChurch.png"))
 	{
-		textureID = GLObject::Asset("AstroChurch.png");
-		spawnedTexture = GLObject::Asset("botboi.png");
+		friendly = true;
+		spawnAsset = GLObject::GLAsset("botboi.png");
 		period = 10000;
 	}
 	else
 	{
+		friendly = false;
 		built = true;
 		health = 100.0f;
-		textureID = GLObject::Asset("pentagram.png");
-		spawnedTexture = GLObject::Asset("demongrunt.png");
+		spawnAsset = GLObject::GLAsset("demongrunt.png");
 		period = 20000;
-
 	}
 }
 
@@ -34,7 +32,7 @@ Unit* Spawner::spawn(clock_t time)
 	{
 		lastUpdateTime = time;
 
-		unit = new Unit(spawnedTexture, friendly);
+		unit = new Unit(spawnAsset, friendly);
 		glm::vec3 spawnPos = position + glm::vec3(-0.5f, 0.5f, 0.0f);
 		unit->setPosition(spawnPos);
 	}

@@ -4,6 +4,14 @@
 
 #include <chrono>
 
+enum ActionType
+{
+	Idle,
+	Target,
+	Move,
+	BuildOrRepair
+};
+
 class Level;
 class Unit;
 class Structure;
@@ -18,6 +26,7 @@ public:
 	virtual void draw() = 0;
 
 	Action* nextAction;
+	ActionType type;
 
 protected:
 	clock_t lastUpdateInterval;

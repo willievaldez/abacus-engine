@@ -31,12 +31,15 @@ glm::vec3 cam_pos(0.0f, 0.0f, 1.0f);		// e  | Position of camera
 glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
 glm::vec3 cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
 std::map <int, bool> key_press;
-float rot = 0.0f;
-float disp = 10.0f;
 
-std::vector<GLint> structures;
+glm::vec2 mousePos(0.0f);
+float ySize = 1.0f;
+float rot = -13.0f;
+bool debug_mode = true;
+
+std::vector<Asset*> structures;
 int whichStructure;
-GLObject* pointer;
+Asset* pointer;
 Level* level;
 
 int Window::width = 1280;
@@ -52,7 +55,7 @@ GLObject* tileGrid;
 
 void Window::initialize_objects()
 {
-	GLObject::setTileSize(2.0f);
+	GLObject::initialize();
 
 	level = new Level("testLevel.csv");
 	glm::vec3 spawn = level->getSpawn();
@@ -63,18 +66,18 @@ void Window::initialize_objects()
 
 	tileGrid = new GLObject("isogrid.png");
 
-	GLObject::Asset("pixelflag.png");
-	GLObject::Asset("datASSet.png");
-	GLObject::Asset("demongrunt.png");
-	GLObject::Asset("gravestone.png");
-	GLObject::Asset("greentarget.png");
-	GLObject::Asset("greentarget.png");
-	GLObject::Asset("redtarget.png");
-	GLObject::Asset("pentagram.png");
-	structures.push_back(GLObject::Asset("AstroChurch.png"));
-	structures.push_back(GLObject::Asset("turret.png"));
+	GLObject::GLAsset("pixelflag.png");
+	GLObject::GLAsset("datASSet.png");
+	GLObject::GLAsset("demongrunt.png");
+	GLObject::GLAsset("gravestone.png");
+	GLObject::GLAsset("greentarget.png");
+	GLObject::GLAsset("greentarget.png");
+	GLObject::GLAsset("redtarget.png");
+	GLObject::GLAsset("pentagram.png");
+	structures.push_back(GLObject::GLAsset("AstroChurch.png"));
+	structures.push_back(GLObject::GLAsset("turret.png"));
 	whichStructure = 0;
-	pointer = new GLObject(structures[whichStructure]);
+	pointer = structures[0];
 }
 
 bool Window::initialize_sound_system()
@@ -100,7 +103,6 @@ bool Window::initialize_sound_system()
 void Window::clean_up()
 {
 	delete level;
-	delete pointer;
 	delete tileGrid;
 	GLObject::releaseBuffers();
 }
@@ -116,7 +118,7 @@ void setup_callbacks(GLFWwindow* window)
 	glfwSetErrorCallback(error_callback);
 	glfwSetKeyCallback(window, Window::key_callback);
 	glfwSetScrollCallback(window, Window::scroll_callback);
-	//glfwSetCursorPosCallback(window, Window::cursor_pos_callback);
+	glfwSetCursorPosCallback(window, Window::cursor_pos_callback);
 	glfwSetFramebufferSizeCallback(window, Window::resize_callback);
 	glfwSetMouseButtonCallback(window, Window::mouse_button_callback);
 }
@@ -217,7 +219,6 @@ void Window::idle_callback(clock_t time)
 			velocity.x += 1.0f;
 		}
 
-
 		if (!glm::length(velocity) == 0.0f)
 		{
 			// put player movement method call here
@@ -240,8 +241,8 @@ void Window::idle_callback(clock_t time)
 		}
 
 		if (!glm::length(velocity) == 0.0f) {
-			cam_pos += velocity / 5.0f;
-			cam_look_at += velocity / 5.0f;
+			cam_pos += velocity / 3.0f;
+			cam_look_at += velocity / 3.0f;
 		}
 	}
 
@@ -264,8 +265,7 @@ void Window::display_callback(GLFWwindow* window)
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	GLObject::useShaderProgram(P, V);
 
-	level->render(rot);
-	tileGrid->render(disp);
+	level->render(0.13f, rot);
 
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
@@ -273,7 +273,7 @@ void Window::display_callback(GLFWwindow* window)
 	mouseWorldSpaceVec4.x += cam_pos.x;
 	mouseWorldSpaceVec4.y += cam_pos.y;
 
-	glm::vec3 mouseWorldSpace = glm::inverse(GLObject::isometricSkew) * mouseWorldSpaceVec4;
+	glm::vec3 mouseWorldSpace = glm::inverse(GLObject::getIsometricSkew()) * mouseWorldSpaceVec4;
 
 	if (MOUSE_MODE == MouseMode::Select)
 	{
@@ -285,11 +285,12 @@ void Window::display_callback(GLFWwindow* window)
 		glm::vec3 tileCenter;
 		if (level->getTileFromCoords(mouseWorldSpace, tileCoords) && level->getCoordsFromTile(tileCoords, tileCenter))
 		{
-			pointer->setPosition(tileCenter);
-			pointer->render();
+			pointer->render(tileCenter);
 		}
 
 	}
+
+	GLObject::drawDebugLine(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 30.0f, 0.0f));
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -301,26 +302,22 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 {
 	key_press[key] = !(action == GLFW_RELEASE);
 
-	//if (action == GLFW_PRESS && key == GLFW_KEY_LEFT)
-	//{
-	//	printf("displacement: %d\n", disp);
-	//	disp--;
-	//}
-	//if (action == GLFW_PRESS && key == GLFW_KEY_RIGHT)
-	//{
-	//	printf("displacement: %d\n", disp);
-	//	disp++;
-	//}
+	
+
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_R)
 	{
 		level->reload();
 	}
-	if (action == GLFW_PRESS && key == GLFW_KEY_B)
+	else if (action == GLFW_PRESS && key == GLFW_KEY_B)
 	{
 		if (MOUSE_MODE == MouseMode::Build)
 			MOUSE_MODE = MouseMode::Select;
 		else MOUSE_MODE = MouseMode::Build;
+	}
+	else if (action == GLFW_PRESS && key == GLFW_KEY_BACKSLASH)
+	{
+		debug_mode = !debug_mode;
 	}
 	if (MOUSE_MODE == MouseMode::Build)
 	{
@@ -328,12 +325,12 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		if (action == GLFW_PRESS && key == GLFW_KEY_1)
 		{
 			whichStructure = 0;
-			pointer->setTextureID(structures[0]);
+			pointer = structures[0];
 		}
 		else if (action == GLFW_PRESS && key == GLFW_KEY_2)
 		{
 			whichStructure = 1;
-			pointer->setTextureID(structures[1]);
+			pointer = structures[1];
 		}
 		//else if (action == GLFW_PRESS && key == GLFW_KEY_3)
 		//else if (action == GLFW_PRESS && key == GLFW_KEY_4)
@@ -344,42 +341,67 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 
 void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	if (debug_mode)
+	{
+		glm::vec4 mouseWorldSpaceVec4((xpos - (Window::width / 2.0)) / (FOV / 2.0f), ((Window::height / 2.0) - ypos) / (FOV / 2.0f), 0.0f, 1.0f);
+		mouseWorldSpaceVec4.x += cam_pos.x;
+		mouseWorldSpaceVec4.y += cam_pos.y;
+		int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 
+		if (state == GLFW_PRESS)
+		{
+			if (mousePos.x != 0.0f || mousePos.y != 0.0f)
+			{
+				float dotProduct = glm::dot(glm::normalize(mousePos), glm::normalize(glm::vec2(mouseWorldSpaceVec4)));
+				// TODO: calculate difference in size
+				float rotDelta = glm::degrees(glm::acos(dotProduct));
+				if (mousePos.x < mouseWorldSpaceVec4.x) rotDelta *= -1.0f;
+				if (!glm::isnan(rotDelta))
+				{
+					rot += rotDelta;
+				}
+				std::cout << "rot: " << rot << std::endl;
+
+			}
+
+			mousePos = mouseWorldSpaceVec4;
+		}
+		else if (state == GLFW_RELEASE)
+		{
+			mousePos = glm::vec2(0.0f);
+		}
+
+		return;
+	}
 
 
 }
 
 void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-	if (key_press[GLFW_KEY_LEFT_CONTROL])
-	{
-		printf("angle: %f\n",rot);
-		rot += yoffset * 0.01f;
-	}
-	else {
-		if (FRUSTUM == FrustumType::Perspective)
-		{
-			cam_pos.z += yoffset;
-			cam_look_at.z += yoffset;
-		}
-		else if (FRUSTUM == FrustumType::Orthographic)
-		{
-			if (yoffset > 0.0f) // zoom in
-			{
-				if (FOV < 200.0f)
-				{
-					FOV += 5.0f;
-				}
-			}
-			else // zoom out
-			{
-				if (FOV > 10.0f)
-				{
-					FOV -= 5.0f;
-				}
-			}
 
-			P = glm::ortho(-width / FOV, width / FOV, -height / FOV, height / FOV, 0.1f, 100.0f);
+	if (FRUSTUM == FrustumType::Perspective)
+	{
+		cam_pos.z += yoffset;
+		cam_look_at.z += yoffset;
+	}
+	else if (FRUSTUM == FrustumType::Orthographic)
+	{
+		if (yoffset > 0.0f) // zoom in
+		{
+			if (FOV < 200.0f)
+			{
+				FOV += 5.0f;
+			}
 		}
+		else // zoom out
+		{
+			if (FOV > 10.0f)
+			{
+				FOV -= 5.0f;
+			}
+		}
+
+		P = glm::ortho(-width / FOV, width / FOV, -height / FOV, height / FOV, 0.1f, 100.0f);
 	}
 }
 
@@ -391,34 +413,60 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 	mouseWorldSpaceVec4.x += cam_pos.x;
 	mouseWorldSpaceVec4.y += cam_pos.y;
 
-	glm::vec3 mouseWorldSpace = glm::inverse(GLObject::isometricSkew) * mouseWorldSpaceVec4;
-
-	if (action == GLFW_PRESS)
+	if (debug_mode)
 	{
-		if (MOUSE_MODE == MouseMode::Select)
+		if (action == GLFW_PRESS)
 		{
+			
+			if (mousePos.x != 0.0f || mousePos.y != 0.0f)
+			{
+				// TODO: calculate difference in size
+				float rotDelta = glm::acos(glm::dot(glm::normalize(mousePos), glm::normalize(glm::vec2(mouseWorldSpaceVec4))));
+				rot += rotDelta;
+				std::cout << "delta: " << rotDelta << std::endl;
 
-			if (button == GLFW_MOUSE_BUTTON_1)
-			{
-				level->selectUnit(mouseWorldSpace, key_press[GLFW_KEY_LEFT_SHIFT]);
 			}
-			else if (button == GLFW_MOUSE_BUTTON_2)
-			{
-				level->addTarget(mouseWorldSpace, key_press[GLFW_KEY_LEFT_SHIFT]);
-			}
+
+			mousePos = mouseWorldSpaceVec4;
 		}
-		else if (MOUSE_MODE == MouseMode::Build)
+		else if (action == GLFW_RELEASE)
 		{
-			level->placeStructure(mouseWorldSpace, structures[whichStructure]);
-
-			if (!key_press[GLFW_KEY_LEFT_SHIFT])
-			{
-				MOUSE_MODE = MouseMode::Select;
-			}
+			mousePos = glm::vec2(0.0f);
 		}
 	}
-	else if (action == GLFW_RELEASE)
+	else 
 	{
+		glm::vec3 mouseWorldSpace = glm::inverse(GLObject::getIsometricSkew()) * mouseWorldSpaceVec4;
 
+		if (action == GLFW_PRESS)
+		{
+			if (MOUSE_MODE == MouseMode::Select)
+			{
+
+				if (button == GLFW_MOUSE_BUTTON_1)
+				{
+					level->selectUnit(mouseWorldSpace, key_press[GLFW_KEY_LEFT_SHIFT]);
+				}
+				else if (button == GLFW_MOUSE_BUTTON_2)
+				{
+					level->addTarget(mouseWorldSpace, key_press[GLFW_KEY_LEFT_SHIFT]);
+				}
+			}
+			else if (MOUSE_MODE == MouseMode::Build)
+			{
+				level->placeStructure(mouseWorldSpace, structures[whichStructure]);
+
+				if (!key_press[GLFW_KEY_LEFT_SHIFT])
+				{
+					MOUSE_MODE = MouseMode::Select;
+				}
+			}
+		}
+		else if (action == GLFW_RELEASE)
+		{
+
+		}
 	}
+
+	
 }

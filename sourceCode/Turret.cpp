@@ -1,6 +1,6 @@
 #include "Turret.h"
 
-Turret::Turret(glm::vec3& pos) : Structure(pos, GLObject::Asset("turret.png"))
+Turret::Turret(glm::vec3& pos) : Structure(pos, GLObject::GLAsset("turret.png"))
 {
 	STRUCTURE_TYPE = StructureType::TURRET;
 

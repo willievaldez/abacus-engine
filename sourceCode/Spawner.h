@@ -10,11 +10,11 @@ class Unit;
 class Spawner : public Structure
 {
 public:
-	Spawner(glm::vec3&, bool);
+	Spawner(glm::vec3&, Asset*);
 	~Spawner();
 
 	Unit* spawn(clock_t);
 
 private:
-	GLint spawnedTexture;
+	Asset* spawnAsset;
 };

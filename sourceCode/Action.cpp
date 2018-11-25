@@ -4,6 +4,7 @@ Level* Action::level;
 
 Action::Action()
 {
+	type = ActionType::Idle;
 	lastUpdateInterval = clock();
 	nextAction = nullptr;
 }
@@ -23,6 +24,7 @@ void Action::setLevel(Level* lvl)
 
 TargetAction::TargetAction(Unit* target)
 {
+	type = ActionType::Target;
 	this->target = target;
 }
 
@@ -35,7 +37,8 @@ bool TargetAction::execute(clock_t& tick, Unit* unit)
 {
 	glm::vec3 simplePath = target->getPosition() - unit->getPosition();
 	std::pair<int, int> sourceTile, destTile;
-	if (level->getTileFromCoords(unit->getPosition(), sourceTile)
+	if (!target->isDead
+		&& level->getTileFromCoords(unit->getPosition(), sourceTile)
 		&& level->getTileFromCoords(target->getPosition(), destTile)
 		&& level->getTileGrid()[destTile.first][destTile.second]->traversable)
 	{
@@ -44,26 +47,34 @@ bool TargetAction::execute(clock_t& tick, Unit* unit)
 		{
 			newPosition = unit->getPosition() + (glm::normalize(simplePath) / 10.0f);
 			unit->setPosition(newPosition);
+			unit->setState(State::MOVING);
 		}
 		if (glm::length(simplePath) < 1.5f)
 		{
 			target->takeDamage(0.2f);
-			return target->isDead;
+			if (!target->isDead)
+			{
+				unit->setState(State::ATTACKING);
+				return true;
+			}
 		}
 	}
 
+	unit->setState(State::IDLE);
 	return false;
 }
 
 void TargetAction::draw()
 {
-	target->drawSelectedMarker(false);
+	glm::vec3 pos = target->getPosition();
+	GLObject::GLAsset("redtarget.png")->render(pos);
 }
 
 // MOVE ACTION ------------------------------------------------
 
 MoveAction::MoveAction(glm::vec3& dest)
 {
+	type = ActionType::Move;
 	destination = dest;
 }
 
@@ -103,7 +114,7 @@ bool MoveAction::execute(clock_t& tick, Unit* unit)
 
 void MoveAction::draw()
 {
-	GLObject::drawDestinationFlag(destination);
+	GLObject::GLAsset("pixelflag.png")->render(destination);
 }
 
 // IDLE DEFEND ACTION ------------------------------------------------
@@ -223,6 +234,7 @@ void IdleAttackAction::draw()
 
 BuildOrRepairAction::BuildOrRepairAction(Structure* structure)
 {
+	type = ActionType::BuildOrRepair;
 	target = structure;
 }
 
@@ -258,5 +270,6 @@ bool BuildOrRepairAction::execute(clock_t& tick, Unit* unit)
 
 void BuildOrRepairAction::draw()
 {
-	target->drawSelectedMarker(true);
+	glm::vec3 pos = target->getPosition();
+	GLObject::GLAsset("greentarget.png")->render(pos);
 }
