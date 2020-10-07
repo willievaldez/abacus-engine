@@ -19,107 +19,130 @@
     <Filter Include="Levels">
       <UniqueIdentifier>{0d8b8d59-c5f2-46dd-b92a-8e654aea2d54}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game">
+      <UniqueIdentifier>{2a3a4525-3ed9-4b20-ac7f-6a37eb42be59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GLWrapper">
+      <UniqueIdentifier>{71606b4c-db7d-4f33-9ec3-e67cfe538161}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Game">
+      <UniqueIdentifier>{f5a0b4bc-01cd-4f29-a3fb-f88ddb984377}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GLWrapper">
+      <UniqueIdentifier>{9cefa210-50ec-41fa-8d2b-2c7684a70cbc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\sourceCode\GLObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sourceCode\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sourceCode\Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sourceCode\Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sourceCode\glad.c">
+    <ClCompile Include="..\Code\source\GLWrapper\glad.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Level.cpp">
+    <ClCompile Include="..\Code\source\Config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Tile.cpp">
+    <ClCompile Include="..\Code\source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Unit.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\Code\source\Game\Action.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Spawner.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\Code\source\Game\Level.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Structure.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\Code\source\Game\Spawner.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Turret.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\Code\source\Game\Structure.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Action.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\Code\source\Game\Tile.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Animation.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\Code\source\Game\Turret.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Asset.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\Code\source\Game\Unit.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\sourceCode\Config.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\Code\source\GLWrapper\Asset.cpp">
+      <Filter>Source Files\GLWrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\GLWrapper\GLObject.cpp">
+      <Filter>Source Files\GLWrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\GLWrapper\Window.cpp">
+      <Filter>Source Files\GLWrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\GLWrapper\Shader.cpp">
+      <Filter>Source Files\GLWrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\GLWrapper\Model.cpp">
+      <Filter>Source Files\GLWrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\GLWrapper\Mesh.cpp">
+      <Filter>Source Files\GLWrapper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\sourceCode\GLObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Level.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Tile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Unit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Spawner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Structure.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Turret.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Action.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Animation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Asset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\sourceCode\Config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\sourceCode\shader.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\sourceCode\shader.vert">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\models\Levels\testLevel.csv">
       <Filter>Levels</Filter>
     </None>
+    <None Include="..\Code\shaders\shader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\code\shaders\shader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AbacusEngine.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Code\include\Game\Action.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Game\Level.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Game\Spawner.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Game\Structure.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Game\Tile.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Game\Turret.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Game\Unit.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\GLWrapper\Asset.h">
+      <Filter>Header Files\GLWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\GLWrapper\GLObject.h">
+      <Filter>Header Files\GLWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\GLWrapper\Mesh.h">
+      <Filter>Header Files\GLWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\GLWrapper\Model.h">
+      <Filter>Header Files\GLWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\GLWrapper\Shader.h">
+      <Filter>Header Files\GLWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\GLWrapper\Window.h">
+      <Filter>Header Files\GLWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
