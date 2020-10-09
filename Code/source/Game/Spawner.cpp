@@ -14,10 +14,11 @@ Spawner::Spawner(glm::vec3& pos, Asset* asset) : Structure(pos, asset)
 	//	friendly = false;
 	//	built = true;
 	//	health = 100.0f;
-		m_spawnAsset = GLObject::GLAsset("demongrunt_run.png");
+		//m_spawnAsset = GLObject::GLAsset("demongrunt_run.png");
 	//	period = 10000;
 	//}
-		m_lastSpawnTime = clock();
+	m_lastSpawnTime = clock();
+	m_entityName = "DemonGrunt";
 }
 
 Spawner::~Spawner()
@@ -33,7 +34,7 @@ void Spawner::Update(clock_t time)
 	{
 		m_lastSpawnTime = time;
 
-		m_spawnedUnit = Unit::Create(m_spawnAsset);
+		m_spawnedUnit = Unit::Create(m_entityName.c_str());
 		glm::vec3 spawnPos = m_position + glm::vec3(0.0f, 0.0f, 0.0f);
 		spawnPos.z = 0.0f;
 		m_spawnedUnit->SetPosition(spawnPos);

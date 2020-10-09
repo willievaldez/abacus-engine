@@ -72,15 +72,19 @@ GLFWwindow* Window::InitGLFWWindow()
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 
-
 	return window;
 }
 
 void Window::ConfigureGLWindow()
 {
 	glEnable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	if (GetConfig().is3D)
+	{
+		glEnable(GL_DEPTH_TEST);
+	}
+
 	glCullFace(GL_BACK);
 }
 

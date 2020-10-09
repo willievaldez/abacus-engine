@@ -160,6 +160,7 @@
     <ClCompile Include="..\Code\source\GLWrapper\Mesh.cpp" />
     <ClCompile Include="..\Code\source\GLWrapper\Model.cpp" />
     <ClCompile Include="..\Code\source\GLWrapper\Shader.cpp" />
+    <ClCompile Include="..\Code\source\GLWrapper\UniformContainer.cpp" />
     <ClCompile Include="..\Code\source\GLWrapper\Window.cpp" />
     <ClCompile Include="..\Code\source\main.cpp">
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$Code\include\(TargetName).pch</PrecompiledHeaderOutputFile>
@@ -190,6 +191,7 @@
     <ClInclude Include="..\Code\include\GLWrapper\Mesh.h" />
     <ClInclude Include="..\Code\include\GLWrapper\Model.h" />
     <ClInclude Include="..\Code\include\GLWrapper\Shader.h" />
+    <ClInclude Include="..\Code\include\GLWrapper\UniformContainer.h" />
     <ClInclude Include="..\Code\include\GLWrapper\Window.h" />
     <ClInclude Include="..\Code\include\stdafx.h" />
   </ItemGroup>

@@ -34,6 +34,7 @@ public:
 	void Reload();
 	//void addTarget(glm::vec3&, bool);
 	//void selectUnit(glm::vec3&, bool);
+	Unit* GetPlayerUnit() { return m_player; };
 	std::vector<GLObject*> getEntitiesFromCoords(glm::vec3&);
 	void PlaceStructure(glm::vec3&, Asset*);
 	int AddUnit(Unit*);

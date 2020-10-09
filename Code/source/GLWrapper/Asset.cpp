@@ -171,24 +171,22 @@ GLint Asset::getTextureID()
 	return m_textureID;
 }
 
-void Asset::Render(const glm::vec3& position, int currFrame)
+void Asset::Render(const glm::vec3& position, const UniformContainer& uniforms)
 {
 	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), position);
-
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
 
 	GLuint usesTexId = glGetUniformLocation(shaderProgram, "usesTexture");
 	glUniform1i(usesTexId, 1);
 
-	GLuint texWidthId = glGetUniformLocation(Asset::shaderProgram, "animationWidth");
+	GLuint texWidthId = glGetUniformLocation(shaderProgram, "animationWidth");
 	glUniform1i(texWidthId, m_width);
 
-	GLuint texHeightId = glGetUniformLocation(Asset::shaderProgram, "animationHeight");
+	GLuint texHeightId = glGetUniformLocation(shaderProgram, "animationHeight");
 	glUniform1i(texHeightId, m_height);
 
-	GLuint animFrameId = glGetUniformLocation(Asset::shaderProgram, "animationFrame");
-	glUniform1i(animFrameId, currFrame);
+	uniforms.SetUniforms();
 
 	glBindTexture(GL_TEXTURE_2D, m_textureID);
 
@@ -202,15 +200,14 @@ void Asset::Render(const glm::vec3& position, int currFrame)
 void Asset::DrawStatusBar(const glm::vec3& position, float percentage)
 {
 	glBindVertexArray(VAO);
-	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
-	GLuint texBool = glGetUniformLocation(shaderProgram, "usesTexture");
-	GLuint colorId = glGetUniformLocation(shaderProgram, "colorOverride");
 
+	GLuint texBool = glGetUniformLocation(shaderProgram, "usesTexture");
 	glUniform1i(texBool, false);
 
+	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
+	GLuint colorId = glGetUniformLocation(shaderProgram, "colorOverride");
 
-	glm::vec3 healthBarPosition(position.x, position.y + GetConfig().tileSize / 1.9f, position.z);
-
+	glm::vec3 healthBarPosition(position.x, position.y - GetConfig().tileSize / 1.5f, position.z);
 	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), healthBarPosition), glm::vec3(0.9f, 0.05f, 1.0f));
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
 	glm::vec3 red(1.0f, 0.0f, 0.0f);
@@ -227,3 +224,42 @@ void Asset::DrawStatusBar(const glm::vec3& position, float percentage)
 
 	glBindVertexArray(0);
 }
+
+// template specializations
+
+ // mat4
+//template <>
+//void Asset::SetUniform<glm::mat4>(const std::string& uiformName, const glm::mat4& val) const
+//{
+//	GLuint uniformIntId = glGetUniformLocation(shaderProgram, uiformName.c_str());
+//	glUniformMatrix4fv(uniformIntId, 1, GL_FALSE, &val[0][0]);
+//}
+//
+//// vec3
+//void Asset::SetUniform<glm::vec3>(const std::string& uiformName, const glm::vec3& val) const
+//{
+//	GLuint uniformVec3Id = glGetUniformLocation(shaderProgram, uiformName.c_str());
+//	glUniform3fv(uniformVec3Id, 1, &val[0]);
+//}
+//
+//// int
+//void Asset::SetUniform(const std::string& uiformName, const int& val) const
+//{
+//	GLuint uniformId = glGetUniformLocation(shaderProgram, uiformName.c_str());
+//	glUniform1i(uniformId, val);
+//}
+//
+//// float
+//void Asset::SetUniform<float>(const std::string& uiformName, const float& val) const
+//{
+//	GLuint uniformFltId = glGetUniformLocation(shaderProgram, uiformName.c_str());
+//	glUniform1f(uniformFltId, val);
+//}
+//
+//// bool (I know, weird)
+//void Asset::SetUniform<bool>(const std::string& uiformName, const bool& val) const
+//{
+//	int isTrue = val ? 1 : 0;
+//	GLuint uniformBoolId = glGetUniformLocation(shaderProgram, uiformName.c_str());
+//	glUniform1i(uniformBoolId, isTrue);
+//}

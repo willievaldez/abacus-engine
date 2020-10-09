@@ -11,7 +11,7 @@ Tile::Tile(std::string token)
 
 	if (token == "W")
 	{
-		m_asset = GLObject::GLAsset("greentarget.png");
+		m_asset = GLObject::GLAsset("wallassetright.png");
 		m_traversable = false;
 	}
 	else

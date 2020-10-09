@@ -12,8 +12,8 @@ Level* Level::Get()
 	static Level* level = nullptr;
 	if (!level)
 	{
-		level = new Level("testLevel.csv");
-		level->m_player = Unit::Create("luma_sprite_sheet.png");
+		level = new Level(GetConfig().level.c_str());
+		level->m_player = Unit::Create("Lumaton");
 		level->m_player->SetPosition(level->m_spawn);
 		level->m_attack = new GLObject("attack.png");
 		level->m_tickTime = clock();
@@ -98,12 +98,12 @@ void Level::MakeLevelFromFile()
 	{
 		m_spawn.x = (spawnGridLocation.first * tileSize) + (tileSize / 2.0f);
 		m_spawn.y = ((m_tileGrid.size() - spawnGridLocation.second) * tileSize) + (tileSize / 2.0f);
-		m_spawn.z = 1.0f; // player depth
+		m_spawn.z = 0.0f;
 		printf("spwan: (%f, %f)\n", m_spawn.x, m_spawn.y);
 	}
 
 	int numRows = (int)m_tileGrid.size();
-	glm::vec3 offset(tileSize / 2.0f, tileSize * numRows + (tileSize / 2.0f), -1.0f);
+	glm::vec3 offset(tileSize / 2.0f, tileSize * numRows + (tileSize / 2.0f), 0.0f);
 
 	for (std::vector<Tile*> tileRow : m_tileGrid)
 	{
@@ -134,6 +134,7 @@ void Level::MakeLevelFromFile()
 
 void Level::Update(clock_t& tick, GLFWwindow* window)
 {
+	// get player input and update behavior
 	const bool* keyMap = Window::GetKeyMap();
 	const Camera& cam = Window::GetCamera();
 	glm::vec3 direction(0.0f);
@@ -208,6 +209,7 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 	//	}
 	//}
 
+	// update all units (including player)
 	for (auto& unit : m_units)
 	{
 		unit->Update(tick);
@@ -303,6 +305,8 @@ Level::~Level()
 
 void Level::Render(/*float skew, float rot*/)
 {
+	UniformContainer::SetUniform("playerHealth", m_player->GetHealth());
+
 	//for (std::vector<Tile*> tileRow : tileGrid)
 	//{
 	//	for (Tile* tile : tileRow)

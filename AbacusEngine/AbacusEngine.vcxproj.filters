@@ -81,6 +81,9 @@
     <ClCompile Include="..\Code\source\GLWrapper\Mesh.cpp">
       <Filter>Source Files\GLWrapper</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\source\GLWrapper\UniformContainer.cpp">
+      <Filter>Source Files\GLWrapper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\models\Levels\testLevel.csv">
@@ -143,6 +146,9 @@
     </ClInclude>
     <ClInclude Include="..\Code\include\stdafx.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\GLWrapper\UniformContainer.h">
+      <Filter>Header Files\GLWrapper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

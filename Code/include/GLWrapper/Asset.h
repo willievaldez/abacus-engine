@@ -8,11 +8,16 @@
 #include <glm/vec3.hpp> // vec3
 #include <glm/gtc/matrix_transform.hpp> // glm::mat4, glm::transform, glm::length
 
+#include <GLWrapper/UniformContainer.h>
+
 class Asset
 {
 public:
+	template<typename T>
+	static void SetUniform(const std::string&, const T&) {};
+
 	GLint getTextureID();
-	void Render(const glm::vec3&, int currFrame = 0);
+	void Render(const glm::vec3&,const UniformContainer& uniforms = UniformContainer());
 	void DrawStatusBar(const glm::vec3& , float);
 
 	int GetNumFrames() {
@@ -21,6 +26,7 @@ public:
 
 private:
 	friend class GLObject;
+	friend class UniformContainer;
 
 	Asset(std::string&);
 	~Asset();
@@ -37,5 +43,4 @@ private:
 	//static glm::mat4 isometricSkew;
 	static GLuint VBO, VAO, EBO;
 	static GLuint shaderProgram;
-
 };

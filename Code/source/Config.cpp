@@ -63,6 +63,10 @@ const Config& GetConfig()
 				{
 					config.level = val;
 				}
+				else
+				{
+					printf("unrecognized config: %s", key.c_str());
+				}
 			}
 
 			config.loaded = true;

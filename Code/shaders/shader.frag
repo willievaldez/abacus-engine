@@ -9,6 +9,7 @@ uniform bool usesTexture;
 uniform sampler2D texture_diffuse1;
 uniform vec3 cameraPos;
 uniform vec3 colorOverride;
+uniform float playerHealth;
 
 void main()
 {
@@ -49,6 +50,13 @@ void main()
 	// attenuation
 	float distToLight = distance(fragVert, cameraPos);
 
+	// binary attenuation
+	float attenuation = 1.0f;
+	if (distToLight > ((playerHealth + 10.0f)/10.0f))
+	{
+		attenuation = 0.0f;
+	}
+
 	// linear attenuation
 	//float attenuation = 1.0f - (distToLight/15.0f);
 	//if (attenuation < 0.0f)
@@ -57,7 +65,7 @@ void main()
 	//}
 
 	// quadratic attenuation
-	float attenuation = (pow(distToLight, 4) / -10000.0f) + 1;
+	//float attenuation = (pow(distToLight, 4) / -10000.0f) + 1;
 
 	FragColor = color * attenuation;
 	FragColor.a = color.a; // maintain alpha value
