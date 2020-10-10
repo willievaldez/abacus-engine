@@ -32,6 +32,7 @@ public:
 	const glm::vec3& GetPosition();
 	void SetPosition(const glm::vec3&);
 	const glm::vec3& GetDirection();
+	void SetDirection(const glm::vec3&);
 
 	static void useShaderProgram(const glm::mat4&, const glm::mat4&, const glm::vec3&);
 	static void Initialize();

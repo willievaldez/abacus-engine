@@ -15,7 +15,6 @@ Level* Level::Get()
 		level = new Level(GetConfig().level.c_str());
 		level->m_player = Unit::Create("Lumaton");
 		level->m_player->SetPosition(level->m_spawn);
-		level->m_attack = new GLObject("attack.png");
 		level->m_tickTime = clock();
 	}
 	return level;
@@ -144,9 +143,9 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 		m_player->StartDodge();
 	}
 
+	glm::vec3 direction(0.0f);
 	if (m_player->GetState() != State::DODGING) // move
 	{
-		glm::vec3 direction(0.0f);
 		glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
 		if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP]) {
 			direction.y += 1.0f;
@@ -161,27 +160,35 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 			direction += glm::cross(cam_direction_no_y, cam.up);
 		}
 
-		if (!glm::length(direction) == 0.0f)
+		direction = glm::normalize(direction);
+		m_player->SetState(State::MOVING);
+	}
+
+	if (m_player->GetState() == State::DODGING || m_player->GetState() == State::MOVING)
+	{
+		glm::vec3 destination(0.0f);
+		m_player->GetMovePosition(direction, destination);
+
+		Tile* destTile = GetTileFromCoords(destination);
+
+		Unit* hitUnit = nullptr;
+		if (destTile && !(destTile->Collision(destination, &hitUnit) && !hitUnit))
 		{
-			direction = glm::normalize(direction);
-
-			glm::vec3 destination(0.0f);
-			m_player->GetMovePosition(direction, destination);
-
-			Tile* destTile = GetTileFromCoords(destination);
-
-			if (destTile && !destTile->Collision(destination))
-			{
-				m_player->SetState(State::MOVING);
-				m_player->SetPosition(destination);
-				GetTileFromCoords(destination)->Interact(m_player);
-			}
+			m_player->SetPosition(destination);
+			destTile->Interact(m_player);
 		}
 		else
 		{
+			// knock back
+			//if (hitUnit)
+			//{
+			//	m_player->TakeDamage(15.0f);
+			//	glm::vec3 newPlayerPosition = m_player->GetPosition() + (m_player->GetDirection() * -1.0f);
+			//	m_player->SetPosition(newPlayerPosition);
+			//}
+
 			m_player->SetState(State::IDLE);
 		}
-
 	}
 
 
@@ -226,7 +233,27 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 	// update all units (including player)
 	for (auto& unit : m_units)
 	{
+		std::vector<Tile*> prevTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().m_radius);
 		unit->Update(tick);
+		std::vector<Tile*> currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().m_radius);
+
+		if (unit != m_player)
+		{
+			// remove from old tiles, add to new tiles TODO inefficient
+			auto prevTileIterator = prevTiles.begin();
+			while (prevTileIterator != prevTiles.end())
+			{
+				(*prevTileIterator)->RemoveUnit(unit);
+				prevTileIterator++;
+			}
+
+			auto currTileIterator = currTiles.begin();
+			while (currTileIterator != currTiles.end())
+			{
+				(*currTileIterator)->AddUnit(unit);
+				currTileIterator++;
+			}
+		}
 	}
 
 	for (std::vector<Tile*> tileRow : m_tileGrid)
@@ -258,43 +285,6 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 	//	}
 	//}
 
-	if (glm::length(m_attackDirection) != 0.0f)
-	{
-		// check for collision
-		float hit = 2.0f;
-		Unit* hitUnit = nullptr;
-		for (Unit* unit : m_units)
-		{
-			if (unit != m_player)
-			{
-				float dist = glm::length(m_attack->GetPosition() - unit->GetPosition());
-				if (dist <= hit)
-				{
-					hit = dist;
-					hitUnit = unit;
-				}
-			}
-		}
-
-		if (hitUnit)
-		{
-			hitUnit->TakeDamage(5.0f);
-			m_attackDirection = glm::vec3(0.0f);
-		}
-		else
-		{
-			glm::vec3 newAttackPos = m_attack->GetPosition() + m_attackDirection;
-			Tile* tile = GetTileFromCoords(newAttackPos);
-			if (tile && !tile->Collision(newAttackPos))
-			{
-				m_attack->SetPosition(newAttackPos);
-			}
-			else
-			{
-				m_attackDirection = glm::vec3(0.0f);
-			}
-		}
-	}
 
 	//updateUnits(m_friendlyUnits, tick);
 	//updateUnits(m_enemyUnits, tick);
@@ -339,12 +329,18 @@ void Level::Render(/*float skew, float rot*/)
 
 	//GLObject::setIsometricSkew(skew, rot);
 
+	std::vector<GLObject*> deferredAssets;
 	for (std::vector<Tile*> tileRow : m_tileGrid)
 	{
 		for (Tile* tile : tileRow)
 		{
-			tile->Render();
+			tile->Render(deferredAssets);
 		}
+	}
+
+	for (const auto& asset : deferredAssets)
+	{
+		asset->Render();
 	}
 
 	for (Unit* unit : m_units)
@@ -357,11 +353,6 @@ void Level::Render(/*float skew, float rot*/)
 
 	// render player on top of everything else
 	m_player->Render();
-
-	if (glm::length(m_attackDirection) != 0.0f)
-	{
-		m_attack->Render();
-	}
 
 	//for (int i = 0; i < m_deadUnits.size(); i++)
 	//{
@@ -424,9 +415,16 @@ bool Level::RemoveUnit(Unit* unit)
 	{
 		if (m_units[i] == unit)
 		{
-			GetTileFromCoords(unit->GetPosition())->AddItem("mana_orb.png");
-			m_units.erase(m_units.begin() + i);
-			return true;
+			Tile* tile = GetTileFromCoords(unit->GetPosition());
+			if (tile)
+			{
+				GLObject* mana = new GLObject("mana_orb.png");
+				mana->SetPosition(unit->GetPosition());
+				tile->AddItem(mana);
+				tile->RemoveUnit(unit);
+				m_units.erase(m_units.begin() + i);
+				return true;
+			}
 		}
 	}
 
@@ -436,7 +434,8 @@ bool Level::RemoveUnit(Unit* unit)
 void Level::PlaceStructure(glm::vec3& coords, Asset* type)
 {
 	Tile* tile = GetTileFromCoords(coords);
-	if (tile && !tile->Collision(coords))
+	Unit* hitUnit = nullptr;
+	if (tile && !tile->Collision(coords, &hitUnit))
 	{
 		glm::vec3 tilePos = tile->GetPosition();
 		Structure* structure = nullptr;
@@ -463,12 +462,7 @@ void Level::PlaceStructure(glm::vec3& coords, Asset* type)
 
 void Level::BasicAttack(const glm::vec3& origin, const glm::vec3& direction)
 {
-	if (glm::length(m_attackDirection) == 0.0f)
-	{
-		m_attack->SetPosition(origin);
-		m_attackDirection = direction;
-		m_player->TakeDamage(1.0f);
-	}
+	m_player->BasicAttack(origin, direction);
 }
 
 //void Level::updateUnits(std::vector<Unit*>& units, clock_t& tick)
@@ -497,7 +491,7 @@ void Level::BasicAttack(const glm::vec3& origin, const glm::vec3& direction)
 //	}
 //}
 
-Tile* Level::GetTileFromCoords(glm::vec3 dest)
+Tile* Level::GetTileFromCoords(const glm::vec3& dest)
 {
 	std::pair<int, int> tileCoords;
 	float tileSize = GetConfig().tileSize;
@@ -511,6 +505,36 @@ Tile* Level::GetTileFromCoords(glm::vec3 dest)
 	}
 
 	return m_tileGrid[tileCoords.first][tileCoords.second];
+}
+
+std::vector<Tile*> Level::GetTilesFromCoords(const glm::vec3& dest, float radius)
+{
+	std::vector<Tile*> returnedTiles;
+
+	std::pair<int, int> minTileCoords;
+	float tileSize = GetConfig().tileSize;
+	minTileCoords.second = (int)((dest.x - radius) / tileSize);
+	minTileCoords.first = (int)(ceil(((m_tileGrid.size() * tileSize) - (dest.y - radius)) / tileSize));
+
+	std::pair<int, int> maxTileCoords;
+	maxTileCoords.second = (int)((dest.x + radius) / tileSize);
+	maxTileCoords.first = (int)(ceil(((m_tileGrid.size() * tileSize) - (dest.y + radius)) / tileSize));
+
+	for (int x = maxTileCoords.first; x <= minTileCoords.first; x++) // iterate in reverse because the mappings are reversed
+	{
+		if (x >= 0 && x < m_tileGrid.size())
+		{
+			for (int y = minTileCoords.second; y <= maxTileCoords.second; y++)
+			{
+				if (y >= 0 && y < m_tileGrid[x].size())
+				{
+					returnedTiles.push_back(m_tileGrid[x][y]);
+				}
+			}
+		}
+	}
+
+	return returnedTiles;
 }
 
 bool Level::getCoordsFromTile(std::pair<int, int> tileCoords, glm::vec3& dest)

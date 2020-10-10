@@ -63,9 +63,6 @@
     <ClCompile Include="..\Code\source\Game\Unit.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\source\GLWrapper\Asset.cpp">
-      <Filter>Source Files\GLWrapper</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\source\GLWrapper\GLObject.cpp">
       <Filter>Source Files\GLWrapper</Filter>
     </ClCompile>
@@ -83,6 +80,12 @@
     </ClCompile>
     <ClCompile Include="..\Code\source\GLWrapper\UniformContainer.cpp">
       <Filter>Source Files\GLWrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\GLWrapper\Asset.cpp">
+      <Filter>Source Files\GLWrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\Game\Attack.cpp">
+      <Filter>Source Files\Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -149,6 +152,9 @@
     </ClInclude>
     <ClInclude Include="..\Code\include\GLWrapper\UniformContainer.h">
       <Filter>Header Files\GLWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Game\Attack.h">
+      <Filter>Header Files\Game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

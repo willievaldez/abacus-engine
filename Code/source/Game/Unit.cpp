@@ -1,6 +1,7 @@
 #include <Game/Unit.h>
 #include <Game/Level.h>
 #include <Config.h>
+#include <Game/Attack.h>
 
 #include <fstream>
 #include <sstream>
@@ -74,18 +75,20 @@ Unit::Unit(const UnitMetadata& metadata)
 	OBJECT_TYPE = ObjectType::UNIT;
 	m_currentHealth = (float)m_metadata.m_maxHealth;
 	m_lastFrameTick = clock();
+	m_dodgeStartTime = m_lastFrameTick;
+	m_lastAttack = m_lastFrameTick;
 	m_idleAction = Action::CreateAction(m_metadata.m_idleAction.c_str());
 	//friendly = isFriendly;
-	//isDead = false;
+//isDead = false;
 
-	//if (friendly)
-	//{
-	//	idleAction = new IdleDefendAction(10.0f);
-	//}
-	//else
-	//{
-	//	idleAction = new IdleAttackAction();
-	//}
+//if (friendly)
+//{
+//	idleAction = new IdleDefendAction(10.0f);
+//}
+//else
+//{
+//	idleAction = new IdleAttackAction();
+//}
 
 }
 
@@ -117,33 +120,32 @@ void Unit::Render()
 		uniforms.AddObject("animationFrame", m_animationFrame);
 		m_asset->Render(m_position, uniforms);
 	}
-	
-	m_asset->DrawStatusBar(m_position, m_currentHealth/ m_metadata.m_maxHealth);
+
+	for (auto& attack : m_activeAttacks)
+	{
+		attack->Render();
+	}
+
+	m_asset->DrawStatusBar(m_position, m_currentHealth / m_metadata.m_maxHealth);
 }
 
 void Unit::Update(clock_t tick)
 {
 	if (m_idleAction) m_idleAction->Execute(tick, this);
 
-	if (m_currentState == State::DODGING)
+	auto attackIterator = m_activeAttacks.begin();
+	while (attackIterator != m_activeAttacks.end())
 	{
-		if ((tick - m_dodgeStartTime) / (float)CLOCKS_PER_SEC < m_metadata.m_dodgeDurationSec)
+		Attack* attack = *attackIterator;
+		if (!attack->Update()) // attack ended
 		{
-			glm::vec3 destination = m_position + (m_direction * m_metadata.m_dodgeSpeed / (float)GetConfig().ticksPerSecond);
-			Tile* destTile = Level::Get()->GetTileFromCoords(destination);
-			if (destTile && !destTile->Collision(destination))
-			{
-				SetPosition(destination);
-				destTile->Interact(this);
-			}
-			else
-			{
-				m_currentState = State::IDLE;
-			}
+			// delete the object
+			attackIterator = m_activeAttacks.erase(attackIterator); // advance the iterator
+			delete attack;
 		}
 		else
 		{
-			m_currentState = State::IDLE;
+			attackIterator++;
 		}
 	}
 
@@ -167,7 +169,17 @@ const UnitMetadata& Unit::GetMetadata() const
 
 void Unit::BasicAttack(const glm::vec3& origin, const glm::vec3& direction)
 {
-
+	static int attackNum = 0;
+	clock_t tick = clock();
+	if ((tick - m_lastAttack) / (float)CLOCKS_PER_SEC >= m_metadata.m_atkSpeed)
+	{
+		m_lastAttack = tick;
+		Attack* attack = new RangedAttack("attack.png");
+		attack->SetPosition(origin);
+		attack->SetDirection(direction);
+		m_activeAttacks.push_back(attack);
+		TakeDamage(1.0f);
+	}
 }
 
 bool Unit::TakeDamage(float dmg)
@@ -190,18 +202,35 @@ bool Unit::TakeDamage(float dmg)
 
 void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut)
 {
-	clock_t now = clock();
-	if ((now - m_lastFrameTick) / (float)CLOCKS_PER_SEC > 0.043f)
+	clock_t tick = clock();
+	if (m_currentState == State::MOVING || m_currentState == State::DODGING)
 	{
-		m_animationFrame++;
-		if (m_animationFrame >= m_asset->GetNumFrames())
+		if ((tick - m_lastFrameTick) / (float)CLOCKS_PER_SEC > 0.043f)
 		{
-			m_animationFrame = 1;
+			m_animationFrame++;
+			if (m_animationFrame >= m_asset->GetNumFrames())
+			{
+				m_animationFrame = 1;
+			}
+			m_lastFrameTick = tick;
 		}
-		m_lastFrameTick = now;
+	}
+	if (m_currentState == State::MOVING)
+	{
+		destinationOut = m_position + (direction * m_metadata.m_speed / (float)GetConfig().ticksPerSecond);
+	}
+	else if (m_currentState == State::DODGING)
+	{
+		if ((tick - m_dodgeStartTime) / (float)CLOCKS_PER_SEC < m_metadata.m_dodgeDurationSec)
+		{
+			destinationOut = m_position + (m_direction * m_metadata.m_dodgeSpeed / (float)GetConfig().ticksPerSecond);
+		}
+		else // dodge ended
+		{
+			m_currentState = State::IDLE;
+		}
 	}
 
-	destinationOut = m_position + (direction * m_metadata.m_speed / (float)GetConfig().ticksPerSecond);
 }
 
 void Unit::StartDodge()

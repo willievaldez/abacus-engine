@@ -18,7 +18,8 @@ public:
 
 	static Level* Get();
 
-	Tile* GetTileFromCoords(glm::vec3);
+	Tile* GetTileFromCoords(const glm::vec3&);
+	std::vector<Tile*> GetTilesFromCoords(const glm::vec3&, float radius);
 	bool getCoordsFromTile(std::pair<int, int>, glm::vec3&);
 
 	void BasicAttack(const glm::vec3&, const glm::vec3&);
@@ -50,9 +51,6 @@ private:
 	std::string m_filepath;
 	clock_t m_tickTime;
 	Unit* m_player = nullptr;
-
-	GLObject* m_attack = nullptr;
-	glm::vec3 m_attackDirection = glm::vec3(0.0f);
 
 	void MakeLevelFromFile();
 };

@@ -38,10 +38,14 @@ void Tile::Update(clock_t tick)
 void Tile::Render()
 {
 	if (m_asset) GLObject::Render();
-	if (m_structure) m_structure->Render();
+}
+void Tile::Render(std::vector<GLObject*>& deferredAssets)
+{
+	Render();
+	if (m_structure) deferredAssets.push_back(m_structure);
 	for (auto& item : m_items)
 	{
-		item->Render();
+		deferredAssets.push_back(item);
 	}
 }
 
@@ -73,24 +77,60 @@ void Tile::AddStructure(Structure* newStructure)
 	m_structure->SetPosition(structurePos);
 }
 
-void Tile::AddItem(const char* itemName)
+void Tile::AddItem(GLObject* item)
 {
-	GLObject* item = new GLObject(itemName);
-	item->SetPosition(GetPosition());
 	m_items.push_back(item);
 }
 
-bool Tile::Collision(const glm::vec3& pt)
+void Tile::AddUnit(Unit* unit)
 {
-	return !m_traversable;
+	m_units.push_back(unit);
+}
+
+void Tile::RemoveUnit(Unit* unit) // TODO: inefficient
+{
+	for (int i = 0; i < m_units.size(); i++)
+	{
+		if (unit == m_units[i])
+		{
+			m_units.erase(m_units.begin() + i);
+		}
+	}
+}
+
+bool Tile::Collision(const glm::vec3& pt, Unit** hitUnit, float radius)
+{
+	*hitUnit = nullptr;
+	if (m_traversable)
+	{
+		// check for collision with unit (collide with closest unit)
+		float closestHit = -1.0f;
+		for (Unit* unit : m_units)
+		{
+			float dist = glm::length(pt - unit->GetPosition());
+			if (dist <= unit->GetMetadata().m_radius + radius)
+			{
+				if (closestHit < 0.0f || dist < closestHit)
+				{
+					*hitUnit = unit;
+				}
+			}
+		}
+	}
+	return !m_traversable || *hitUnit;
 }
 
 void Tile::Interact(Unit* player)
 {
 	for (auto& item : m_items)
 	{
-		player->TakeDamage(-15.0f); // regain mana
-		delete item;
+		float dist = glm::length(item->GetPosition() - player->GetPosition());
+		if (dist <= player->GetMetadata().m_radius + 0.5f) // TODO hard coded mana orb size
+		{
+			player->TakeDamage(-15.0f); // regain mana
+			delete item;
+		}
 	}
+
 	m_items.clear();
 }

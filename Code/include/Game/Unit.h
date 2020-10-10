@@ -5,7 +5,6 @@
 
 #include <chrono>
 
-
 enum class State
 {
 	IDLE,
@@ -16,6 +15,7 @@ enum class State
 
 
 class Action; // lawsuit
+class Attack;
 
 struct UnitMetadata
 {
@@ -28,6 +28,8 @@ struct UnitMetadata
 	float m_dodgeSpeed = 16.0f;
 	float m_dodgeDurationSec = 0.25f;
 	float m_dodgeCost = 10.0f;
+	float m_atkSpeed = 0.5f;
+	float m_radius = 1.5f;
 };
 
 class Unit : public GLObject
@@ -65,4 +67,6 @@ private:
 	clock_t m_lastFrameTick;
 	int m_animationFrame = 0;
 	clock_t m_dodgeStartTime;
+	clock_t m_lastAttack;
+	std::vector<Attack*> m_activeAttacks;
 };

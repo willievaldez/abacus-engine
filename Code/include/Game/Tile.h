@@ -21,9 +21,12 @@ public:
 
 	void Update(clock_t);
 	void Render() override;
+	void Render(std::vector<GLObject*>&);
 	void AddStructure(Structure*);
-	void AddItem(const char*);
-	bool Collision(const glm::vec3& pt);
+	void AddItem(GLObject*);
+	void AddUnit(Unit*);
+	void RemoveUnit(Unit*);
+	bool Collision(const glm::vec3& pt, Unit** hitUnit, float radius = 0.0f);
 	void Interact(Unit* player);
 
 	template<typename T>
@@ -43,6 +46,7 @@ private:
 	Structure* m_structure = nullptr;
 	bool m_traversable = false;
 	std::vector<GLObject*> m_items;
+	std::vector<Unit*> m_units;
 
 	static TileTypeMap& AccessTileTypes();
 };

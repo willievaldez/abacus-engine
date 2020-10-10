@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClCompile Include="..\Code\source\Config.cpp" />
     <ClCompile Include="..\Code\source\Game\Action.cpp" />
+    <ClCompile Include="..\Code\source\Game\Attack.cpp" />
     <ClCompile Include="..\Code\source\Game\Level.cpp" />
     <ClCompile Include="..\Code\source\Game\Spawner.cpp" />
     <ClCompile Include="..\Code\source\Game\Structure.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="..\Code\include\GLWrapper\UniformContainer.h" />
     <ClInclude Include="..\Code\include\GLWrapper\Window.h" />
     <ClInclude Include="..\Code\include\stdafx.h" />
+    <ClInclude Include="..\Code\include\Game\Attack.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
