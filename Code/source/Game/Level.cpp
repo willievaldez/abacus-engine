@@ -100,6 +100,7 @@ void Level::MakeLevelFromFile()
 		m_spawn.y = ((m_tileGrid.size() - spawnGridLocation.second) * tileSize) + (tileSize / 2.0f);
 		m_spawn.z = 0.0f;
 		printf("spwan: (%f, %f)\n", m_spawn.x, m_spawn.y);
+		Window::SetCameraPos(m_spawn);
 	}
 
 	int numRows = (int)m_tileGrid.size();
@@ -137,41 +138,54 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 	// get player input and update behavior
 	const bool* keyMap = Window::GetKeyMap();
 	const Camera& cam = Window::GetCamera();
-	glm::vec3 direction(0.0f);
-	glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
-	if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP]) {
-		direction.y += 1.0f;
-	}
-	if (keyMap[GLFW_KEY_A] || keyMap[GLFW_KEY_LEFT]) {
-		direction += glm::cross(cam.up, cam_direction_no_y);
-	}
-	if (keyMap[GLFW_KEY_S] || keyMap[GLFW_KEY_DOWN]) {
-		direction.y -= 1.0f;
-	}
-	if (keyMap[GLFW_KEY_D] || keyMap[GLFW_KEY_RIGHT]) {
-		direction += glm::cross(cam_direction_no_y, cam.up);
-	}
 
-	if (!glm::length(direction) == 0.0f)
+	if (keyMap[GLFW_KEY_SPACE] && m_player->GetState() != State::DODGING) // dodge
 	{
-		direction = glm::normalize(direction);
+		m_player->StartDodge();
+	}
 
-		glm::vec3 destination(0.0f);
-		m_player->GetMovePosition(direction, destination);
-
-		Tile* destTile = GetTileFromCoords(destination);
-
-		if (destTile && !destTile->Collision(destination))
-		{
-			m_player->setState(State::MOVING);
-			m_player->SetPosition(destination);
-			Window::SetCameraPos(destination);
+	if (m_player->GetState() != State::DODGING) // move
+	{
+		glm::vec3 direction(0.0f);
+		glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
+		if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP]) {
+			direction.y += 1.0f;
 		}
+		if (keyMap[GLFW_KEY_A] || keyMap[GLFW_KEY_LEFT]) {
+			direction += glm::cross(cam.up, cam_direction_no_y);
+		}
+		if (keyMap[GLFW_KEY_S] || keyMap[GLFW_KEY_DOWN]) {
+			direction.y -= 1.0f;
+		}
+		if (keyMap[GLFW_KEY_D] || keyMap[GLFW_KEY_RIGHT]) {
+			direction += glm::cross(cam_direction_no_y, cam.up);
+		}
+
+		if (!glm::length(direction) == 0.0f)
+		{
+			direction = glm::normalize(direction);
+
+			glm::vec3 destination(0.0f);
+			m_player->GetMovePosition(direction, destination);
+
+			Tile* destTile = GetTileFromCoords(destination);
+
+			if (destTile && !destTile->Collision(destination))
+			{
+				m_player->SetState(State::MOVING);
+				m_player->SetPosition(destination);
+				GetTileFromCoords(destination)->Interact(m_player);
+			}
+		}
+		else
+		{
+			m_player->SetState(State::IDLE);
+		}
+
 	}
-	else
-	{
-		m_player->setState(State::IDLE);
-	}
+
+
+	Window::SetCameraPos(m_player->GetPosition()); // always update cam to player position
 
 	// basic attack
 	if (keyMap[GLFW_MOUSE_BUTTON_1])
@@ -382,16 +396,6 @@ void Level::Render(/*float skew, float rot*/)
 
 }
 
-glm::vec3 Level::getSpawn()
-{
-	return m_spawn;
-}
-
-const std::vector<std::vector<Tile*>>& Level::getTileGrid()
-{
-	return m_tileGrid;
-}
-
 //const std::vector<Unit*>& Level::getFriendlyUnits()
 //{
 //	return m_friendlyUnits;
@@ -420,6 +424,7 @@ bool Level::RemoveUnit(Unit* unit)
 	{
 		if (m_units[i] == unit)
 		{
+			GetTileFromCoords(unit->GetPosition())->AddItem("mana_orb.png");
 			m_units.erase(m_units.begin() + i);
 			return true;
 		}

@@ -39,6 +39,10 @@ void Tile::Render()
 {
 	if (m_asset) GLObject::Render();
 	if (m_structure) m_structure->Render();
+	for (auto& item : m_items)
+	{
+		item->Render();
+	}
 }
 
 /*static */
@@ -69,7 +73,24 @@ void Tile::AddStructure(Structure* newStructure)
 	m_structure->SetPosition(structurePos);
 }
 
+void Tile::AddItem(const char* itemName)
+{
+	GLObject* item = new GLObject(itemName);
+	item->SetPosition(GetPosition());
+	m_items.push_back(item);
+}
+
 bool Tile::Collision(const glm::vec3& pt)
 {
 	return !m_traversable;
+}
+
+void Tile::Interact(Unit* player)
+{
+	for (auto& item : m_items)
+	{
+		player->TakeDamage(-15.0f); // regain mana
+		delete item;
+	}
+	m_items.clear();
 }

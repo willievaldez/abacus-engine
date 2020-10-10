@@ -14,13 +14,6 @@ enum class ObjectType
 	STRUCTURE
 };
 
-enum class State
-{
-	IDLE,
-	MOVING,
-	ATTACKING
-};
-
 class GLObject
 {
 
@@ -38,9 +31,7 @@ public:
 
 	const glm::vec3& GetPosition();
 	void SetPosition(const glm::vec3&);
-
-	const State& getState();
-	void setState(State);
+	const glm::vec3& GetDirection();
 
 	static void useShaderProgram(const glm::mat4&, const glm::mat4&, const glm::vec3&);
 	static void Initialize();
@@ -51,8 +42,8 @@ public:
 
 protected:
 	//FMOD::Sound* moveSound;
+	glm::vec3 m_direction = glm::vec3(0.0f, -1.0f, 0.0f);
 	glm::vec3 m_position = glm::vec3(0.0f);
-	State m_currentState = State::IDLE;
 	Asset* m_asset = nullptr;
 	Model* m_model = nullptr;
 

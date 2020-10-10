@@ -24,8 +24,6 @@ public:
 	void BasicAttack(const glm::vec3&, const glm::vec3&);
 
 	void Update(clock_t& tick, GLFWwindow* window);
-	glm::vec3 getSpawn();
-	const std::vector<std::vector<Tile*>>& getTileGrid();
 
 	//void updateUnits(std::vector<Unit*>& units, clock_t&);
 	//void SetPlayerPosition(Camera& camera, const glm::vec3& moveDir);

@@ -111,7 +111,7 @@ void Unit::Render()
 		uniforms.AddObject("animationFrame", 0);
 		m_asset->Render(m_position, uniforms);
 	}
-	else if (m_currentState == State::MOVING)
+	else if (m_currentState == State::MOVING || m_currentState == State::DODGING)
 	{
 		UniformContainer uniforms;
 		uniforms.AddObject("animationFrame", m_animationFrame);
@@ -125,53 +125,44 @@ void Unit::Update(clock_t tick)
 {
 	if (m_idleAction) m_idleAction->Execute(tick, this);
 
-	//else if (m_currentAction->Execute(tick, this))
-	//{
-	//	std::shared_ptr<Action> actionToDelete = m_currentAction;
-	//	m_currentAction = m_currentAction->nextAction;
-	//	delete actionToDelete;
-	//}
+	if (m_currentState == State::DODGING)
+	{
+		if ((tick - m_dodgeStartTime) / (float)CLOCKS_PER_SEC < m_metadata.m_dodgeDurationSec)
+		{
+			glm::vec3 destination = m_position + (m_direction * m_metadata.m_dodgeSpeed / (float)GetConfig().ticksPerSecond);
+			Tile* destTile = Level::Get()->GetTileFromCoords(destination);
+			if (destTile && !destTile->Collision(destination))
+			{
+				SetPosition(destination);
+				destTile->Interact(this);
+			}
+			else
+			{
+				m_currentState = State::IDLE;
+			}
+		}
+		else
+		{
+			m_currentState = State::IDLE;
+		}
+	}
 
 	TakeDamage(m_metadata.m_manaDepletionPerSec / GetConfig().ticksPerSecond);
 }
 
-void Unit::addAction(Action* action, bool clearActions)
+void Unit::SetState(State state)
 {
-	//if (clearActions)
-	//{
-	//	Action* actionToDelete = nullptr;
-	//	Action* cachedAction = currentAction;
-	//	while (cachedAction && cachedAction != idleAction)
-	//	{
-	//		actionToDelete = cachedAction;
-	//		cachedAction = cachedAction->nextAction;
-	//		delete actionToDelete;
-	//	}
-	//	idleAction->nextAction = nullptr;
-	//	currentAction = nullptr;
-	//}
-
-	//if (!currentAction) currentAction = action;
-	//else 
-	//{
-	//	Action* traversalAction = currentAction;
-	//	while (traversalAction->nextAction)
-	//	{
-	//		traversalAction = traversalAction->nextAction;
-	//	}
-
-	//	traversalAction->nextAction = action;
-	//}
+	m_currentState = state;
 }
 
-void Unit::drawActions()
+const State& Unit::GetState() const
 {
-	//Action* actionToDraw = currentAction;
-	//while (actionToDraw)
-	//{
-	//	actionToDraw->Render(); // TODO: figure out crash here
-	//	actionToDraw = actionToDraw->nextAction;
-	//}
+	return m_currentState;
+}
+
+const UnitMetadata& Unit::GetMetadata() const
+{
+	return m_metadata;
 }
 
 void Unit::BasicAttack(const glm::vec3& origin, const glm::vec3& direction)
@@ -188,6 +179,10 @@ bool Unit::TakeDamage(float dmg)
 		//isDead = true;
 		m_currentHealth = 0.0f;
 		return true;
+	}
+	if (m_currentHealth > m_metadata.m_maxHealth)
+	{
+		m_currentHealth = (float)m_metadata.m_maxHealth;
 	}
 
 	return false;
@@ -207,4 +202,11 @@ void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut
 	}
 
 	destinationOut = m_position + (direction * m_metadata.m_speed / (float)GetConfig().ticksPerSecond);
+}
+
+void Unit::StartDodge()
+{
+	SetState(State::DODGING);
+	m_dodgeStartTime = clock();
+	TakeDamage(m_metadata.m_dodgeCost);
 }

@@ -109,6 +109,7 @@ void GLObject::Render()
 
 void GLObject::SetPosition(const glm::vec3& pos)
 {
+	m_direction = glm::normalize(pos - m_position);
 	m_position = pos;
 }
 
@@ -117,12 +118,7 @@ const glm::vec3& GLObject::GetPosition()
 	return m_position;
 }
 
-void GLObject::setState(State state)
+const glm::vec3& GLObject::GetDirection()
 {
-	m_currentState = state;
-}
-
-const State& GLObject::getState()
-{
-	return m_currentState;
+	return m_direction;
 }

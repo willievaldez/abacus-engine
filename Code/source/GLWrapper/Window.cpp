@@ -112,10 +112,7 @@ void Window::InitializeObjects()
 {
 	GLObject::Initialize();
 
-	if (!GetConfig().is3D)
-	{
-		AccessCamera().SetPos(Level::Get()->getSpawn());
-	}
+	Level::Get(); // first call to Get will initialize the level
 }
 
 //void Window::ResizeCallback(GLFWwindow* window, int width, int height)

@@ -53,20 +53,20 @@ std::shared_ptr<Action> Action::CreateAction(const char* actionName)
 //	//	{
 //	//		newPosition = unit->GetPosition() + (glm::normalize(simplePath) / 10.0f);
 //	//		unit->SetPosition(newPosition);
-//	//		unit->setState(State::MOVING);
+//	//		unit->SetState(State::MOVING);
 //	//	}
 //	//	if (glm::length(simplePath) < 1.5f)
 //	//	{
 //	//		target->TakeDamage(0.2f);
 //	//		if (!target->isDead)
 //	//		{
-//	//			unit->setState(State::ATTACKING);
+//	//			unit->SetState(State::ATTACKING);
 //	//			return true;
 //	//		}
 //	//	}
 //	//}
 //
-//	unit->setState(State::IDLE);
+//	unit->SetState(State::IDLE);
 //	return false;
 //}
 //
@@ -198,7 +198,7 @@ IdleAttackAction::~IdleAttackAction()
 
 bool IdleAttackAction::Execute(clock_t& tick, Unit* unit)
 {
-	unit->setState(State::IDLE);
+	unit->SetState(State::IDLE);
 	Unit* player = Level::Get()->GetPlayerUnit();
 	
 	// if within view, walk to player
@@ -207,13 +207,13 @@ bool IdleAttackAction::Execute(clock_t& tick, Unit* unit)
 	float dist = glm::length(dirToPlayer);
 	if (dist < 20.0f && dist > 1.0f)
 	{
-		unit->setState(State::MOVING);
+		unit->SetState(State::MOVING);
 		glm::vec3 newPosition(0.0f);
 		unit->GetMovePosition(glm::normalize(dirToPlayer), newPosition);
 		unit->SetPosition(newPosition);
 	}
 
-	// if in attack range, attack (unless attack is on cooldown
+	// if in attack range, attack (TODO: unless attack is on cooldown)
 	if (dist < 1.0f)
 	{
 		player->TakeDamage(0.1f);
