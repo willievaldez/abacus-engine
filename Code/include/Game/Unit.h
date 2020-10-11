@@ -72,5 +72,5 @@ private:
 	int m_animationFrame = 0;
 	clock_t m_dodgeStartTime;
 	clock_t m_lastAttack;
-	std::vector<Attack*> m_activeAttacks;
+	std::vector<std::shared_ptr<Attack>> m_activeAttacks;
 };

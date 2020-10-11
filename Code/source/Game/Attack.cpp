@@ -1,6 +1,20 @@
 #include <Game/Attack.h>
 #include <Game/Level.h>
 
+REGISTER_ATTACK("RangedAttack", RangedAttack);
+
+/*static*/
+std::shared_ptr<Attack> Attack::CreateAttack(const char* attackName)
+{
+	std::shared_ptr<Attack> returnedType = nullptr;
+	auto foundType = AccessAttacks().find(attackName);
+	if (foundType != AccessAttacks().end())
+	{
+		returnedType = foundType->second();
+	}
+	return returnedType;
+}
+
 bool RangedAttack::Update()
 {
 	std::vector<Tile*> tiles = Level::Get()->GetTilesFromCoords(GetPosition(), m_radius);

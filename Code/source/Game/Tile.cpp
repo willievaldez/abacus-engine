@@ -122,6 +122,7 @@ bool Tile::Collision(const glm::vec3& pt, Unit** hitUnit, float radius)
 
 void Tile::Interact(Unit* player)
 {
+	// TODO: sometimes items will not get used but will get deleted
 	for (auto& item : m_items)
 	{
 		float dist = glm::length(item->GetPosition() - player->GetPosition());

@@ -3,3 +3,4 @@ num_sprite_rows=1
 speed=4.0
 health=100.0
 mana_loss_per_sec=1.0
+basic_attack=RangedAttack

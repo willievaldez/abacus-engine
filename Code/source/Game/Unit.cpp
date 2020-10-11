@@ -99,12 +99,11 @@ void Unit::Update(clock_t tick)
 	auto attackIterator = m_activeAttacks.begin();
 	while (attackIterator != m_activeAttacks.end())
 	{
-		Attack* attack = *attackIterator;
+		std::shared_ptr<Attack> attack = *attackIterator;
 		if (!attack->Update()) // attack ended
 		{
-			// delete the object
+			// delete the object (shared_ptr will delete it for us when ref cout <1)
 			attackIterator = m_activeAttacks.erase(attackIterator); // advance the iterator
-			delete attack;
 		}
 		else
 		{
@@ -136,8 +135,9 @@ void Unit::BasicAttack(const glm::vec3& origin, const glm::vec3& direction)
 	clock_t tick = clock();
 	if ((tick - m_lastAttack) / (float)CLOCKS_PER_SEC >= m_metadata.m_atkSpeed)
 	{
+		// TODO: cannot shoot while standing next to wall
 		m_lastAttack = tick;
-		Attack* attack = new RangedAttack("attack.png");
+		std::shared_ptr<Attack> attack = Attack::CreateAttack(m_metadata.m_basicAttack.c_str());
 		attack->SetPosition(origin);
 		attack->SetDirection(direction);
 		m_activeAttacks.push_back(attack);
@@ -168,6 +168,7 @@ void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut
 	clock_t tick = clock();
 	if (m_currentState == State::MOVING || m_currentState == State::DODGING)
 	{
+		// TODO: only update animation frame if actually moving
 		if ((tick - m_lastFrameTick) / (float)CLOCKS_PER_SEC > 0.043f)
 		{
 			m_animationFrame++;
