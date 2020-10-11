@@ -4,24 +4,14 @@
 #include <sstream>
 #include <algorithm>
 
-bool ParseBool(const std::string& val)
-{
-	if (std::tolower(val[0]) == 't')
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
 const Config& GetConfig()
 {
 	static Config config;
 
 	if (!config.loaded)
 	{
+		AttributeContainer attributeContainer = config.GetExpectedAttributes();
+
 		// load the config
 		std::string line;
 		std::ifstream myfile(INSTALL_DIR + "Assets/config.txt");
@@ -33,40 +23,7 @@ const Config& GetConfig()
 				std::string key, val;
 				getline(lineStream, key, '=');
 				getline(lineStream, val, '=');
-
-				if (key == "is3D")
-				{
-					config.is3D = ParseBool(val);
-				}
-				else if (key == "tileSize")
-				{
-					config.tileSize = std::stof(val);
-				}
-				else if (key == "windowWidth")
-				{
-					config.windowWidth = std::stoi(val);
-				}
-				else if (key == "windowHeight")
-				{
-					config.windowHeight = std::stoi(val);
-				}
-				else if (key == "useSteam")
-				{
-					config.useSteam = ParseBool(val);
-				}
-				else if (key == "useVR")
-				{
-					config.useVR = ParseBool(val);
-					config.is3D |= config.useVR;
-				}
-				else if (key == "level")
-				{
-					config.level = val;
-				}
-				else
-				{
-					printf("unrecognized config: %s", key.c_str());
-				}
+				attributeContainer.SetAttribute(key, val);
 			}
 
 			config.loaded = true;
@@ -74,4 +31,40 @@ const Config& GetConfig()
 	}
 	// Code to load and set the configuration variables
 	return config;
+}
+
+SET_ATTRIBUTE_IMPL(MovementType)
+{
+	if (rawVal == "Keyboard")
+	{
+		*m_data = MovementType::Keyboard;
+	}
+	else if (rawVal == "PointAndClick")
+	{
+		*m_data = MovementType::PointAndClick;
+	}
+	else if(rawVal == "Controller")
+	{
+		*m_data = MovementType::Controller;
+	}
+	else
+	{
+		printf("Unknown MovementType: %s\n", rawVal.c_str());
+	}
+}
+
+SET_ATTRIBUTE_IMPL(FrustumType)
+{
+	if (rawVal == "Perspective")
+	{
+		*m_data = FrustumType::Perspective;
+	}
+	else if (rawVal == "Orthographic")
+	{
+		*m_data = FrustumType::Orthographic;
+	}
+	else
+	{
+		printf("Unknown MovementType: %s\n", rawVal.c_str());
+	}
 }

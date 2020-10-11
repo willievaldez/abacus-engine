@@ -4,3 +4,4 @@ speed=3.5
 health=25
 mana_loss_per_sec=0.0
 idle_action=Attack
+hitbox_radius=1.5

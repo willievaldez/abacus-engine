@@ -2,6 +2,7 @@
 
 #include <GLWrapper/GLObject.h>
 #include <Game/Action.h>
+#include <Game/AttributeContainer.h>
 
 #include <chrono>
 
@@ -19,17 +20,18 @@ class Attack;
 
 struct UnitMetadata
 {
-	std::string m_spritePath = "";
-	int m_numSpriteRows = 1;
-	int m_maxHealth = 100;
-	float m_speed = 4.0f;
-	float m_manaDepletionPerSec = 0.0f;
-	std::string m_idleAction = "";
-	float m_dodgeSpeed = 16.0f;
-	float m_dodgeDurationSec = 0.25f;
-	float m_dodgeCost = 10.0f;
-	float m_atkSpeed = 0.5f;
-	float m_radius = 1.5f;
+#define ATTRIBUTE(strName, type, varName, defaultVal) type varName = defaultVal;
+#include <Game/UnitMetadata.inl>
+#undef ATTRIBUTE
+
+	AttributeContainer GetExpectedAttributes()
+	{
+		AttributeContainer attributeContainer;
+#define ATTRIBUTE(strName, type, varName, defaultVal) attributeContainer.AddAttribute(strName, &varName)
+#include <Game/UnitMetadata.inl>
+#undef ATTRIBUTE
+		return attributeContainer;
+	};
 };
 
 class Unit : public GLObject
@@ -53,12 +55,14 @@ public:
 private:
 	Unit(const UnitMetadata&);
 
+
 	using EntityMap = std::unordered_map<std::string, UnitMetadata>;
 	static EntityMap& GetEntityBlueprints() {
 		static EntityMap entityMap;
 		return entityMap;
 	};
 	UnitMetadata m_metadata;
+
 
 	State m_currentState = State::IDLE;
 	std::shared_ptr<Action> m_idleAction = nullptr;

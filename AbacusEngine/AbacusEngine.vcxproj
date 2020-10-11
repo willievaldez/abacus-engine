@@ -149,6 +149,7 @@
     <ClCompile Include="..\Code\source\Config.cpp" />
     <ClCompile Include="..\Code\source\Game\Action.cpp" />
     <ClCompile Include="..\Code\source\Game\Attack.cpp" />
+    <ClCompile Include="..\Code\source\Game\AttributeContainer.cpp" />
     <ClCompile Include="..\Code\source\Game\Level.cpp" />
     <ClCompile Include="..\Code\source\Game\Spawner.cpp" />
     <ClCompile Include="..\Code\source\Game\Structure.cpp" />
@@ -171,6 +172,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Code\include\ConfigKeys.inl" />
+    <None Include="..\Code\include\Game\UnitMetadata.inl" />
     <None Include="..\models\Levels\testLevel.csv" />
     <None Include="..\Code\shaders\shader.frag" />
     <None Include="..\code\shaders\shader.vert" />
@@ -181,6 +184,7 @@
   <ItemGroup>
     <ClInclude Include="..\Code\include\Config.h" />
     <ClInclude Include="..\Code\include\Game\Action.h" />
+    <ClInclude Include="..\Code\include\Game\AttributeContainer.h" />
     <ClInclude Include="..\Code\include\Game\Level.h" />
     <ClInclude Include="..\Code\include\Game\Spawner.h" />
     <ClInclude Include="..\Code\include\Game\Structure.h" />

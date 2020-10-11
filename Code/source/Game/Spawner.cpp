@@ -2,21 +2,6 @@
 
 Spawner::Spawner(glm::vec3& pos, Asset* asset) : Structure(pos, asset)
 {
-	//STRUCTURE_TYPE = StructureType::SPAWNER;
-	//if (asset == GLObject::GLAsset("AstroChurch.png"))
-	//{
-	//	friendly = true;
-	//	m_spawnAsset = GLObject::GLAsset("botboi.png");
-	//	period = 10000;
-	//}
-	//else
-	//{
-	//	friendly = false;
-	//	built = true;
-	//	health = 100.0f;
-		//m_spawnAsset = GLObject::GLAsset("demongrunt_run.png");
-	//	period = 10000;
-	//}
 	m_lastSpawnTime = clock();
 	m_entityName = "DemonGrunt";
 }
@@ -28,7 +13,6 @@ Spawner::~Spawner()
 
 void Spawner::Update(clock_t time)
 {
-	Unit* unit = nullptr;
 	float elapsedSeconds = (time - m_lastSpawnTime) / (float)CLOCKS_PER_SEC;
 	if (elapsedSeconds >= m_periodSec && !m_spawnedUnit)
 	{

@@ -14,6 +14,9 @@ Unit* Unit::Create(const char* entityName)
 	auto foundEntity = GetEntityBlueprints().find(entityName);
 	if (foundEntity == GetEntityBlueprints().end())
 	{
+		// get expected attributes
+		AttributeContainer expectedAttributes = metadata.GetExpectedAttributes();
+
 		std::string line;
 		std::ifstream myfile(INSTALL_DIR + "Assets/2D/Entities/" + entityName + ".ntt");
 		if (myfile.is_open())
@@ -24,35 +27,7 @@ Unit* Unit::Create(const char* entityName)
 				std::string key, val;
 				getline(lineStream, key, '=');
 				getline(lineStream, val, '=');
-
-				if (key == "sprite_path")
-				{
-					metadata.m_spritePath = val;
-				}
-				else if (key == "num_sprite_rows")
-				{
-					metadata.m_numSpriteRows = std::stoi(val);
-				}
-				else if (key == "speed")
-				{
-					metadata.m_speed = std::stof(val);
-				}
-				else if (key == "health")
-				{
-					metadata.m_maxHealth = std::stoi(val);
-				}
-				else if (key == "mana_loss_per_sec")
-				{
-					metadata.m_manaDepletionPerSec = std::stof(val);
-				}
-				else if (key == "idle_action")
-				{
-					metadata.m_idleAction = val;
-				}
-				else
-				{
-					printf("unrecognized attribute: %s", key.c_str());
-				}
+				expectedAttributes.SetAttribute(key, val);
 			}
 		}
 
@@ -78,18 +53,6 @@ Unit::Unit(const UnitMetadata& metadata)
 	m_dodgeStartTime = m_lastFrameTick;
 	m_lastAttack = m_lastFrameTick;
 	m_idleAction = Action::CreateAction(m_metadata.m_idleAction.c_str());
-	//friendly = isFriendly;
-//isDead = false;
-
-//if (friendly)
-//{
-//	idleAction = new IdleDefendAction(10.0f);
-//}
-//else
-//{
-//	idleAction = new IdleAttackAction();
-//}
-
 }
 
 Unit::~Unit()
@@ -178,7 +141,7 @@ void Unit::BasicAttack(const glm::vec3& origin, const glm::vec3& direction)
 		attack->SetPosition(origin);
 		attack->SetDirection(direction);
 		m_activeAttacks.push_back(attack);
-		TakeDamage(1.0f);
+		TakeDamage(attack->GetCost());
 	}
 }
 
