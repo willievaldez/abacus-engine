@@ -39,6 +39,7 @@ void GLObject::useShaderProgram(const glm::mat4& P, const glm::mat4& V, const gl
 
 Asset* GLObject::GLAsset(const char* textureFile)
 {
+	Asset* foundAsset = nullptr;
 	if (GLObject::s_assets.find(textureFile) == GLObject::s_assets.end())
 	{
 		std::string filepath = INSTALL_DIR + "Assets/2D/" + textureFile;

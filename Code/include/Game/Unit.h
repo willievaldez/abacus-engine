@@ -14,7 +14,6 @@ enum class State
 	ATTACKING
 };
 
-
 class Action; // lawsuit
 class Attack;
 
@@ -47,7 +46,7 @@ public:
 	void SetState(State);
 	const UnitMetadata& GetMetadata() const;
 
-	void BasicAttack(const glm::vec3&, const glm::vec3&);
+	void BasicAttack(const glm::vec3& direction);
 	bool TakeDamage(float);
 	float GetHealth() const { return m_currentHealth; };
 	void GetMovePosition(const::glm::vec3& direction, glm::vec3& destination);

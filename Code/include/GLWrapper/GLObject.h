@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp> // glm::mat4, glm::transform, glm::length
 

@@ -202,11 +202,9 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 		const Camera& cam = Window::GetCamera();
 		glm::vec4 mouseWorldSpaceVec4((xpos - (GetConfig().windowWidth / 2.0)) / (cam.FOV / 2.0f), ((GetConfig().windowHeight / 2.0) - ypos) / (cam.FOV / 2.0f), 0.0f, 1.0f);
 		glm::vec3 mouseWorldSpace(mouseWorldSpaceVec4.x + cam.pos.x, mouseWorldSpaceVec4.y + cam.pos.y, 1.9f);
-		glm::vec3 attackPos = cam.pos;
-		attackPos.z = 1.9f;
-		glm::vec3 attackDirection = glm::normalize(mouseWorldSpace - attackPos) / 3.0f;
+		glm::vec3 attackDirection = glm::normalize(mouseWorldSpace - cam.pos);
 		attackDirection.z = 0.0f;
-		Level::Get()->BasicAttack(attackPos, attackDirection);
+		BasicAttack(attackDirection);
 	}
 
 
@@ -460,9 +458,9 @@ void Level::PlaceStructure(glm::vec3& coords, Asset* type)
 	}
 }
 
-void Level::BasicAttack(const glm::vec3& origin, const glm::vec3& direction)
+void Level::BasicAttack(const glm::vec3& direction)
 {
-	m_player->BasicAttack(origin, direction);
+	m_player->BasicAttack(direction);
 }
 
 //void Level::updateUnits(std::vector<Unit*>& units, clock_t& tick)

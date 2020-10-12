@@ -22,7 +22,7 @@ public:
 	std::vector<Tile*> GetTilesFromCoords(const glm::vec3&, float radius);
 	bool getCoordsFromTile(std::pair<int, int>, glm::vec3&);
 
-	void BasicAttack(const glm::vec3&, const glm::vec3&);
+	void BasicAttack(const glm::vec3& direction);
 
 	void Update(clock_t& tick, GLFWwindow* window);
 

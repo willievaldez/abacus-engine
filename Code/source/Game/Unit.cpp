@@ -58,15 +58,6 @@ Unit::Unit(const UnitMetadata& metadata)
 Unit::~Unit()
 {
 	Level::Get()->RemoveUnit(this);
-
-	//std::shared_ptr<Action> actionToDelete = nullptr;
-	//while (m_currentAction)
-	//{
-	//	actionToDelete = m_currentAction;
-	//	m_currentAction = m_currentAction->nextAction;
-	//	delete actionToDelete;
-	//}
-	//delete m_idleAction;
 }
 
 void Unit::Render()
@@ -77,7 +68,7 @@ void Unit::Render()
 		uniforms.AddObject("animationFrame", 0);
 		m_asset->Render(m_position, uniforms);
 	}
-	else if (m_currentState == State::MOVING || m_currentState == State::DODGING)
+	else if (m_currentState == State::MOVING || m_currentState == State::DODGING || m_currentState == State::ATTACKING)
 	{
 		UniformContainer uniforms;
 		uniforms.AddObject("animationFrame", m_animationFrame);
@@ -129,16 +120,17 @@ const UnitMetadata& Unit::GetMetadata() const
 	return m_metadata;
 }
 
-void Unit::BasicAttack(const glm::vec3& origin, const glm::vec3& direction)
+void Unit::BasicAttack(const glm::vec3& direction)
 {
 	static int attackNum = 0;
 	clock_t tick = clock();
 	if ((tick - m_lastAttack) / (float)CLOCKS_PER_SEC >= m_metadata.m_atkSpeed)
 	{
+		SetState(State::ATTACKING);
 		// TODO: cannot shoot while standing next to wall
 		m_lastAttack = tick;
-		std::shared_ptr<Attack> attack = Attack::CreateAttack(m_metadata.m_basicAttack.c_str());
-		attack->SetPosition(origin);
+		std::shared_ptr<Attack> attack = Attack::CreateAttack(m_metadata.m_basicAttack.c_str(), this);
+		attack->SetPosition(GetPosition());
 		attack->SetDirection(direction);
 		m_activeAttacks.push_back(attack);
 		TakeDamage(attack->GetCost());
@@ -147,17 +139,20 @@ void Unit::BasicAttack(const glm::vec3& origin, const glm::vec3& direction)
 
 bool Unit::TakeDamage(float dmg)
 {
-	m_currentHealth -= dmg;
+	if (m_currentState != State::DODGING || dmg < 0.0f)
+	{
+		m_currentHealth -= dmg;
 
-	if (m_currentHealth <= 0.0f)
-	{
-		//isDead = true;
-		m_currentHealth = 0.0f;
-		return true;
-	}
-	if (m_currentHealth > m_metadata.m_maxHealth)
-	{
-		m_currentHealth = (float)m_metadata.m_maxHealth;
+		if (m_currentHealth <= 0.0f)
+		{
+			//isDead = true;
+			m_currentHealth = 0.0f;
+			return true;
+		}
+		if (m_currentHealth > m_metadata.m_maxHealth)
+		{
+			m_currentHealth = (float)m_metadata.m_maxHealth;
+		}
 	}
 
 	return false;
@@ -199,7 +194,7 @@ void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut
 
 void Unit::StartDodge()
 {
-	SetState(State::DODGING);
 	m_dodgeStartTime = clock();
 	TakeDamage(m_metadata.m_dodgeCost);
+	SetState(State::DODGING);
 }

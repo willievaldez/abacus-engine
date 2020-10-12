@@ -198,25 +198,30 @@ IdleAttackAction::~IdleAttackAction()
 
 bool IdleAttackAction::Execute(clock_t& tick, Unit* unit)
 {
-	unit->SetState(State::IDLE);
-	Unit* player = Level::Get()->GetPlayerUnit();
-	
-	// if within view, walk to player
-	glm::vec3 dirToPlayer = player->GetPosition() - unit->GetPosition();
-	dirToPlayer.z = 0.0f;
-	float dist = glm::length(dirToPlayer);
-	if (dist < 20.0f && dist > 1.0f)
+	// move to player if not currently attacking
+	if (unit->GetState() != State::ATTACKING)
 	{
-		unit->SetState(State::MOVING);
-		glm::vec3 newPosition(0.0f);
-		unit->GetMovePosition(glm::normalize(dirToPlayer), newPosition);
-		unit->SetPosition(newPosition);
-	}
-
-	// if in attack range, attack (TODO: unless attack is on cooldown)
-	if (dist < 1.0f)
-	{
-		player->TakeDamage(0.1f);
+		Unit* player = Level::Get()->GetPlayerUnit();
+		glm::vec3 dirToPlayer = player->GetPosition() - unit->GetPosition();
+		dirToPlayer.z = 0.0f;
+		float dist = glm::length(dirToPlayer);
+		if (dist > 20.0f)
+		{
+			unit->SetState(State::IDLE);
+		}
+		// if within view, walk to player
+		else if (dist < 20.0f && dist > 1.0f)
+		{
+			unit->SetState(State::MOVING);
+			glm::vec3 newPosition(0.0f);
+			unit->GetMovePosition(glm::normalize(dirToPlayer), newPosition);
+			unit->SetPosition(newPosition);
+		}
+		// if in attack range, attack
+		else if (dist < 1.0f)
+		{
+			unit->BasicAttack(unit->GetDirection());
+		}
 	}
 
 	return false;

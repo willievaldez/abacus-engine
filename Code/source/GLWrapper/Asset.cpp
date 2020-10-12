@@ -94,35 +94,6 @@ void Asset::useShaderProgram(const glm::mat4& P, const glm::mat4& V, const glm::
 
 Asset::Asset(std::string& filename)
 {
-	////Generate texture ID and load texture data 
-	//glGenTextures(1, &m_textureID);
-	//printf("filepath %s \n", filename.c_str());
-	//stbi_set_flip_vertically_on_load(true);
-	//unsigned char* image = stbi_load(filename.c_str(), &m_width, &m_height, &nrChannels, 0);
-
-	//if (image == NULL)
-	//{
-	//	printf("error loading image: %s\n", filename.c_str());
-	//	return;
-	//}
-
-	//// Parameters
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//// Assign texture to ID
-	//glBindTexture(GL_TEXTURE_2D, m_textureID);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-	//glGenerateMipmap(GL_TEXTURE_2D);
-
-	//glBindTexture(GL_TEXTURE_2D, 0);
-	//stbi_image_free(image);
-
-
-
-
 	// add animation
 	glGenTextures(1, &m_textureID);
 	int nrChannels;
