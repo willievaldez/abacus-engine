@@ -231,9 +231,9 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 	// update all units (including player)
 	for (auto& unit : m_units)
 	{
-		std::vector<Tile*> prevTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().m_radius);
+		std::vector<Tile*> prevTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
 		unit->Update(tick);
-		std::vector<Tile*> currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().m_radius);
+		std::vector<Tile*> currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
 
 		if (unit != m_player)
 		{

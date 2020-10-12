@@ -108,7 +108,7 @@ bool Tile::Collision(const glm::vec3& pt, Unit** hitUnit, float radius)
 		for (Unit* unit : m_units)
 		{
 			float dist = glm::length(pt - unit->GetPosition());
-			if (dist <= unit->GetMetadata().m_radius + radius)
+			if (dist <= unit->GetMetadata().hitbox_radius + radius)
 			{
 				if (closestHit < 0.0f || dist < closestHit)
 				{
@@ -126,7 +126,7 @@ void Tile::Interact(Unit* player)
 	for (auto& item : m_items)
 	{
 		float dist = glm::length(item->GetPosition() - player->GetPosition());
-		if (dist <= player->GetMetadata().m_radius + 0.5f) // TODO hard coded mana orb size
+		if (dist <= player->GetMetadata().hitbox_radius + 0.5f) // TODO hard coded mana orb size
 		{
 			player->TakeDamage(-15.0f); // regain mana
 			delete item;

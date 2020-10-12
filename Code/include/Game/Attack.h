@@ -13,14 +13,14 @@ class Attack;
 
 struct AttackMetadata
 {
-#define ATTRIBUTE(strName, type, varName, defaultVal) type varName = defaultVal;
+#define ATTRIBUTE(type, varName, defaultVal) type varName = defaultVal;
 #include <Game/AttackMetadata.inl>
 #undef ATTRIBUTE
 
 	AttributeContainer GetExpectedAttributes()
 	{
 		AttributeContainer attributeContainer;
-#define ATTRIBUTE(strName, type, varName, defaultVal) attributeContainer.AddAttribute(strName, &varName)
+#define ATTRIBUTE(type, varName, defaultVal) attributeContainer.AddAttribute(#varName, &varName)
 #include <Game/AttackMetadata.inl>
 #undef ATTRIBUTE
 		return attributeContainer;
@@ -37,7 +37,7 @@ class Attack : public GLObject
 {
 public:
 	virtual bool Update() = 0;
-	float GetCost() const { return m_metadata.m_castCost; };
+	float GetCost() const { return m_metadata.cast_cost; };
 
 	template<typename T>
 	static size_t Register(const char* attackName)
@@ -53,7 +53,7 @@ public:
 
 protected:
 	Attack(Unit* owner, const AttackMetadata& metadata)
-		: GLObject(metadata.m_sprite.c_str())
+		: GLObject(metadata.sprite.c_str())
 		, m_metadata(metadata)
 		, m_owner(owner)
 		, m_attackStart(clock()) {};

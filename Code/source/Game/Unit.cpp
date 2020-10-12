@@ -48,15 +48,15 @@ Unit* Unit::Create(const char* entityName)
 };
 
 Unit::Unit(const UnitMetadata& metadata)
-	: GLObject(GLObject::GLAsset(metadata.m_spritePath.c_str()))
+	: GLObject(GLObject::GLAsset(metadata.sprite_path.c_str()))
 	, m_metadata(metadata)
 {
 	OBJECT_TYPE = ObjectType::UNIT;
-	m_currentHealth = (float)m_metadata.m_maxHealth;
+	m_currentHealth = (float)m_metadata.health;
 	m_lastFrameTick = clock();
 	m_dodgeStartTime = m_lastFrameTick;
 	m_lastAttack = m_lastFrameTick;
-	m_idleAction = Action::CreateAction(m_metadata.m_idleAction.c_str());
+	m_idleAction = Action::CreateAction(m_metadata.idle_action.c_str());
 }
 
 Unit::~Unit()
@@ -84,7 +84,7 @@ void Unit::Render()
 		attack->Render();
 	}
 
-	m_asset->DrawStatusBar(m_position, m_currentHealth / m_metadata.m_maxHealth);
+	m_asset->DrawStatusBar(m_position, m_currentHealth / m_metadata.health);
 }
 
 void Unit::Update(clock_t tick)
@@ -106,7 +106,7 @@ void Unit::Update(clock_t tick)
 		}
 	}
 
-	TakeDamage(m_metadata.m_manaDepletionPerSec / GetConfig().ticksPerSecond);
+	TakeDamage(m_metadata.mana_loss_per_sec / GetConfig().ticksPerSecond);
 }
 
 void Unit::SetState(State state)
@@ -128,12 +128,12 @@ void Unit::BasicAttack(const glm::vec3& direction)
 {
 	static int attackNum = 0;
 	clock_t tick = clock();
-	if ((tick - m_lastAttack) / (float)CLOCKS_PER_SEC >= m_metadata.m_atkSpeed)
+	if ((tick - m_lastAttack) / (float)CLOCKS_PER_SEC >= m_metadata.attack_speed)
 	{
 		SetState(State::ATTACKING);
 		// TODO: cannot shoot while standing next to wall
 		m_lastAttack = tick;
-		std::shared_ptr<Attack> attack = Attack::Create(m_metadata.m_basicAttack.c_str(), this);
+		std::shared_ptr<Attack> attack = Attack::Create(m_metadata.basic_attack.c_str(), this);
 		attack->SetPosition(GetPosition());
 		attack->SetDirection(direction);
 		m_activeAttacks.push_back(attack);
@@ -153,9 +153,9 @@ bool Unit::TakeDamage(float dmg)
 			m_currentHealth = 0.0f;
 			return true;
 		}
-		if (m_currentHealth > m_metadata.m_maxHealth)
+		if (m_currentHealth > m_metadata.health)
 		{
-			m_currentHealth = (float)m_metadata.m_maxHealth;
+			m_currentHealth = (float)m_metadata.health;
 		}
 	}
 
@@ -180,13 +180,13 @@ void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut
 	}
 	if (m_currentState == State::MOVING)
 	{
-		destinationOut = m_position + (direction * m_metadata.m_speed / (float)GetConfig().ticksPerSecond);
+		destinationOut = m_position + (direction * m_metadata.speed / (float)GetConfig().ticksPerSecond);
 	}
 	else if (m_currentState == State::DODGING)
 	{
-		if ((tick - m_dodgeStartTime) / (float)CLOCKS_PER_SEC < m_metadata.m_dodgeDurationSec)
+		if ((tick - m_dodgeStartTime) / (float)CLOCKS_PER_SEC < m_metadata.dodge_duration)
 		{
-			destinationOut = m_position + (m_direction * m_metadata.m_dodgeSpeed / (float)GetConfig().ticksPerSecond);
+			destinationOut = m_position + (m_direction * m_metadata.dodge_speed / (float)GetConfig().ticksPerSecond);
 		}
 		else // dodge ended
 		{
@@ -199,6 +199,6 @@ void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut
 void Unit::StartDodge()
 {
 	m_dodgeStartTime = clock();
-	TakeDamage(m_metadata.m_dodgeCost);
+	TakeDamage(m_metadata.dodge_cost);
 	SetState(State::DODGING);
 }

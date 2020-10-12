@@ -40,7 +40,7 @@ std::shared_ptr<Attack> Attack::Create(const char* attackName, Unit* owner)
 
 	if (foundAttack != GetAttackBlueprints().end())
 	{
-		auto foundType = AccessAttacks().find(foundAttack->second.m_type);
+		auto foundType = AccessAttacks().find(foundAttack->second.type);
 		if (foundType != AccessAttacks().end())
 		{
 			returnedType = foundType->second(owner, foundAttack->second);
@@ -63,7 +63,7 @@ bool RangedAttack::Update()
 		{
 			if (hitUnit)
 			{
-				hitUnit->TakeDamage(m_metadata.m_dmg);
+				hitUnit->TakeDamage(m_metadata.damage);
 			}
 
 			return false;
@@ -81,7 +81,7 @@ bool RangedAttack::Update()
 bool MeleeAttack::Update()
 {
 	clock_t tick = clock();
-	if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_metadata.m_castTime)
+	if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_metadata.cast_time)
 	{
 		m_owner->SetState(State::IDLE);
 		return false;
@@ -95,7 +95,7 @@ bool MeleeAttack::Update()
 		m_hit = dist < 2.5f;
 		if (m_hit)
 		{
-			player->TakeDamage(m_metadata.m_dmg);
+			player->TakeDamage(m_metadata.damage);
 		}
 	}
 	return true;

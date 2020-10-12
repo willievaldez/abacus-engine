@@ -19,14 +19,14 @@ class Attack;
 
 struct UnitMetadata
 {
-#define ATTRIBUTE(strName, type, varName, defaultVal) type varName = defaultVal;
+#define ATTRIBUTE(type, varName, defaultVal) type varName = defaultVal;
 #include <Game/UnitMetadata.inl>
 #undef ATTRIBUTE
 
 	AttributeContainer GetExpectedAttributes()
 	{
 		AttributeContainer attributeContainer;
-#define ATTRIBUTE(strName, type, varName, defaultVal) attributeContainer.AddAttribute(strName, &varName)
+#define ATTRIBUTE(type, varName, defaultVal) attributeContainer.AddAttribute(#varName, &varName)
 #include <Game/UnitMetadata.inl>
 #undef ATTRIBUTE
 		return attributeContainer;
