@@ -54,14 +54,9 @@ public:
 private:
 	Unit(const UnitMetadata&);
 
-
 	using EntityMap = std::unordered_map<std::string, UnitMetadata>;
-	static EntityMap& GetEntityBlueprints() {
-		static EntityMap entityMap;
-		return entityMap;
-	};
+	static EntityMap& GetEntityBlueprints() { static EntityMap entityMap; return entityMap; };
 	UnitMetadata m_metadata;
-
 
 	State m_currentState = State::IDLE;
 	std::shared_ptr<Action> m_idleAction = nullptr;

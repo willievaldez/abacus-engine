@@ -1,11 +1,14 @@
 #pragma once
 
 #include <Game/Level.h>
+#include <Utility.h>
 
 #include <chrono>
 
-#define REGISTER_ACTION(TYPE_NAME, CLASS) size_t g_actionNum##__COUNTER__ = Action::RegisterAction<CLASS>(TYPE_NAME);
 class Action;
+
+#define REGISTER_ACTION(TYPE_NAME, CLASS) REGISTER(Action, TYPE_NAME, CLASS)
+
 template<typename T>
 std::shared_ptr<Action> ActionFactory()
 {
@@ -24,7 +27,7 @@ public:
 	virtual void Render() = 0;
 
 	template<typename T>
-	static size_t RegisterAction(const char* actionName)
+	static size_t Register(const char* actionName)
 	{
 		auto foundType = AccessActions().find(actionName);
 		assert(foundType == AccessActions().end());

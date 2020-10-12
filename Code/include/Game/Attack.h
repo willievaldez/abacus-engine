@@ -1,40 +1,46 @@
 #pragma once
 
 #include <GLWrapper/GLObject.h>
+#include <Utility.h>
+#include <Game/AttributeContainer.h>
 
 #include <time.h>
 
 class Unit;
-
-#define CONCAT_(x,y) x##y
-#define CONCAT(x,y) CONCAT_(x,y)
-
-#define REGISTER_ATTACK(TYPE_NAME, CLASS) size_t CONCAT(g_attackNum,__COUNTER__) = Attack::RegisterAttack<CLASS>(TYPE_NAME);
 class Attack;
-template<typename T>
-std::shared_ptr<Attack> AttackFactory(Unit* owner)
-{
-	return std::make_shared<T>(owner);
-}
 
-enum class AttackType
+#define REGISTER_ATTACK(TYPE_NAME, CLASS) REGISTER(Attack, TYPE_NAME, CLASS)
+
+struct AttackMetadata
 {
-	Melee,
-	Ranged
+#define ATTRIBUTE(strName, type, varName, defaultVal) type varName = defaultVal;
+#include <Game/AttackMetadata.inl>
+#undef ATTRIBUTE
+
+	AttributeContainer GetExpectedAttributes()
+	{
+		AttributeContainer attributeContainer;
+#define ATTRIBUTE(strName, type, varName, defaultVal) attributeContainer.AddAttribute(strName, &varName)
+#include <Game/AttackMetadata.inl>
+#undef ATTRIBUTE
+		return attributeContainer;
+	};
 };
+
+template<typename T>
+std::shared_ptr<Attack> AttackFactory(Unit* owner, const AttackMetadata& metadata)
+{
+	return std::make_shared<T>(owner, metadata);
+}
 
 class Attack : public GLObject
 {
 public:
-	Attack(const char* assetName, Unit* owner)
-		: GLObject(assetName)
-		, m_owner(owner)
-		, m_attackStart(clock()) {};
 	virtual bool Update() = 0;
-	float GetCost() const { return m_castCost; };
+	float GetCost() const { return m_metadata.m_castCost; };
 
 	template<typename T>
-	static size_t RegisterAttack(const char* attackName)
+	static size_t Register(const char* attackName)
 	{
 		auto foundType = AccessAttacks().find(attackName);
 		assert(foundType == AccessAttacks().end());
@@ -42,40 +48,40 @@ public:
 		return AccessAttacks().size();
 	};
 
-	static std::shared_ptr<Attack> CreateAttack(const char* attackName, Unit* owner);
-	using AttackMap = std::unordered_map<std::string, std::shared_ptr<Attack>(*)(Unit*)>;
+	static std::shared_ptr<Attack> Create(const char* attackName, Unit* owner);
+	using AttackClassMap = std::unordered_map<std::string, std::shared_ptr<Attack>(*)(Unit*, const AttackMetadata&)>;
 
 protected:
-	float m_dmg = 5.0f;
-	float m_castCost = 1.0f;
-	AttackType m_type = AttackType::Melee;
-	float m_duration = 0.0f;
-	clock_t m_attackStart;
-	Unit* m_owner = nullptr;
+	Attack(Unit* owner, const AttackMetadata& metadata)
+		: GLObject(metadata.m_sprite.c_str())
+		, m_metadata(metadata)
+		, m_owner(owner)
+		, m_attackStart(clock()) {};
 
-	static AttackMap& AccessAttacks() { static AttackMap attackMap; return attackMap; };
+	using AttackBPMap = std::unordered_map<std::string, AttackMetadata>;
+	static AttackBPMap& GetAttackBlueprints() { static AttackBPMap attackBPMap; return attackBPMap; };
+	AttackMetadata m_metadata;
+
+	Unit* m_owner = nullptr;
+	clock_t m_attackStart;
+
+	static AttackClassMap& AccessAttacks() { static AttackClassMap attackClassMap; return attackClassMap; };
 };
 
 class RangedAttack : public Attack
 {
 public:
-	RangedAttack(Unit* owner) : Attack("attack.png", owner) {};
+	RangedAttack(Unit* owner, const AttackMetadata& metadata) : Attack(owner, metadata) {};
 	bool Update() override;
 private:
 	float m_speed = 0.5f;
 	float m_radius = 0.5f;
 };
 
-
 class MeleeAttack : public Attack
 {
 public:
-	MeleeAttack(Unit* owner) : Attack("attack.png", owner)
-	{
-		m_castCost = 0.0f;
-		m_dmg = 10.0f;
-		m_duration = 0.5f;
-	};
+	MeleeAttack(Unit* owner, const AttackMetadata& metadata) : Attack(owner, metadata) {};
 	bool Update() override;
 private:
 	bool m_hit = false;

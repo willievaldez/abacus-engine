@@ -31,6 +31,9 @@
     <Filter Include="Header Files\GLWrapper">
       <UniqueIdentifier>{9cefa210-50ec-41fa-8d2b-2c7684a70cbc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Entities">
+      <UniqueIdentifier>{7a60692a-c092-4a7e-95f5-ba8b64dda396}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\source\GLWrapper\glad.c">
@@ -107,6 +110,15 @@
     <None Include="..\Code\include\Game\UnitMetadata.inl">
       <Filter>Header Files\Game</Filter>
     </None>
+    <None Include="..\Assets\2D\Entities\DemonGrunt.ntt">
+      <Filter>Entities</Filter>
+    </None>
+    <None Include="..\Assets\2D\Entities\Lumaton.ntt">
+      <Filter>Entities</Filter>
+    </None>
+    <None Include="..\Code\include\Game\AttackMetadata.inl">
+      <Filter>Header Files\Game</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AbacusEngine.rc">
@@ -167,6 +179,9 @@
     </ClInclude>
     <ClInclude Include="..\Code\include\Game\AttributeContainer.h">
       <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Utility.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

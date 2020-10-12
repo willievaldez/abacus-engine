@@ -3,5 +3,5 @@ num_sprite_rows=1
 speed=5.5
 health=100.0
 mana_loss_per_sec=1.0
-basic_attack=RangedAttack
+basic_attack=BasicRanged
 dodge_speed=15.0f

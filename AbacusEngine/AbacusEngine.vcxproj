@@ -172,7 +172,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Assets\2D\Entities\DemonGrunt.ntt" />
+    <None Include="..\Assets\2D\Entities\Lumaton.ntt" />
     <None Include="..\Code\include\ConfigKeys.inl" />
+    <None Include="..\Code\include\Game\AttackMetadata.inl" />
     <None Include="..\Code\include\Game\UnitMetadata.inl" />
     <None Include="..\models\Levels\testLevel.csv" />
     <None Include="..\Code\shaders\shader.frag" />
@@ -200,6 +203,7 @@
     <ClInclude Include="..\Code\include\GLWrapper\Window.h" />
     <ClInclude Include="..\Code\include\stdafx.h" />
     <ClInclude Include="..\Code\include\Game\Attack.h" />
+    <ClInclude Include="..\Code\include\Utility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

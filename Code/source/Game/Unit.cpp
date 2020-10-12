@@ -39,6 +39,10 @@ Unit* Unit::Create(const char* entityName)
 		unit = new Unit(foundEntity->second);
 		unit->m_unitId = Level::Get()->AddUnit(unit);
 	}
+	else
+	{
+		printf("Entity not found: %s\n", entityName);
+	}
 
 	return unit;
 };
@@ -129,7 +133,7 @@ void Unit::BasicAttack(const glm::vec3& direction)
 		SetState(State::ATTACKING);
 		// TODO: cannot shoot while standing next to wall
 		m_lastAttack = tick;
-		std::shared_ptr<Attack> attack = Attack::CreateAttack(m_metadata.m_basicAttack.c_str(), this);
+		std::shared_ptr<Attack> attack = Attack::Create(m_metadata.m_basicAttack.c_str(), this);
 		attack->SetPosition(GetPosition());
 		attack->SetDirection(direction);
 		m_activeAttacks.push_back(attack);

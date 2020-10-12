@@ -1,18 +1,54 @@
 #include <Game/Attack.h>
 #include <Game/Level.h>
 #include <Game/Unit.h>
+#include <Config.h>
 
-REGISTER_ATTACK("RangedAttack", RangedAttack);
-REGISTER_ATTACK("MeleeAttack", MeleeAttack);
+#include <fstream>
+#include <sstream>
+
+REGISTER_ATTACK("Ranged", RangedAttack);
+REGISTER_ATTACK("Melee", MeleeAttack);
 
 /*static*/
-std::shared_ptr<Attack> Attack::CreateAttack(const char* attackName, Unit* owner)
+std::shared_ptr<Attack> Attack::Create(const char* attackName, Unit* owner)
 {
 	std::shared_ptr<Attack> returnedType = nullptr;
-	auto foundType = AccessAttacks().find(attackName);
-	if (foundType != AccessAttacks().end())
+
+	AttackMetadata metadata;
+	auto foundAttack = GetAttackBlueprints().find(attackName);
+	if (foundAttack == GetAttackBlueprints().end())
 	{
-		returnedType = foundType->second(owner);
+		// get expected attributes
+		AttributeContainer expectedAttributes = metadata.GetExpectedAttributes();
+
+		std::string line;
+		std::ifstream myfile(INSTALL_DIR + "Assets/2D/Attacks/" + attackName + ".atk");
+		if (myfile.is_open())
+		{
+			while (getline(myfile, line))
+			{
+				std::stringstream lineStream(line);
+				std::string key, val;
+				getline(lineStream, key, '=');
+				getline(lineStream, val, '=');
+				expectedAttributes.SetAttribute(key, val);
+			}
+		}
+
+		foundAttack = GetAttackBlueprints().emplace(std::make_pair(std::string(attackName), metadata)).first;
+	}
+
+	if (foundAttack != GetAttackBlueprints().end())
+	{
+		auto foundType = AccessAttacks().find(foundAttack->second.m_type);
+		if (foundType != AccessAttacks().end())
+		{
+			returnedType = foundType->second(owner, foundAttack->second);
+		}
+	}
+	else
+	{
+		printf("Attack Blueprint(atk) not found: %s\n", attackName);
 	}
 	return returnedType;
 }
@@ -27,7 +63,7 @@ bool RangedAttack::Update()
 		{
 			if (hitUnit)
 			{
-				hitUnit->TakeDamage(m_dmg);
+				hitUnit->TakeDamage(m_metadata.m_dmg);
 			}
 
 			return false;
@@ -45,7 +81,7 @@ bool RangedAttack::Update()
 bool MeleeAttack::Update()
 {
 	clock_t tick = clock();
-	if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_duration)
+	if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_metadata.m_castTime)
 	{
 		m_owner->SetState(State::IDLE);
 		return false;
@@ -59,7 +95,7 @@ bool MeleeAttack::Update()
 		m_hit = dist < 2.5f;
 		if (m_hit)
 		{
-			player->TakeDamage(m_dmg);
+			player->TakeDamage(m_metadata.m_dmg);
 		}
 	}
 	return true;
