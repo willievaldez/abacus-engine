@@ -74,8 +74,6 @@ public:
 	RangedAttack(Unit* owner, const AttackMetadata& metadata) : Attack(owner, metadata) {};
 	bool Update() override;
 private:
-	float m_speed = 0.5f;
-	float m_radius = 0.5f;
 };
 
 class MeleeAttack : public Attack

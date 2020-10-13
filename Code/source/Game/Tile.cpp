@@ -98,12 +98,16 @@ void Tile::RemoveUnit(Unit* unit) // TODO: inefficient
 	}
 }
 
-bool Tile::Collision(const glm::vec3& pt, Unit** hitUnit, float radius)
+bool Tile::Collision(const glm::vec3& pt, float radius)
 {
-	*hitUnit = nullptr;
+	return !m_traversable;
+}
+
+bool Tile::Collision(const glm::vec3& pt, std::set<Unit*>& hitUnits, float radius)
+{
 	if (m_traversable)
 	{
-		// check for collision with unit (collide with closest unit)
+		// check for collision with units
 		float closestHit = -1.0f;
 		for (Unit* unit : m_units)
 		{
@@ -112,12 +116,12 @@ bool Tile::Collision(const glm::vec3& pt, Unit** hitUnit, float radius)
 			{
 				if (closestHit < 0.0f || dist < closestHit)
 				{
-					*hitUnit = unit;
+					hitUnits.insert(unit);
 				}
 			}
 		}
 	}
-	return !m_traversable || *hitUnit;
+	return !m_traversable;
 }
 
 void Tile::Interact(Unit* player)

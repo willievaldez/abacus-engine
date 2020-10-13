@@ -10,3 +10,4 @@ ATTRIBUTE(float, dodge_speed, 16.0f);
 ATTRIBUTE(float, dodge_duration, 0.25f);
 ATTRIBUTE(float, dodge_cost, 10.0f);
 ATTRIBUTE(float, attack_speed, 0.5f);
+ATTRIBUTE(bool, friendly, false);

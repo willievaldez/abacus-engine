@@ -55,26 +55,33 @@ std::shared_ptr<Attack> Attack::Create(const char* attackName, Unit* owner)
 
 bool RangedAttack::Update()
 {
-	std::vector<Tile*> tiles = Level::Get()->GetTilesFromCoords(GetPosition(), m_radius);
+	clock_t tick = clock();
+	if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_metadata.cast_time)
+	{
+		m_owner->SetState(State::IDLE);
+	}
+
+	bool keepGoing = true;
+	std::set<Unit*> hitUnits;
+	std::vector<Tile*> tiles = Level::Get()->GetTilesFromCoords(GetPosition(), m_metadata.radius);
 	for (auto& tile : tiles)
 	{
-		Unit* hitUnit = nullptr;
-		if (tile && tile->Collision(GetPosition(), &hitUnit, m_radius))
-		{
-			if (hitUnit)
-			{
-				hitUnit->TakeDamage(m_metadata.damage);
-			}
+		keepGoing = keepGoing && !tile->Collision(GetPosition(), hitUnits, m_metadata.radius);
+	}
 
-			return false;
+	for (auto& hitUnit : hitUnits)
+	{
+		if (hitUnit != m_owner)
+		{
+			hitUnit->TakeDamage(m_metadata.damage);
+			keepGoing = false;
 		}
 	}
-	if (tiles.size() == 0) return false;
 
 	// no collision, keep moving
-	glm::vec3 newAttackPos = GetPosition() + (GetDirection() * m_speed);
+	glm::vec3 newAttackPos = GetPosition() + (GetDirection() * m_metadata.speed);
 	SetPosition(newAttackPos);
-	return true;
+	return keepGoing;
 }
 
 
@@ -88,14 +95,21 @@ bool MeleeAttack::Update()
 	}
 	if (!m_hit)
 	{
-		Unit* player = Level::Get()->GetPlayerUnit();
-		glm::vec3 dirToPlayer = player->GetPosition() - m_owner->GetPosition();
-		dirToPlayer.z = 0.0f;
-		float dist = glm::length(dirToPlayer);
-		m_hit = dist < 2.5f;
-		if (m_hit)
+		std::set<Unit*> hitUnits;
+		float hitDistance = m_owner->GetMetadata().hitbox_radius + m_metadata.radius;
+		std::vector<Tile*> tiles = Level::Get()->GetTilesFromCoords(GetPosition(), hitDistance);
+		for (auto& tile : tiles)
 		{
-			player->TakeDamage(m_metadata.damage);
+			tile->Collision(GetPosition(), hitUnits, hitDistance);
+		}
+
+		for (auto& hitUnit : hitUnits)
+		{
+			if (hitUnit != m_owner)
+			{
+				hitUnit->TakeDamage(m_metadata.damage);
+				m_hit = true;
+			}
 		}
 	}
 	return true;

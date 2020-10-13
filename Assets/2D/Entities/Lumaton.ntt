@@ -5,3 +5,4 @@ health=100.0
 mana_loss_per_sec=1.0
 basic_attack=BasicRanged
 dodge_speed=15.0f
+friendly=true

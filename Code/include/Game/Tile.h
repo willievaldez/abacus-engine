@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include <memory>
-
+#include <set>
 
 #include <GLWrapper/GLObject.h>
 #include <Game/Spawner.h>
@@ -26,7 +26,8 @@ public:
 	void AddItem(GLObject*);
 	void AddUnit(Unit*);
 	void RemoveUnit(Unit*);
-	bool Collision(const glm::vec3& pt, Unit** hitUnit, float radius = 0.0f);
+	bool Collision(const glm::vec3& pt, float radius = 0.0f);
+	bool Collision(const glm::vec3& pt, std::set<Unit*>& hitUnits, float radius = 0.0f);
 	void Interact(Unit* player);
 
 	template<typename T>
