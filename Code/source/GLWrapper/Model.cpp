@@ -5,9 +5,9 @@
 #include <std_image.h> // stbi_load
 #include <unordered_map>
 
-GLint TextureFromFile(const char *path, const string &directory, bool gamma=false)
+GLint TextureFromFile(const char *path, const std::string &directory, bool gamma=false)
 {
-	string filename = directory + '/' + path;
+	std::string filename = directory + '/' + path;
 
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -72,7 +72,7 @@ void Model::render(GLuint shaderProgram)
 		meshes[i].Draw(shaderProgram);
 }
 
-void Model::loadModel(string path, const AssimpParsingParams& params)
+void Model::loadModel(std::string path, const AssimpParsingParams& params)
 {
 	path = INSTALL_DIR + "Assets/3D" + path;
 	// Read file via ASSIMP
@@ -81,7 +81,7 @@ void Model::loadModel(string path, const AssimpParsingParams& params)
 	// Check for errors
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 	{
-		cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+		printf("ERROR::ASSIMP:: %s\n", importer.GetErrorString());
 		return;
 	}
 
@@ -146,8 +146,8 @@ glm::vec3 FixCoordinateSystem(const aiVector3D& original, bool fix)
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, const AssimpParsingParams& params)
 {
 	// Data to fill
-	vector<Vertex> vertices;
-	vector<GLuint> indices;
+	std::vector<Vertex> vertices;
+	std::vector<GLuint> indices;
 
 	std::unordered_map<float, std::unordered_map<float, std::unordered_map<float, std::vector<glm::vec3>>>> duplicatedPoints;
 	std::vector<glm::vec3> uniquePoints;
@@ -230,7 +230,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, const AssimpParsingP
 		vertices.push_back(vertex);
 	}
 
-	vector<vector<glm::vec3>> calculatedNormals; // outermost vector: for each vertex. inner: for each face that uses the vertex (usually 1)
+	std::vector<std::vector<glm::vec3>> calculatedNormals; // outermost vector: for each vertex. inner: for each face that uses the vertex (usually 1)
 	calculatedNormals.resize(vertices.size());
 
 	// Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
@@ -287,8 +287,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, const AssimpParsingP
 		// TODO: if angle between two vectors is two high, dont merge vertices
 		// calculate normal as avg of all normals using this vertex
 		// change indices of faces to match newly created vertices
-		vector<Vertex> newVertices;
-		vector<GLuint> newIndices;
+		std::vector<Vertex> newVertices;
+		std::vector<GLuint> newIndices;
 		for (glm::vec3& point : uniquePoints)
 		{
 			Vertex vertex;
@@ -324,7 +324,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, const AssimpParsingP
 	}
 
 	// Process textures
-	vector<Texture> textures;
+	std::vector<Texture> textures;
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	// We assume a convention for sampler names in the shaders. Each diffuse texture should be named
 	// as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
@@ -334,10 +334,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, const AssimpParsingP
 	// Normal: texture_normalN
 
 	// 1. Diffuse maps
-	vector<Texture> diffuseMaps = this->loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+	std::vector<Texture> diffuseMaps = this->loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
 	textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 	// 2. Specular maps
-	vector<Texture> specularMaps = this->loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+	std::vector<Texture> specularMaps = this->loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
 	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 	// 3. normal maps
 	std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
@@ -351,9 +351,9 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, const AssimpParsingP
 }
 
 
-vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)
+std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
 {
-	vector<Texture> textures;
+	std::vector<Texture> textures;
 	for (GLuint i = 0; i < mat->GetTextureCount(type); i++)
 	{
 		aiString str;

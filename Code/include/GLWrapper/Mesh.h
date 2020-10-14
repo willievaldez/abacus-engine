@@ -4,8 +4,6 @@
 #include <string>
 #include <sstream>
 
-using namespace std;
-
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -23,7 +21,7 @@ struct Vertex {
 
 struct Texture {
 	GLuint id;
-	string type;
+	std::string type;
 	aiString path;
 };
 
@@ -39,13 +37,13 @@ class Mesh {
 
 public:
 
-	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
-	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, aiMaterial* material);
+	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
+	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures, aiMaterial* material);
 
 	/*  Mesh Data  */
-	vector<Vertex> vertices;
-	vector<GLuint> indices;
-	vector<Texture> textures;
+	std::vector<Vertex> vertices;
+	std::vector<GLuint> indices;
+	std::vector<Texture> textures;
 	Material material;
 
 	/*  Functions  */

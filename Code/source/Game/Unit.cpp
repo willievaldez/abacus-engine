@@ -128,7 +128,7 @@ void Unit::BasicAttack(const glm::vec3& direction)
 {
 	static int attackNum = 0;
 	clock_t tick = clock();
-	if ((tick - m_lastAttack) / (float)CLOCKS_PER_SEC >= m_metadata.attack_speed)
+	if ((tick - m_lastAttack) / (float)CLOCKS_PER_SEC >= m_metadata.attack_cooldown)
 	{
 		SetState(State::ATTACKING);
 		// TODO: cannot shoot while standing next to wall

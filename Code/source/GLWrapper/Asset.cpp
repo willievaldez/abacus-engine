@@ -97,7 +97,6 @@ Asset::Asset(std::string& filename)
 	// add animation
 	glGenTextures(1, &m_textureID);
 	int nrChannels;
-	printf("animation path %s \n", filename.c_str());
 	stbi_set_flip_vertically_on_load(true);
 	unsigned char* animation = stbi_load(filename.c_str(), &m_width, &m_height, &nrChannels, 0);
 

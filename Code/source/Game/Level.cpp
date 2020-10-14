@@ -65,8 +65,6 @@ void Level::MakeLevelFromFile()
 				{
 					spawnGridLocation.first = (int)gridRow.size();
 					spawnGridLocation.second = (int)m_tileGrid.size();
-
-					printf("Found spawn location at tile (%d, %d)\n", (int)m_tileGrid.size(), (int)gridRow.size());
 				}
 				else if (val == "Summoning Circle")
 				{
@@ -88,17 +86,16 @@ void Level::MakeLevelFromFile()
 
 	float tileSize = GetConfig().tileSize;
 
-	// parse real position of player spawn location
 	if (spawnGridLocation.first == -1)
 	{
 		printf("Error: no spawn location provided. please mark a tile with 'Spawn'\n");
 	}
 	else
 	{
+		// now that the m_tileGrid size is known, parse real position of player spawn location
 		m_spawn.x = (spawnGridLocation.first * tileSize) + (tileSize / 2.0f);
 		m_spawn.y = ((m_tileGrid.size() - spawnGridLocation.second) * tileSize) + (tileSize / 2.0f);
 		m_spawn.z = 0.0f;
-		printf("spwan: (%f, %f)\n", m_spawn.x, m_spawn.y);
 		Window::SetCameraPos(m_spawn);
 	}
 
@@ -118,7 +115,7 @@ void Level::MakeLevelFromFile()
 
 
 	// parse real position of enemy spawner location
-	for (std::pair<int, int> spawnerLocation : spawnerLocations)
+	for (auto& spawnerLocation : spawnerLocations)
 	{
 		glm::vec3 spawnPos;
 		spawnPos.x = (spawnerLocation.first * tileSize) + (tileSize / 2.0f);
@@ -137,8 +134,6 @@ void Level::MakeLevelFromFile()
 
 		}
 	}
-
-	printf("Grid len: %d, Grid Width: %d\n", (int)m_tileGrid.size(), (int)m_tileGrid[0].size());
 }
 
 void Level::Update(clock_t& tick, GLFWwindow* window)

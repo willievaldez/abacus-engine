@@ -164,16 +164,6 @@ void Window::IdleCallback3D(GLFWwindow* window, clock_t time)
 	{
 		velocity.y -= 1.0f;
 	}
-	if (keyMap[GLFW_KEY_1])
-	{
-		std::cout << "obj1" << std::endl;
-		//currObj = testObject;
-	}
-	if (keyMap[GLFW_KEY_2])
-	{
-		std::cout << "obj2" << std::endl;
-		//currObj = testObject2;
-	}
 
 	if (!glm::length(velocity) == 0.0f)
 	{

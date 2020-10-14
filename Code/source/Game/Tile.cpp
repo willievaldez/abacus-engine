@@ -9,17 +9,25 @@ Tile::Tile(std::string token)
 {
 	OBJECT_TYPE = ObjectType::STRUCTURE;
 
-	if (token == "W")
+	if (token == "WR" || token == "W")
 	{
-		m_asset = GLObject::GLAsset("wallassetright.png");
+		m_asset = GLObject::GLAsset("wall_right.png");
+		m_traversable = false;
+	}
+	else if (token == "WL")
+	{
+		m_asset = GLObject::GLAsset("wall_left.png");
+		m_traversable = false;
+	}
+	else if (token == "0")
+	{
 		m_traversable = false;
 	}
 	else
 	{
-		m_asset = GLObject::GLAsset("brown.png");
+		m_asset = GLObject::GLAsset("floor1.png");
 		m_traversable = true;
 	}
-
 }
 
 Tile::~Tile()
