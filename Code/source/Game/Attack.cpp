@@ -55,10 +55,13 @@ std::shared_ptr<Attack> Attack::Create(const char* attackName, Unit* owner)
 
 bool RangedAttack::Update()
 {
-	clock_t tick = clock();
-	if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_metadata.cast_time)
+	if (m_owner->GetState() == State::ATTACKING)
 	{
-		m_owner->SetState(State::IDLE);
+		clock_t tick = clock();
+		if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_metadata.cast_time)
+		{
+			m_owner->SetState(State::IDLE);
+		}
 	}
 
 	bool keepGoing = true;

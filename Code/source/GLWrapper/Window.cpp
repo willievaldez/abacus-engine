@@ -145,7 +145,6 @@ void Window::IdleCallback3D(GLFWwindow* window, clock_t time)
 	glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
 	if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP]) {
 		velocity += cam_direction_no_y;
-
 	}
 	if (keyMap[GLFW_KEY_A] || keyMap[GLFW_KEY_LEFT]) {
 		velocity += glm::cross(cam.up, cam_direction_no_y);

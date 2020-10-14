@@ -138,11 +138,39 @@ void Level::MakeLevelFromFile()
 
 void Level::Update(clock_t& tick, GLFWwindow* window)
 {
+	std::vector<Tile*> prevTiles;
+	std::vector<Tile*> currTiles;
+	// update all units (including player)
+	for (auto& unit : m_units)
+	{
+		prevTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
+		unit->Update(tick);
+		currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
+
+		if (unit != m_player)
+		{
+			// remove from old tiles, add to new tiles TODO inefficient
+			auto prevTileIterator = prevTiles.begin();
+			while (prevTileIterator != prevTiles.end())
+			{
+				(*prevTileIterator)->RemoveUnit(unit);
+				prevTileIterator++;
+			}
+
+			auto currTileIterator = currTiles.begin();
+			while (currTileIterator != currTiles.end())
+			{
+				(*currTileIterator)->AddUnit(unit);
+				currTileIterator++;
+			}
+		}
+	}
+
 	// get player input and update behavior
 	const bool* keyMap = Window::GetKeyMap();
 	const Camera& cam = Window::GetCamera();
 
-	std::vector<Tile*> prevTiles = GetTilesFromCoords(m_player->GetPosition(), m_player->GetMetadata().hitbox_radius);
+	prevTiles = GetTilesFromCoords(m_player->GetPosition(), m_player->GetMetadata().hitbox_radius);
 	if (keyMap[GLFW_KEY_SPACE] && (m_player->GetState() == State::IDLE || m_player->GetState() == State::MOVING)) // dodge
 	{
 		m_player->StartDodge();
@@ -202,7 +230,7 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 		}
 	}
 
-	std::vector<Tile*> currTiles = GetTilesFromCoords(m_player->GetPosition(), m_player->GetMetadata().hitbox_radius);
+	currTiles = GetTilesFromCoords(m_player->GetPosition(), m_player->GetMetadata().hitbox_radius);
 
 	// remove from old tiles, add to new tiles TODO inefficient
 	auto prevTileIterator = prevTiles.begin();
@@ -232,32 +260,6 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 		glm::vec3 attackDirection = glm::normalize(mouseWorldSpace - cam.pos);
 		attackDirection.z = 0.0f;
 		BasicAttack(attackDirection);
-	}
-
-	// update all units (including player)
-	for (auto& unit : m_units)
-	{
-		prevTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
-		unit->Update(tick);
-		currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
-
-		if (unit != m_player)
-		{
-			// remove from old tiles, add to new tiles TODO inefficient
-			auto prevTileIterator = prevTiles.begin();
-			while (prevTileIterator != prevTiles.end())
-			{
-				(*prevTileIterator)->RemoveUnit(unit);
-				prevTileIterator++;
-			}
-
-			auto currTileIterator = currTiles.begin();
-			while (currTileIterator != currTiles.end())
-			{
-				(*currTileIterator)->AddUnit(unit);
-				currTileIterator++;
-			}
-		}
 	}
 
 	for (std::vector<Tile*> tileRow : m_tileGrid)
