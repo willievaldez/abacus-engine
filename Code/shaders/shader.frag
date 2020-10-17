@@ -39,18 +39,27 @@ void main()
 		float distToLight = distance(fragVert, light.pos);
 
 		// binary attenuation
-		if (distToLight < light.radius)
-		{
-			attenuation += light.intensity;
-		}
+		//if (distToLight < light.radius)
+		//{
+		//	attenuation += light.intensity;
+		//}
 
 		// logarithmic attenuation
-		//float log_attenuation = (log2(light.radius - distToLight)) / (log2(light.radius));
-		//if (log_attenuation < 0.0f)
-		//{
-		//	log_attenuation = 0.0f;
-		//}
-		//attenuation += log_attenuation;
+		float logFactor = 50.0f;
+		float withinRadius = logFactor - (logFactor * distToLight / light.radius);
+		if (withinRadius > 0.0f)
+		{
+			float logAttenuation = (log2(withinRadius)) / (log2(logFactor));
+			if (logAttenuation < 0.0f)
+			{
+				logAttenuation = 0.0f;
+			}
+			if (logAttenuation * light.intensity > attenuation)
+			{
+				attenuation = logAttenuation * light.intensity;
+			}
+		}
+
 
 		// linear attenuation
 		//float attenuation = 1.0f - (distToLight/15.0f);

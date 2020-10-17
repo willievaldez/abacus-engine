@@ -27,5 +27,5 @@ Item::~Item()
 Item::Item(const std::string& type, const glm::vec3& pos) : GLObject(type.c_str())
 {
 	SetPosition(pos);
-	m_light = PointLight::Create(pos, 0.5f, 1.0f);
+	m_light = PointLight::Create(pos, 0.5f, 2.0f);
 }

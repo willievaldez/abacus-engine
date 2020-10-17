@@ -56,7 +56,7 @@ std::shared_ptr<Attack> Attack::Create(const char* attackName, Unit* owner)
 
 RangedAttack::RangedAttack(Unit* owner, const AttackMetadata& metadata) : Attack(owner, metadata)
 {
-	m_light = PointLight::Create(glm::vec3(0.0f), 1.0f, metadata.radius);
+	m_light = PointLight::Create(glm::vec3(0.0f), 0.5f, 1.5f);
 }
 
 void RangedAttack::SetPosition(const glm::vec3& pos)
