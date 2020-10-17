@@ -1,13 +1,14 @@
 #pragma once
 
 #include <GLWrapper/GLObject.h>
-#include <Utility.h>
-#include <Game/AttributeContainer.h>
+#include <Utility/Utility.h>
+#include <Utility/AttributeContainer.h>
 
 #include <time.h>
 
 class Unit;
 class Attack;
+class PointLight;
 
 #define REGISTER_ATTACK(TYPE_NAME, CLASS) REGISTER(Attack, TYPE_NAME, CLASS)
 
@@ -71,9 +72,13 @@ protected:
 class RangedAttack : public Attack
 {
 public:
-	RangedAttack(Unit* owner, const AttackMetadata& metadata) : Attack(owner, metadata) {};
+	RangedAttack(Unit* owner, const AttackMetadata& metadata);
+	~RangedAttack();
 	bool Update() override;
+
+	void SetPosition(const glm::vec3&) override;
 private:
+	PointLight* m_light = nullptr;
 };
 
 class MeleeAttack : public Attack

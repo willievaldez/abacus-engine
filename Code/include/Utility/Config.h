@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <Game/AttributeContainer.h>
+#include <Utility/AttributeContainer.h>
 
 #define INSTALL_DIR std::string("../../")
 
@@ -21,14 +21,14 @@ struct Config
 	bool loaded = false;
 
 #define ConfigKey(type, varName, defaultVal) type varName = defaultVal;
-#include <ConfigKeys.inl>
+#include <Utility/ConfigKeys.inl>
 #undef ConfigKey
 
 	AttributeContainer GetExpectedAttributes()
 	{
 		AttributeContainer attributeContainer;
 #define ConfigKey(type, varName, defaultVal) attributeContainer.AddAttribute(#varName, &varName)
-#include <ConfigKeys.inl>
+#include <Utility/ConfigKeys.inl>
 #undef ConfigKey
 		return attributeContainer;
 	};

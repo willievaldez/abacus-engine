@@ -4,11 +4,13 @@
 
 #include <Game/Unit.h>
 #include <Game/Tile.h>
-#include <Game/Structure.h>
 
 class Tile;
 class Unit;
+class Player;
 struct Camera;
+
+class PointLight;
 
 class Level
 {
@@ -24,32 +26,26 @@ public:
 
 	void BasicAttack(const glm::vec3& direction);
 
-	void Update(clock_t& tick, GLFWwindow* window);
+	void Update(const clock_t& tick, GLFWwindow* window);
 
-	//void updateUnits(std::vector<Unit*>& units, clock_t&);
-	//void SetPlayerPosition(Camera& camera, const glm::vec3& moveDir);
-
-	void Render(/*float=0.0f, float=0.0f*/);
+	void Render();
 	void Reload();
-	//void addTarget(glm::vec3&, bool);
-	//void selectUnit(glm::vec3&, bool);
-	Unit* GetPlayerUnit() { return m_player; };
-	std::vector<GLObject*> getEntitiesFromCoords(glm::vec3&);
+	Unit* GetPlayerUnit();
+
 	int AddUnit(Unit*);
 	bool RemoveUnit(Unit*);
+
+	int AddLight(PointLight*);
+	bool RemoveLight(PointLight*);
 
 private:
 	std::vector<std::vector<Tile*>> m_tileGrid;
 	std::vector<Unit*> m_units;
-	//std::vector<Unit*> m_friendlyUnits;
-	//std::vector<Unit*> m_enemyUnits;
-	//std::vector<Unit*> m_unitGroups[5];
-	//std::vector<Unit*> m_deadUnits;
-	//std::vector<Structure*> m_structures;
 	glm::vec3 m_spawn;
 	std::string m_filepath;
 	clock_t m_tickTime;
-	Unit* m_player = nullptr;
+	Player* m_player = nullptr;
+	std::vector<PointLight*> m_lightSources;
 
 	void MakeLevelFromFile();
 };

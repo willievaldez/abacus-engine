@@ -1,7 +1,8 @@
 #include <Game/Attack.h>
 #include <Game/Level.h>
 #include <Game/Unit.h>
-#include <Config.h>
+#include <Utility/Config.h>
+#include <GLWrapper/PointLight.h>
 
 #include <fstream>
 #include <sstream>
@@ -51,6 +52,25 @@ std::shared_ptr<Attack> Attack::Create(const char* attackName, Unit* owner)
 		printf("Attack Blueprint(atk) not found: %s\n", attackName);
 	}
 	return returnedType;
+}
+
+RangedAttack::RangedAttack(Unit* owner, const AttackMetadata& metadata) : Attack(owner, metadata)
+{
+	m_light = PointLight::Create(glm::vec3(0.0f), 1.0f, metadata.radius);
+}
+
+void RangedAttack::SetPosition(const glm::vec3& pos)
+{
+	m_light->pos = pos;
+	Attack::SetPosition(pos);
+}
+
+RangedAttack::~RangedAttack()
+{
+	if (m_light)
+	{
+		delete m_light;
+	}
 }
 
 bool RangedAttack::Update()

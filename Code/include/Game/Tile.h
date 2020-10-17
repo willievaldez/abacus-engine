@@ -8,6 +8,8 @@
 #include <Game/Spawner.h>
 #include <Game/Turret.h>
 
+class Item;
+
 class Tile : public GLObject
 {
 public:
@@ -23,7 +25,7 @@ public:
 	void Render() override;
 	void Render(std::vector<GLObject*>&);
 	void AddStructure(Structure*);
-	void AddItem(GLObject*);
+	void AddItem(Item*);
 	void AddUnit(Unit*);
 	void RemoveUnit(Unit*);
 	bool Collision(const glm::vec3& pt, float radius = 0.0f);
@@ -46,7 +48,7 @@ public:
 private:
 	Structure* m_structure = nullptr;
 	bool m_traversable = false;
-	std::vector<GLObject*> m_items;
+	std::vector<Item*> m_items;
 	std::vector<Unit*> m_units;
 
 	static TileTypeMap& AccessTileTypes();

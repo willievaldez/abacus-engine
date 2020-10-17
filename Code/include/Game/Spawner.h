@@ -20,4 +20,5 @@ private:
 	Unit* m_spawnedUnit = nullptr;
 	float m_periodSec = 10.0f;
 	clock_t m_lastSpawnTime;
+	bool m_firstSpawn = false;
 };

@@ -1,5 +1,7 @@
 #include <Game/Tile.h>
 
+#include <Game/Item.h>
+
 #include <glm/gtc/matrix_transform.hpp> // translate
 #include <assert.h>
 #include <algorithm>
@@ -85,7 +87,7 @@ void Tile::AddStructure(Structure* newStructure)
 	m_structure->SetPosition(structurePos);
 }
 
-void Tile::AddItem(GLObject* item)
+void Tile::AddItem(Item* item)
 {
 	m_items.push_back(item);
 }

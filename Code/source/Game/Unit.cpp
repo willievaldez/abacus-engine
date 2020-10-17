@@ -1,7 +1,8 @@
 #include <Game/Unit.h>
 #include <Game/Level.h>
-#include <Config.h>
+#include <Utility/Config.h>
 #include <Game/Attack.h>
+#include <Game/Item.h>
 
 #include <fstream>
 #include <sstream>
@@ -61,6 +62,7 @@ Unit::Unit(const UnitMetadata& metadata)
 
 Unit::~Unit()
 {
+	Item::Create("mana_orb.png", GetPosition());
 	Level::Get()->RemoveUnit(this);
 }
 

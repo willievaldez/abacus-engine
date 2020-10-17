@@ -34,13 +34,16 @@
     <Filter Include="Entities">
       <UniqueIdentifier>{7a60692a-c092-4a7e-95f5-ba8b64dda396}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Utility">
+      <UniqueIdentifier>{6a0a6266-c8dc-4e33-a8de-40d3778a5a5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utility">
+      <UniqueIdentifier>{5b25d524-51e9-4683-9e0e-eb2d6fcc0874}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\source\GLWrapper\glad.c">
       <Filter>Resource Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Code\source\Config.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\source\main.cpp">
       <Filter>Source Files</Filter>
@@ -90,8 +93,23 @@
     <ClCompile Include="..\Code\source\Game\Attack.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\source\Game\AttributeContainer.cpp">
+    <ClCompile Include="..\Code\source\Utility\Config.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\Utility\AttributeContainer.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\Utility\LockedContainer.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\Game\Player.cpp">
       <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\Game\Item.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\GLWrapper\PointLight.cpp">
+      <Filter>Source Files\GLWrapper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,9 +122,6 @@
     <None Include="..\code\shaders\shader.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\Code\include\ConfigKeys.inl">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\Code\include\Game\UnitMetadata.inl">
       <Filter>Header Files\Game</Filter>
     </None>
@@ -118,6 +133,9 @@
     </None>
     <None Include="..\Code\include\Game\AttackMetadata.inl">
       <Filter>Header Files\Game</Filter>
+    </None>
+    <None Include="..\Code\include\Utility\ConfigKeys.inl">
+      <Filter>Header Files\Utility</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -165,9 +183,6 @@
     <ClInclude Include="..\Code\include\GLWrapper\Window.h">
       <Filter>Header Files\GLWrapper</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\include\Config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Code\include\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -177,11 +192,26 @@
     <ClInclude Include="..\Code\include\Game\Attack.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\include\Game\AttributeContainer.h">
+    <ClInclude Include="..\Code\include\Utility\Utility.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Utility\AttributeContainer.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Utility\Config.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Utility\LockedContainer.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Game\Player.h">
       <Filter>Header Files\Game</Filter>
     </ClInclude>
-    <ClInclude Include="..\Code\include\Utility.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\Code\include\Game\Item.h">
+      <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\GLWrapper\PointLight.h">
+      <Filter>Header Files\GLWrapper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

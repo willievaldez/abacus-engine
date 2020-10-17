@@ -1,7 +1,7 @@
 #include <GLWrapper/GLObject.h>
 
 #include <GLWrapper/Shader.h>
-#include <Config.h>
+#include <Utility/Config.h>
 
 #include <glm/gtc/matrix_transform.hpp> // translate
 #include <glm/gtc/type_ptr.hpp> // make_mat4

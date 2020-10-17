@@ -1,4 +1,4 @@
-#include <Config.h>
+#include <Utility/Config.h>
 
 #include <fstream>
 #include <sstream>
@@ -29,7 +29,7 @@ const Config& GetConfig()
 			config.loaded = true;
 		}
 	}
-	// Code to load and set the configuration variables
+
 	return config;
 }
 

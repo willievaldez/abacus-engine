@@ -146,10 +146,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Code\source\Config.cpp" />
+    <ClCompile Include="..\Code\source\Game\Item.cpp" />
+    <ClCompile Include="..\Code\source\Game\Player.cpp" />
+    <ClCompile Include="..\Code\source\GLWrapper\PointLight.cpp" />
+    <ClCompile Include="..\Code\source\Utility\Config.cpp" />
     <ClCompile Include="..\Code\source\Game\Action.cpp" />
     <ClCompile Include="..\Code\source\Game\Attack.cpp" />
-    <ClCompile Include="..\Code\source\Game\AttributeContainer.cpp" />
+    <ClCompile Include="..\Code\source\Utility\AttributeContainer.cpp" />
     <ClCompile Include="..\Code\source\Game\Level.cpp" />
     <ClCompile Include="..\Code\source\Game\Spawner.cpp" />
     <ClCompile Include="..\Code\source\Game\Structure.cpp" />
@@ -170,11 +173,12 @@
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)$Code\include\(TargetName).pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)$Code\include\(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
+    <ClCompile Include="..\Code\source\Utility\LockedContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Assets\2D\Entities\DemonGrunt.ntt" />
     <None Include="..\Assets\2D\Entities\Lumaton.ntt" />
-    <None Include="..\Code\include\ConfigKeys.inl" />
+    <None Include="..\Code\include\Utility\ConfigKeys.inl" />
     <None Include="..\Code\include\Game\AttackMetadata.inl" />
     <None Include="..\Code\include\Game\UnitMetadata.inl" />
     <None Include="..\models\Levels\testLevel.csv" />
@@ -185,9 +189,12 @@
     <ResourceCompile Include="AbacusEngine.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Code\include\Config.h" />
+    <ClInclude Include="..\Code\include\Game\Item.h" />
+    <ClInclude Include="..\Code\include\Game\Player.h" />
+    <ClInclude Include="..\Code\include\GLWrapper\PointLight.h" />
+    <ClInclude Include="..\Code\include\Utility\Config.h" />
     <ClInclude Include="..\Code\include\Game\Action.h" />
-    <ClInclude Include="..\Code\include\Game\AttributeContainer.h" />
+    <ClInclude Include="..\Code\include\Utility\AttributeContainer.h" />
     <ClInclude Include="..\Code\include\Game\Level.h" />
     <ClInclude Include="..\Code\include\Game\Spawner.h" />
     <ClInclude Include="..\Code\include\Game\Structure.h" />
@@ -203,7 +210,8 @@
     <ClInclude Include="..\Code\include\GLWrapper\Window.h" />
     <ClInclude Include="..\Code\include\stdafx.h" />
     <ClInclude Include="..\Code\include\Game\Attack.h" />
-    <ClInclude Include="..\Code\include\Utility.h" />
+    <ClInclude Include="..\Code\include\Utility\LockedContainer.h" />
+    <ClInclude Include="..\Code\include\Utility\Utility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

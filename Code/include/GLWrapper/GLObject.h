@@ -29,7 +29,7 @@ public:
 	virtual void Render();
 
 	const glm::vec3& GetPosition();
-	void SetPosition(const glm::vec3&);
+	virtual void SetPosition(const glm::vec3&);
 	const glm::vec3& GetDirection();
 	void SetDirection(const glm::vec3&);
 

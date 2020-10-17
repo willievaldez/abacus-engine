@@ -1,6 +1,6 @@
 #include <GLWrapper/Window.h>
 #include <GLWrapper/Model.h>
-#include <Config.h>
+#include <Utility/Config.h>
 
 #include <std_image.h> // stbi_load
 #include <unordered_map>

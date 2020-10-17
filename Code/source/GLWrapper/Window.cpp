@@ -1,7 +1,7 @@
 #include <GLWrapper/Window.h>
 #include <Game/Level.h>
 #include <Game/Unit.h>
-#include <Config.h>
+#include <Utility/Config.h>
 
 #include <FMOD/fmod_errors.h>
 #include <cmath>

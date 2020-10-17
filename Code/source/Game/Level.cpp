@@ -1,20 +1,21 @@
 #include <Game/Level.h>
+#include <Game/Player.h>
 
-#include <glm/gtc/matrix_transform.hpp> // translate
 #include <fstream>
 #include <sstream>
 
-#include <Config.h>
+#include <Utility/Config.h>
 #include <GLWrapper/Window.h>
+#include <GLWrapper/PointLight.h>
 
 Level* Level::Get()
 {
 	static Level* level = nullptr;
 	if (!level)
 	{
+		int testVal = 0;
 		level = new Level(GetConfig().level.c_str());
-		level->m_player = Unit::Create("Lumaton");
-		level->m_player->SetPosition(level->m_spawn);
+		level->m_player = new Player(level->m_spawn);
 		level->m_tickTime = clock();
 	}
 	return level;
@@ -75,8 +76,6 @@ void Level::MakeLevelFromFile()
 			}
 			m_tileGrid.push_back(gridRow);
 		}
-
-
 	}
 	else
 	{
@@ -136,19 +135,23 @@ void Level::MakeLevelFromFile()
 	}
 }
 
-void Level::Update(clock_t& tick, GLFWwindow* window)
+void Level::Update(const clock_t& tick, GLFWwindow* window)
 {
 	std::vector<Tile*> prevTiles;
 	std::vector<Tile*> currTiles;
+	Unit* playerUnit = GetPlayerUnit();
+
+	m_player->Update(tick);
+
 	// update all units (including player)
 	for (auto& unit : m_units)
 	{
-		prevTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
-		unit->Update(tick);
-		currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
-
-		if (unit != m_player)
+		if (unit != playerUnit)
 		{
+			prevTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
+			unit->Update(tick);
+			currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
+
 			// remove from old tiles, add to new tiles TODO inefficient
 			auto prevTileIterator = prevTiles.begin();
 			while (prevTileIterator != prevTiles.end())
@@ -170,14 +173,14 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 	const bool* keyMap = Window::GetKeyMap();
 	const Camera& cam = Window::GetCamera();
 
-	prevTiles = GetTilesFromCoords(m_player->GetPosition(), m_player->GetMetadata().hitbox_radius);
-	if (keyMap[GLFW_KEY_SPACE] && (m_player->GetState() == State::IDLE || m_player->GetState() == State::MOVING)) // dodge
+	prevTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
+	if (keyMap[GLFW_KEY_SPACE] && (playerUnit->GetState() == State::IDLE || playerUnit->GetState() == State::MOVING)) // dodge
 	{
-		m_player->StartDodge();
+		playerUnit->StartDodge();
 	}
 
 	glm::vec3 direction(0.0f);
-	if (m_player->GetState() == State::IDLE || m_player->GetState() == State::MOVING) // move
+	if (playerUnit->GetState() == State::IDLE || playerUnit->GetState() == State::MOVING) // move
 	{
 		glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
 		if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP]) {
@@ -196,25 +199,25 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 		if (glm::length(direction) != 0.0f)
 		{
 			direction = glm::normalize(direction);
-			m_player->SetState(State::MOVING);
+			playerUnit->SetState(State::MOVING);
 		}
 		else
 		{
-			m_player->SetState(State::IDLE);
+			playerUnit->SetState(State::IDLE);
 		}
 	}
 
-	if (m_player->GetState() == State::DODGING || m_player->GetState() == State::MOVING)
+	if (playerUnit->GetState() == State::DODGING || playerUnit->GetState() == State::MOVING)
 	{
 		glm::vec3 destination(0.0f);
-		m_player->GetMovePosition(direction, destination);
+		playerUnit->GetMovePosition(direction, destination);
 
 		Tile* destTile = GetTileFromCoords(destination);
 
 		if (destTile && !destTile->Collision(destination))
 		{
-			m_player->SetPosition(destination);
-			destTile->Interact(m_player);
+			playerUnit->SetPosition(destination);
+			destTile->Interact(playerUnit);
 		}
 		else
 		{
@@ -226,31 +229,31 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 			//	m_player->SetPosition(newPlayerPosition);
 			//}
 
-			m_player->SetState(State::IDLE);
+			playerUnit->SetState(State::IDLE);
 		}
 	}
 
-	currTiles = GetTilesFromCoords(m_player->GetPosition(), m_player->GetMetadata().hitbox_radius);
+	currTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
 
 	// remove from old tiles, add to new tiles TODO inefficient
 	auto prevTileIterator = prevTiles.begin();
 	while (prevTileIterator != prevTiles.end())
 	{
-		(*prevTileIterator)->RemoveUnit(m_player);
+		(*prevTileIterator)->RemoveUnit(playerUnit);
 		prevTileIterator++;
 	}
 
 	auto currTileIterator = currTiles.begin();
 	while (currTileIterator != currTiles.end())
 	{
-		(*currTileIterator)->AddUnit(m_player);
+		(*currTileIterator)->AddUnit(playerUnit);
 		currTileIterator++;
 	}
 
-	Window::SetCameraPos(m_player->GetPosition()); // always update cam to player position
+	Window::SetCameraPos(playerUnit->GetPosition()); // always update cam to player position
 
 	// basic attack
-	if (keyMap[GLFW_MOUSE_BUTTON_1] && (m_player->GetState() == State::IDLE || m_player->GetState() == State::MOVING))
+	if (keyMap[GLFW_MOUSE_BUTTON_1] && (playerUnit->GetState() == State::IDLE || playerUnit->GetState() == State::MOVING))
 	{
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
@@ -269,31 +272,6 @@ void Level::Update(clock_t& tick, GLFWwindow* window)
 			tile->Update(tick);
 		}
 	}
-
-	//for (int i = 0; i < m_entities.size(); i++)
-	//{
-	//	while (i < m_entities.size()
-	//		&& m_entities[i]->OBJECT_TYPE == ObjectType::UNIT
-	//		&& ((Unit*)m_entities[i])->isDead)
-	//	{
-	//		//for (int j = 0; j < 5; j++)
-	//		//{
-	//		//	auto it = std::find(m_unitGroups[j].begin(), m_unitGroups[j].end(), *(m_entities.begin() + i));
-	//		//	if (it != m_unitGroups[j].end())
-	//		//	{
-	//		//		m_unitGroups[j].erase(it);
-	//		//	}
-	//		//}
-
-	//		//m_deadUnits.push_back((Unit*)*(m_entities.begin() + i));
-	//		m_entities.erase(m_entities.begin() + i);
-	//		printf("deleting entity, size: %d\n", (int)m_entities.size());
-	//	}
-	//}
-
-
-	//updateUnits(m_friendlyUnits, tick);
-	//updateUnits(m_enemyUnits, tick);
 }
 
 Level::~Level()
@@ -306,34 +284,19 @@ Level::~Level()
 		}
 	}
 
-	//for (GLObject* entity : m_entities)
-	//{
-	//	delete entity;
-	//}
 }
 
 
-void Level::Render(/*float skew, float rot*/)
+void Level::Render()
 {
-	UniformContainer::SetUniform("playerHealth", m_player->GetHealth());
-
-	//for (std::vector<Tile*> tileRow : tileGrid)
-	//{
-	//	for (Tile* tile : tileRow)
-	//	{
-	//		tile->renderFloor();
-	//	}
-	//}
-
-	//for (std::vector<Tile*> tileRow : tileGrid)
-	//{
-	//	for (Tile* tile : tileRow)
-	//	{
-	//		tile->renderStructure();
-	//	}
-	//}
-
-	//GLObject::setIsometricSkew(skew, rot);
+	int numLights = (int)m_lightSources.size();
+	UniformContainer::SetUniform("numLights", numLights);
+	for (int i = 0; i < numLights; i++)
+	{
+		std::ostringstream sstream;
+		sstream << "lights[" << i << "]";
+		UniformContainer::SetUniform(sstream.str(), *m_lightSources[i]);
+	}
 
 	std::vector<GLObject*> deferredAssets;
 	for (std::vector<Tile*> tileRow : m_tileGrid)
@@ -349,63 +312,23 @@ void Level::Render(/*float skew, float rot*/)
 		asset->Render();
 	}
 
+	Unit* playerUnit = GetPlayerUnit();
 	for (Unit* unit : m_units)
 	{
-		if (unit != m_player)
+		if (unit != playerUnit)
 		{
 			unit->Render();
 		}
 	}
 
 	// render player on top of everything else
-	m_player->Render();
-
-	//for (int i = 0; i < m_deadUnits.size(); i++)
-	//{
-	//	glm::vec3 pos = m_deadUnits[i]->getPosition();
-	//	GLObject::GLAsset("gravestone.png")->render(pos);
-	//}
-
-	//for (int i = 0; i < m_enemyUnits.size(); i++)
-	//{
-	//	m_enemyUnits[i]->draw();
-	//}
-
-	//for (int i = 0; i < m_friendlyUnits.size(); i++)
-	//{
-	//	m_friendlyUnits[i]->Render();
-	//}
-
-	//if (!unitGroups[0].empty())
-	//{
-	//	// draw only the actions of the most recently selected unit
-	//	if (unitGroups[0].size() > 0)
-	//	{
-	//		unitGroups[0].back()->drawActions();
-	//	}
-
-	//	for (Unit* unit : unitGroups[0])
-	//	{
-	//		glm::vec3 pos = unit->getPosition();
-	//		GLObject::GLAsset("greentarget.png")->render(pos);
-	//	}
-	//}
-
+	playerUnit->Render();
 }
 
-//const std::vector<Unit*>& Level::getFriendlyUnits()
-//{
-//	return m_friendlyUnits;
-//}
-//
-//const std::vector<Unit*>& Level::getEnemyUnits()
-//{
-//	return m_enemyUnits;
-//}
-//const std::vector<Structure*>& Level::getStructures()
-//{
-//	return m_structures;
-//}
+Unit* Level::GetPlayerUnit()
+{
+	return m_player->GetUnit();
+}
 
 
 int Level::AddUnit(Unit* unit)
@@ -424,9 +347,6 @@ bool Level::RemoveUnit(Unit* unit)
 			Tile* tile = GetTileFromCoords(unit->GetPosition());
 			if (tile)
 			{
-				GLObject* mana = new GLObject("mana_orb.png");
-				mana->SetPosition(unit->GetPosition());
-				tile->AddItem(mana);
 				tile->RemoveUnit(unit);
 				m_units.erase(m_units.begin() + i);
 				return true;
@@ -437,9 +357,29 @@ bool Level::RemoveUnit(Unit* unit)
 	return false;
 }
 
+int Level::AddLight(PointLight* light)
+{
+	m_lightSources.push_back(light);
+	return (int)m_lightSources.size();
+}
+
+// TODO: computationally expensive
+bool Level::RemoveLight(PointLight* light)
+{
+	for (int i = 0; i < m_lightSources.size(); i++)
+	{
+		if (m_lightSources[i] == light)
+		{
+			m_lightSources.erase(m_lightSources.begin() + i);
+		}
+	}
+
+	return false;
+}
+
 void Level::BasicAttack(const glm::vec3& direction)
 {
-	m_player->BasicAttack(direction);
+	GetPlayerUnit()->BasicAttack(direction);
 }
 
 //void Level::updateUnits(std::vector<Unit*>& units, clock_t& tick)
@@ -528,21 +468,6 @@ bool Level::getCoordsFromTile(std::pair<int, int> tileCoords, glm::vec3& dest)
 	dest.z = 0.0f;
 
 	return true;
-}
-
-std::vector<GLObject*> Level::getEntitiesFromCoords(glm::vec3& coords)
-{
-	std::vector<GLObject*> targetedEntities;
-	//for (GLObject* entity : m_entities)
-	//{
-	//	glm::vec3 distToEntity = entity->GetPosition() - coords;
-	//	if (glm::length(distToEntity) < 0.6f)
-	//	{
-	//		targetedEntities.push_back(entity);
-	//	}
-	//}
-
-	return targetedEntities;
 }
 
 //void Level::addTarget(glm::vec3& coords, bool modifier)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Game/Level.h>
-#include <Utility.h>
+#include <Utility/Utility.h>
 
 #include <chrono>
 

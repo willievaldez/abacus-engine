@@ -1,5 +1,6 @@
 #include <GLWrapper/UniformContainer.h>
 #include <GLWrapper/Asset.h>
+#include <GLWrapper/PointLight.h>
 
 #include <glm/vec3.hpp> // vec3
 #include <glm/gtc/matrix_transform.hpp> // glm::mat4, glm::transform, glm::length
@@ -45,6 +46,13 @@ SET_UNIFORM_IMPL(bool)
 	int isTrue = val ? 1 : 0;
 	GLuint uniformBoolId = glGetUniformLocation(Asset::shaderProgram, uniformName.c_str());
 	glUniform1i(uniformBoolId, isTrue);
+}
+
+SET_UNIFORM_IMPL(PointLight)
+{
+	UniformContainer::SetUniform((uniformName + ".pos").c_str(), val.pos);
+	UniformContainer::SetUniform((uniformName + ".intensity").c_str(), val.intensity);
+	UniformContainer::SetUniform((uniformName + ".radius").c_str(), val.radius);
 }
 
 #undef SET_UNIFORM_IMPL

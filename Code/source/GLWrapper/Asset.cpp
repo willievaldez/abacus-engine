@@ -1,5 +1,5 @@
 #include <GLWrapper/Asset.h>
-#include <Config.h>
+#include <Utility/Config.h>
 
 #include <std_image.h> // stbi_load
 #include <glm/gtc/type_ptr.hpp> // make_mat4
@@ -87,8 +87,8 @@ void Asset::useShaderProgram(const glm::mat4& P, const glm::mat4& V, const glm::
 	MatrixID = glGetUniformLocation(Asset::shaderProgram, "projection");
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &P[0][0]);
 
-	GLuint uCam = glGetUniformLocation(Asset::shaderProgram, "cameraPos");
-	glUniform3f(uCam, camPos.x, camPos.y, camPos.z);
+	//GLuint uCam = glGetUniformLocation(Asset::shaderProgram, "cameraPos");
+	//glUniform3f(uCam, camPos.x, camPos.y, camPos.z);
 }
 
 
@@ -195,41 +195,3 @@ void Asset::DrawStatusBar(const glm::vec3& position, float percentage)
 	glBindVertexArray(0);
 }
 
-// template specializations
-
- // mat4
-//template <>
-//void Asset::SetUniform<glm::mat4>(const std::string& uiformName, const glm::mat4& val) const
-//{
-//	GLuint uniformIntId = glGetUniformLocation(shaderProgram, uiformName.c_str());
-//	glUniformMatrix4fv(uniformIntId, 1, GL_FALSE, &val[0][0]);
-//}
-//
-//// vec3
-//void Asset::SetUniform<glm::vec3>(const std::string& uiformName, const glm::vec3& val) const
-//{
-//	GLuint uniformVec3Id = glGetUniformLocation(shaderProgram, uiformName.c_str());
-//	glUniform3fv(uniformVec3Id, 1, &val[0]);
-//}
-//
-//// int
-//void Asset::SetUniform(const std::string& uiformName, const int& val) const
-//{
-//	GLuint uniformId = glGetUniformLocation(shaderProgram, uiformName.c_str());
-//	glUniform1i(uniformId, val);
-//}
-//
-//// float
-//void Asset::SetUniform<float>(const std::string& uiformName, const float& val) const
-//{
-//	GLuint uniformFltId = glGetUniformLocation(shaderProgram, uiformName.c_str());
-//	glUniform1f(uniformFltId, val);
-//}
-//
-//// bool (I know, weird)
-//void Asset::SetUniform<bool>(const std::string& uiformName, const bool& val) const
-//{
-//	int isTrue = val ? 1 : 0;
-//	GLuint uniformBoolId = glGetUniformLocation(shaderProgram, uiformName.c_str());
-//	glUniform1i(uniformBoolId, isTrue);
-//}
