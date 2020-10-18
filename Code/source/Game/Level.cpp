@@ -8,6 +8,10 @@
 #include <GLWrapper/Window.h>
 #include <GLWrapper/PointLight.h>
 
+// TODO TEMP:
+float attenuationUniform = 50.0f;
+int attenuationType = 0;
+
 Level* Level::Get()
 {
 	static Level* level = nullptr;
@@ -196,6 +200,26 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 			direction += glm::cross(cam_direction_no_y, cam.up);
 		}
 
+		// TODO: TEMP
+		if (keyMap[GLFW_KEY_MINUS]) {
+			attenuationUniform--;
+		}
+		else if (keyMap[GLFW_KEY_EQUAL]) {
+			attenuationUniform++;
+		}
+		if (keyMap[GLFW_KEY_1])
+		{
+			attenuationType = 0;
+		}
+		else if (keyMap[GLFW_KEY_2])
+		{
+			attenuationType = 1;
+		}
+		else if (keyMap[GLFW_KEY_3])
+		{
+			attenuationType = 2;
+		}
+
 		if (glm::length(direction) != 0.0f)
 		{
 			direction = glm::normalize(direction);
@@ -291,6 +315,8 @@ void Level::Render()
 {
 	int numLights = (int)m_lightSources.size();
 	UniformContainer::SetUniform("numLights", numLights);
+	UniformContainer::SetUniform("logFactor", attenuationUniform);
+	UniformContainer::SetUniform("attenuationType", attenuationType);
 	for (int i = 0; i < numLights; i++)
 	{
 		std::ostringstream sstream;

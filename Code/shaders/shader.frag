@@ -9,6 +9,9 @@ uniform bool usesTexture;
 uniform sampler2D texture_diffuse1;
 uniform vec3 colorOverride;
 
+uniform float logFactor;
+uniform int attenuationType;
+
 struct PointLight
 {
   vec3 pos;
@@ -38,39 +41,41 @@ void main()
 		PointLight light = lights[i];
 		float distToLight = distance(fragVert, light.pos);
 
-		// binary attenuation
-		//if (distToLight < light.radius)
-		//{
-		//	attenuation += light.intensity;
-		//}
-
-		// logarithmic attenuation
-		float logFactor = 50.0f;
-		float withinRadius = logFactor - (logFactor * distToLight / light.radius);
-		if (withinRadius > 0.0f)
+		if (attenuationType == 0)
 		{
-			float logAttenuation = (log2(withinRadius)) / (log2(logFactor));
-			if (logAttenuation < 0.0f)
+			// binary attenuation
+			if (distToLight < light.radius)
 			{
-				logAttenuation = 0.0f;
-			}
-			if (logAttenuation * light.intensity > attenuation)
-			{
-				attenuation = logAttenuation * light.intensity;
+				attenuation += light.intensity;
 			}
 		}
-
-
-		// linear attenuation
-		//float attenuation = 1.0f - (distToLight/15.0f);
-		//if (attenuation < 0.0f)
-		//{
-		//	attenuation = 0.0f;
-		//}
-
-		// quadratic attenuation
-		//float attenuation = (pow(distToLight, 4) / -10000.0f) + 1;
-
+		else if (attenuationType == 1)
+		{
+			// linear attenuation
+			float linearAttenuation = 1.0f - (distToLight/light.radius);
+			if (linearAttenuation < 0.0f)
+			{
+				linearAttenuation = 0.0f;
+			}
+			attenuation += linearAttenuation;
+		}
+		else if (attenuationType == 2)
+		{
+			// logarithmic attenuation
+			float withinRadius = logFactor - (logFactor * distToLight / light.radius);
+			if (withinRadius > 0.0f)
+			{
+				float logAttenuation = (log2(withinRadius)) / (log2(logFactor));
+				if (logAttenuation < 0.0f)
+				{
+					logAttenuation = 0.0f;
+				}
+				if (logAttenuation * light.intensity > attenuation)
+				{
+					attenuation = logAttenuation * light.intensity;
+				}
+			}
+		}
     }
 	if (attenuation > 1.0f)
 	{
