@@ -164,7 +164,7 @@ void Tile::Interact(Unit* player)
 		float dist = glm::length(item->GetPosition() - player->GetPosition());
 		if (dist <= player->GetMetadata().hitbox_radius + 0.5f) // TODO hard coded mana orb size
 		{
-			player->TakeDamage(-15.0f); // regain mana
+			player->TakeDamage(-20.0f); // regain mana
 			delete item;
 		}
 	}

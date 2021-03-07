@@ -113,27 +113,28 @@ bool MeleeAttack::Update()
 	clock_t tick = clock();
 	if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_metadata.cast_time)
 	{
-		m_owner->SetState(State::IDLE);
-		return false;
-	}
-	if (!m_hit)
-	{
-		std::set<Unit*> hitUnits;
-		float hitDistance = m_owner->GetMetadata().hitbox_radius + m_metadata.radius;
-		std::vector<Tile*> tiles = Level::Get()->GetTilesFromCoords(GetPosition(), hitDistance);
-		for (auto& tile : tiles)
+		if (!m_hit)
 		{
-			tile->Collision(GetPosition(), hitUnits, hitDistance);
-		}
-
-		for (auto& hitUnit : hitUnits)
-		{
-			if (hitUnit != m_owner)
+			std::set<Unit*> hitUnits;
+			float hitDistance = m_owner->GetMetadata().hitbox_radius + m_metadata.radius;
+			std::vector<Tile*> tiles = Level::Get()->GetTilesFromCoords(GetPosition(), hitDistance);
+			for (auto& tile : tiles)
 			{
-				hitUnit->TakeDamage(m_metadata.damage);
-				m_hit = true;
+				tile->Collision(GetPosition(), hitUnits, hitDistance);
+			}
+
+			for (auto& hitUnit : hitUnits)
+			{
+				if (hitUnit != m_owner)
+				{
+					hitUnit->TakeDamage(m_metadata.damage);
+					m_hit = true;
+				}
 			}
 		}
+
+		m_owner->SetState(State::IDLE);
+		return false;
 	}
 	return true;
 }
