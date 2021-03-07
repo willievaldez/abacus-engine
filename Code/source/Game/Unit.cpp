@@ -55,8 +55,8 @@ Unit::Unit(const UnitMetadata& metadata)
 	OBJECT_TYPE = ObjectType::UNIT;
 	m_currentHealth = (float)m_metadata.health;
 	m_lastFrameTick = clock();
-	m_dodgeStartTime = m_lastFrameTick;
-	m_lastAttack = m_lastFrameTick;
+	m_dodgeStartTime = 0;
+	m_lastAttack = 0;
 	m_idleAction = Action::CreateAction(m_metadata.idle_action.c_str());
 }
 

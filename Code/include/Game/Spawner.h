@@ -10,7 +10,7 @@ class Unit;
 class Spawner : public Structure
 {
 public:
-	Spawner(glm::vec3&, Asset*);
+	Spawner(const glm::vec3&, Asset*);
 	~Spawner();
 
 	void Update(clock_t) override;

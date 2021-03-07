@@ -20,7 +20,7 @@ struct Config
 {
 	bool loaded = false;
 
-#define ConfigKey(type, varName, defaultVal) type varName = defaultVal;
+#define ConfigKey(type, varName, defaultVal) type varName = defaultVal
 #include <Utility/ConfigKeys.inl>
 #undef ConfigKey
 

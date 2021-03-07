@@ -12,6 +12,13 @@ struct Camera;
 
 class PointLight;
 
+enum class LevelState
+{
+	RUNNING,
+	WON,
+	LOST
+};
+
 class Level
 {
 public:
@@ -19,6 +26,7 @@ public:
 	~Level();
 
 	static Level* Get();
+	void SetLevelState(LevelState);
 
 	Tile* GetTileFromCoords(const glm::vec3&);
 	std::vector<Tile*> GetTilesFromCoords(const glm::vec3&, float radius);
@@ -46,6 +54,8 @@ private:
 	clock_t m_tickTime;
 	Player* m_player = nullptr;
 	std::vector<PointLight*> m_lightSources;
+
+	LevelState m_levelState = LevelState::RUNNING;
 
 	void MakeLevelFromFile();
 };

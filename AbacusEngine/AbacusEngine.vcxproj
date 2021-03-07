@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Code\source\Game\Exit.cpp" />
     <ClCompile Include="..\Code\source\Game\Item.cpp" />
     <ClCompile Include="..\Code\source\Game\Player.cpp" />
     <ClCompile Include="..\Code\source\GLWrapper\PointLight.cpp" />
@@ -189,6 +190,7 @@
     <ResourceCompile Include="AbacusEngine.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Code\include\Game\Exit.h" />
     <ClInclude Include="..\Code\include\Game\Item.h" />
     <ClInclude Include="..\Code\include\Game\Player.h" />
     <ClInclude Include="..\Code\include\GLWrapper\PointLight.h" />

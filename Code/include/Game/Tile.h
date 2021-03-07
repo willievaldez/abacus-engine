@@ -5,10 +5,10 @@
 #include <set>
 
 #include <GLWrapper/GLObject.h>
-#include <Game/Spawner.h>
-#include <Game/Turret.h>
 
 class Item;
+class Structure;
+class Unit;
 
 class Tile : public GLObject
 {

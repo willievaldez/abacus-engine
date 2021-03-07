@@ -1,6 +1,6 @@
 sprite_path=demongrunt_run.png
 num_sprite_rows=1
-speed=6.5
+speed=7
 health=20
 mana_loss_per_sec=0.0
 idle_action=Attack

@@ -1,5 +1,8 @@
 #include <Game/Level.h>
+
 #include <Game/Player.h>
+#include <Game/Spawner.h>
+#include <Game/Exit.h>
 
 #include <fstream>
 #include <sstream>
@@ -10,7 +13,7 @@
 
 // TODO TEMP:
 float attenuationUniform = 50.0f;
-int attenuationType = 0;
+int attenuationType = 2;
 
 Level* Level::Get()
 {
@@ -25,14 +28,22 @@ Level* Level::Get()
 	return level;
 }
 
+
 Level::Level(const char* lvlFile)
 {
 	m_filepath = INSTALL_DIR + "Assets/2D/Levels/" + lvlFile;
 	MakeLevelFromFile();
 }
 
+void Level::SetLevelState(LevelState state)
+{
+	m_levelState = state;
+}
+
 void Level::Reload()
 {
+	SetLevelState(LevelState::RUNNING);
+
 	for (std::vector<Tile*> tileRow : m_tileGrid)
 	{
 		for (Tile* tile : tileRow)
@@ -52,10 +63,9 @@ void Level::MakeLevelFromFile()
 {
 	std::string line;
 	std::ifstream myfile(m_filepath);
-	std::pair<int, int> spawnGridLocation;
-	spawnGridLocation.first = -1;
-	spawnGridLocation.second = -1;
-	std::vector<std::pair<int, int>> spawnerLocations;
+	std::pair<int, int> playerSpawn(-1,-1);
+	using StructureType = std::pair<std::string, std::pair<int, int>>;
+	std::vector<StructureType> structureLocations;
 	if (myfile.is_open())
 	{
 		while (getline(myfile, line))
@@ -66,14 +76,14 @@ void Level::MakeLevelFromFile()
 			std::string val;
 			while (getline(lineStream, val, ','))
 			{
-				if (val == "Spawn")
+				if (val == "Enter")
 				{
-					spawnGridLocation.first = (int)gridRow.size();
-					spawnGridLocation.second = (int)m_tileGrid.size();
+					playerSpawn.first = (int)gridRow.size();
+					playerSpawn.second = (int)m_tileGrid.size();
 				}
-				else if (val == "Summoning Circle")
+				else if (val == "Wretch" || val == "Exit")
 				{
-					spawnerLocations.push_back(std::pair<int, int>((int)gridRow.size(), (int)m_tileGrid.size()));
+					structureLocations.push_back({ val, { (int)gridRow.size(), (int)m_tileGrid.size() } });
 				}
 
 				gridRow.push_back(new Tile(val));
@@ -89,15 +99,15 @@ void Level::MakeLevelFromFile()
 
 	float tileSize = GetConfig().tileSize;
 
-	if (spawnGridLocation.first == -1)
+	if (playerSpawn.first == -1)
 	{
 		printf("Error: no spawn location provided. please mark a tile with 'Spawn'\n");
 	}
 	else
 	{
 		// now that the m_tileGrid size is known, parse real position of player spawn location
-		m_spawn.x = (spawnGridLocation.first * tileSize) + (tileSize / 2.0f);
-		m_spawn.y = ((m_tileGrid.size() - spawnGridLocation.second) * tileSize) + (tileSize / 2.0f);
+		m_spawn.x = (playerSpawn.first * tileSize) + (tileSize / 2.0f);
+		m_spawn.y = ((m_tileGrid.size() - playerSpawn.second) * tileSize) + (tileSize / 2.0f);
 		m_spawn.z = 0.0f;
 		Window::SetCameraPos(m_spawn);
 	}
@@ -116,38 +126,53 @@ void Level::MakeLevelFromFile()
 		offset.y -= tileSize;
 	}
 
-
 	// parse real position of enemy spawner location
-	for (auto& spawnerLocation : spawnerLocations)
+	for (auto& structureLocation : structureLocations)
 	{
-		glm::vec3 spawnPos;
-		spawnPos.x = (spawnerLocation.first * tileSize) + (tileSize / 2.0f);
-		spawnPos.y = ((m_tileGrid.size() - spawnerLocation.second) * tileSize) + (tileSize / 2.0f);
+		glm::vec3 structurePos;
+		structurePos.x = (structureLocation.second.first * tileSize) + (tileSize / 2.0f);
+		structurePos.y = ((m_tileGrid.size() - structureLocation.second.second) * tileSize) + (tileSize / 2.0f);
 
-		Tile* tile = GetTileFromCoords(spawnPos);
-		if (tile && !tile->Collision(spawnPos))
+		Tile* tile = GetTileFromCoords(structurePos);
+		if (tile && !tile->Collision(structurePos))
 		{
-			glm::vec3 tilePos = tile->GetPosition();
-			Structure* structure = new Spawner(tilePos, GLObject::GLAsset("pentagram.png"));
+			Structure* structure = nullptr;
+			if (structureLocation.first == "Wretch")
+			{
+				structure = new Spawner(tile->GetPosition(), GLObject::GLAsset("pentagram.png"));
+			}
+			else if (structureLocation.first == "Exit")
+			{
+				structure = new Exit(tile->GetPosition(), GLObject::GLAsset("trapdoor.png"));
+			}
 
 			if (structure)
 			{
 				tile->AddStructure(structure);
 			}
-
 		}
 	}
 }
 
 void Level::Update(const clock_t& tick, GLFWwindow* window)
 {
+	if (m_levelState == LevelState::WON)
+	{
+		return;
+	}
+	else if (m_levelState == LevelState::LOST)
+	{
+		return;
+	}
+
+
 	std::vector<Tile*> prevTiles;
 	std::vector<Tile*> currTiles;
 	Unit* playerUnit = GetPlayerUnit();
 
 	m_player->Update(tick);
 
-	// update all units (including player)
+	// update all units
 	for (auto& unit : m_units)
 	{
 		if (unit != playerUnit)
@@ -157,18 +182,14 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 			currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
 
 			// remove from old tiles, add to new tiles TODO inefficient
-			auto prevTileIterator = prevTiles.begin();
-			while (prevTileIterator != prevTiles.end())
+			for (auto& prevTile : prevTiles)
 			{
-				(*prevTileIterator)->RemoveUnit(unit);
-				prevTileIterator++;
+				prevTile->RemoveUnit(unit);
 			}
 
-			auto currTileIterator = currTiles.begin();
-			while (currTileIterator != currTiles.end())
+			for (auto& currTile : currTiles)
 			{
-				(*currTileIterator)->AddUnit(unit);
-				currTileIterator++;
+				currTile->AddUnit(unit);
 			}
 		}
 	}
@@ -259,19 +280,15 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 
 	currTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
 
-	// remove from old tiles, add to new tiles TODO inefficient
-	auto prevTileIterator = prevTiles.begin();
-	while (prevTileIterator != prevTiles.end())
+	// remove player unit from old tiles, add to new tiles TODO inefficient
+	for (auto& prevTile : prevTiles)
 	{
-		(*prevTileIterator)->RemoveUnit(playerUnit);
-		prevTileIterator++;
+		prevTile->RemoveUnit(playerUnit);
 	}
 
-	auto currTileIterator = currTiles.begin();
-	while (currTileIterator != currTiles.end())
+	for (auto& currTile : currTiles)
 	{
-		(*currTileIterator)->AddUnit(playerUnit);
-		currTileIterator++;
+		currTile->AddUnit(playerUnit);
 	}
 
 	Window::SetCameraPos(playerUnit->GetPosition()); // always update cam to player position
@@ -296,6 +313,11 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 			tile->Update(tick);
 		}
 	}
+
+	if (playerUnit->GetHealth() <= 0.0)
+	{
+		SetLevelState(LevelState::LOST);
+	}
 }
 
 Level::~Level()
@@ -313,6 +335,19 @@ Level::~Level()
 
 void Level::Render()
 {
+	if (m_levelState == LevelState::WON)
+	{
+		glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		return;
+	}
+	else if (m_levelState == LevelState::LOST)
+	{
+		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		return;
+	}
+
 	int numLights = (int)m_lightSources.size();
 	UniformContainer::SetUniform("numLights", numLights);
 	UniformContainer::SetUniform("logFactor", attenuationUniform);

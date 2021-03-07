@@ -1,7 +1,7 @@
 #include <Game/Structure.h>
 #include <Game/Tile.h>
 
-Structure::Structure(glm::vec3& pos, Asset* asset) : GLObject(asset)
+Structure::Structure(const glm::vec3& pos, Asset* asset) : GLObject(asset)
 {
 	OBJECT_TYPE = ObjectType::STRUCTURE;
 	//STRUCTURE_TYPE = StructureType::GENERIC_TYPE;

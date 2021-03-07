@@ -1,6 +1,6 @@
 #include <Game/Spawner.h>
 
-Spawner::Spawner(glm::vec3& pos, Asset* asset) : Structure(pos, asset)
+Spawner::Spawner(const glm::vec3& pos, Asset* asset) : Structure(pos, asset)
 {
 	m_lastSpawnTime = clock();
 	m_entityName = "DemonGrunt";

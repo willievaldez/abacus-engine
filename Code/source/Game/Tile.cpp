@@ -1,6 +1,8 @@
 #include <Game/Tile.h>
 
 #include <Game/Item.h>
+#include <Game/Structure.h>
+#include <Game/Unit.h>
 
 #include <glm/gtc/matrix_transform.hpp> // translate
 #include <assert.h>
@@ -151,6 +153,11 @@ bool Tile::Collision(const glm::vec3& pt, std::set<Unit*>& hitUnits, float radiu
 
 void Tile::Interact(Unit* player)
 {
+	if (m_structure)
+	{
+		m_structure->Interact(player);
+	}
+
 	// TODO: sometimes items will not get used but will get deleted
 	for (auto& item : m_items)
 	{
