@@ -6,24 +6,12 @@
 #include <vector> // std::vector
 #include <iostream>
 
-//glm::mat4 Asset::isometricSkew;
 GLuint Asset::VBO, Asset::VAO, Asset::EBO, Asset::shaderProgram;
-
-//void Asset::setIsometricSkew(float skew, float rotation)
-//{
-//	float skewArray[16] = {
-//	1.0f, 0.0f, 0.0f, 0.0f,
-//	skew, 1.0f, 0.0f, 0.0f,
-//	0.0f, 0.0f, 1.0f, 0.0f,
-//	0.0f, 0.0f, 0.0f, 1.0f
-//	};
-//
-//	Asset::isometricSkew = glm::make_mat4(skewArray) * glm::rotate(glm::mat4(1.0f), glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
-//}
+static const float tileSize = GetConfig("Shared").tileSize;
 
 void Asset::generateVertexArray()
 {
-	float tilePt = GetConfig().tileSize / 2.0f;
+	float tilePt = tileSize / 2.0f;
 
 	std::vector<glm::vec3> tilePoints = { glm::vec3(tilePt,tilePt, 0.0f), glm::vec3(tilePt,-tilePt, 0.0f), glm::vec3(-tilePt,-tilePt, 0.0f), glm::vec3(-tilePt,tilePt, 0.0f) };
 	std::vector<glm::vec2> textureCoords = { glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 1.0f) };
@@ -92,17 +80,17 @@ void Asset::useShaderProgram(const glm::mat4& P, const glm::mat4& V, const glm::
 }
 
 
-Asset::Asset(std::string& filename)
+void Asset::LoadAsset()
 {
 	// add animation
 	glGenTextures(1, &m_textureID);
 	int nrChannels;
 	stbi_set_flip_vertically_on_load(true);
-	unsigned char* animation = stbi_load(filename.c_str(), &m_width, &m_height, &nrChannels, 0);
+	unsigned char* animation = stbi_load(m_filename.c_str(), &m_width, &m_height, &nrChannels, 0);
 
 	if (animation == NULL)
 	{
-		printf("error loading image: %s\n", filename.c_str());
+		printf("error loading image: %s\n", m_filename.c_str());
 		return;
 	}
 
@@ -121,12 +109,6 @@ Asset::Asset(std::string& filename)
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	stbi_image_free(animation);
-
-}
-
-Asset::~Asset()
-{
-
 }
 
 void Asset::releaseBuffers()
@@ -143,6 +125,12 @@ GLint Asset::getTextureID()
 
 void Asset::Render(const glm::vec3& position, const UniformContainer& uniforms)
 {
+	if (!m_assetLoaded)
+	{
+		LoadAsset();
+		m_assetLoaded = true;
+	}
+
 	glm::mat4 toWorld = glm::translate(glm::mat4(1.0f), position);
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
@@ -177,7 +165,7 @@ void Asset::DrawStatusBar(const glm::vec3& position, float percentage)
 	GLuint matrixid = glGetUniformLocation(shaderProgram, "model");
 	GLuint colorId = glGetUniformLocation(shaderProgram, "colorOverride");
 
-	glm::vec3 healthBarPosition(position.x, position.y - GetConfig().tileSize / 1.5f, position.z);
+	glm::vec3 healthBarPosition(position.x, position.y - tileSize / 1.5f, position.z);
 	glm::mat4 toWorld = glm::scale(glm::translate(glm::mat4(1.0f), healthBarPosition), glm::vec3(0.9f, 0.05f, 1.0f));
 	glUniformMatrix4fv(matrixid, 1, GL_FALSE, &toWorld[0][0]);
 	glm::vec3 red(1.0f, 0.0f, 0.0f);

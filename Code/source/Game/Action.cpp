@@ -54,7 +54,7 @@ bool IdleAttackAction::Execute(clock_t& tick, Unit* unit)
 			unit->SetState(State::IDLE);
 		}
 		// if within view, walk to player
-		else if (dist < 20.0f && dist > 1.0f)
+		else if (dist < 10.0f && dist > 0.5f)
 		{
 			unit->SetState(State::MOVING);
 			glm::vec3 newPosition(0.0f);
@@ -62,7 +62,7 @@ bool IdleAttackAction::Execute(clock_t& tick, Unit* unit)
 			unit->SetPosition(newPosition);
 		}
 		// if in attack range, attack
-		else if (dist < 1.0f)
+		else if (dist < 0.5f)
 		{
 			unit->BasicAttack(unit->GetDirection());
 		}

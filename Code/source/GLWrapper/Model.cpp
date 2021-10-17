@@ -37,7 +37,7 @@ GLint TextureFromFile(const char *path, const std::string &directory, bool gamma
 	}
 	else
 	{
-		std::cout << "Texture failed to load at path: " << filename.c_str() << std::endl;
+		printf("Texture failed to load at path: %s\n", filename.c_str());
 		stbi_image_free(data);
 	}
 

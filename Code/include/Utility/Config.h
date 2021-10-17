@@ -32,6 +32,12 @@ struct Config
 #undef ConfigKey
 		return attributeContainer;
 	};
+
+	template <typename T>
+	void SetAttribute(const std::string& key, const T& val)
+	{
+		GetExpectedAttributes().SetAttribute(key, ToString(val));
+	}
 };
 
-const Config& GetConfig();
+Config& GetConfig(const std::string& fileName);

@@ -8,12 +8,12 @@
 #include <string> // string
 
 std::unordered_map<std::string, Asset*> GLObject::s_assets;
+static const bool is3D = GetConfig("Shared").is3D;
 
 void GLObject::Initialize()
 {
-	if (!GetConfig().is3D)
+	if (!is3D)
 	{
-		//Asset::setIsometricSkew(0.0f, 0.0f);
 		Asset::generateVertexArray();
 	}
 
@@ -27,16 +27,6 @@ void GLObject::useShaderProgram(const glm::mat4& P, const glm::mat4& V, const gl
 
 
 // ----------------------------- 2D Functions
-//const glm::mat4 GLObject::getIsometricSkew()
-//{
-//	return Asset::isometricSkew;
-//}
-//
-//void GLObject::setIsometricSkew(float skew, float rot)
-//{
-//	Asset::setIsometricSkew(skew, rot);
-//}
-
 Asset* GLObject::GLAsset(const char* textureFile)
 {
 	if (GLObject::s_assets.find(textureFile) == GLObject::s_assets.end())
@@ -66,7 +56,7 @@ GLObject::GLObject(const char* filepath, const AssimpParsingParams& params)
 {
 	OBJECT_TYPE = ObjectType::GENERIC;
 
-	if (GetConfig().is3D)
+	if (is3D)
 	{
 		printf("GLObject filepath: %s\n", filepath);
 		m_model = new Model((GLchar*)filepath, params);
@@ -79,7 +69,7 @@ GLObject::GLObject(const char* filepath, const AssimpParsingParams& params)
 
 GLObject::~GLObject()
 {
-	if (GetConfig().is3D)
+	if (is3D)
 	{
 		delete m_model;
 	}
@@ -87,7 +77,7 @@ GLObject::~GLObject()
 
 void GLObject::releaseBuffers()
 {
-	if (!GetConfig().is3D)
+	if (!is3D)
 	{
 		Asset::releaseBuffers();
 	}
@@ -97,13 +87,18 @@ void GLObject::releaseBuffers()
 
 void GLObject::Render()
 {
-	if (GetConfig().is3D)
+	Render(UniformContainer());
+}
+
+void GLObject::Render(const UniformContainer& uniforms)
+{
+	if (is3D)
 	{
 		m_model->render(Asset::shaderProgram);
 	}
 	else
 	{
-		m_asset->Render(m_position);
+		m_asset->Render(m_position, uniforms);
 	}
 }
 

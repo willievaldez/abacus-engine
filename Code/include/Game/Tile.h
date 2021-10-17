@@ -17,12 +17,8 @@ public:
 	Tile() {};
 	~Tile();
 
-
-	//void renderFloor();
-	//void renderStructure();
-
 	void Update(clock_t);
-	void Render() override;
+	void Render(const UniformContainer&) override;
 	void Render(std::vector<GLObject*>&);
 	void AddStructure(Structure*);
 	void AddItem(Item*);
@@ -31,6 +27,7 @@ public:
 	bool Collision(const glm::vec3& pt, float radius = 0.0f);
 	bool Collision(const glm::vec3& pt, std::set<Unit*>& hitUnits, float radius = 0.0f);
 	void Interact(Unit* player);
+	void SetDebugHighlight(const glm::vec3&);
 
 	template<typename T>
 	static size_t RegisterTileType(const char* typeName)
@@ -50,6 +47,7 @@ private:
 	bool m_traversable = false;
 	std::vector<Item*> m_items;
 	std::vector<Unit*> m_units;
+	glm::vec3 m_debugHighlight;
 
 	static TileTypeMap& AccessTileTypes();
 };

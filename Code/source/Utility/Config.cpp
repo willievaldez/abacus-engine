@@ -3,18 +3,28 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <unordered_map>
 
-const Config& GetConfig()
+Config& GetConfig(const std::string& fileName)
 {
-	static Config config;
+	static std::unordered_map<std::string, Config> configMap;
+
+	auto foundConfig = configMap.find(fileName);
+	if (foundConfig == configMap.end())
+	{
+		foundConfig = configMap.emplace(fileName, Config()).first;
+	}
+
+	Config& config = foundConfig->second;
 
 	if (!config.loaded)
 	{
+		printf("loading config %s\n", fileName.c_str());
 		AttributeContainer attributeContainer = config.GetExpectedAttributes();
 
 		// load the config
 		std::string line;
-		std::ifstream myfile(INSTALL_DIR + "Assets/config.txt");
+		std::ifstream myfile(INSTALL_DIR + "Assets/" + fileName + ".cfg");
 		if (myfile.is_open())
 		{
 			while (getline(myfile, line))
@@ -23,6 +33,7 @@ const Config& GetConfig()
 				std::string key, val;
 				getline(lineStream, key, '=');
 				getline(lineStream, val, '=');
+				printf("%s = %s\n", key.c_str(), val.c_str());
 				attributeContainer.SetAttribute(key, val);
 			}
 
@@ -33,7 +44,7 @@ const Config& GetConfig()
 	return config;
 }
 
-SET_ATTRIBUTE_IMPL(MovementType)
+FROM_STRING_IMPL(MovementType)
 {
 	if (rawVal == "Keyboard")
 	{
@@ -50,10 +61,13 @@ SET_ATTRIBUTE_IMPL(MovementType)
 	else
 	{
 		printf("Unknown MovementType: %s\n", rawVal.c_str());
+		return false;
 	}
+
+	return true;
 }
 
-SET_ATTRIBUTE_IMPL(FrustumType)
+FROM_STRING_IMPL(FrustumType)
 {
 	if (rawVal == "Perspective")
 	{
@@ -66,5 +80,8 @@ SET_ATTRIBUTE_IMPL(FrustumType)
 	else
 	{
 		printf("Unknown MovementType: %s\n", rawVal.c_str());
+		return false;
 	}
+
+	return true;
 }

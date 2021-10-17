@@ -8,6 +8,8 @@
 #include <sstream>
 #include <glm/gtc/matrix_transform.hpp> // translate
 
+static const int ticksPerSecond = GetConfig("Shared").ticksPerSecond;
+
 Unit* Unit::Create(const char* entityName)
 {
 	Unit* unit = nullptr;
@@ -108,7 +110,7 @@ void Unit::Update(clock_t tick)
 		}
 	}
 
-	TakeDamage(m_metadata.mana_loss_per_sec / GetConfig().ticksPerSecond);
+	TakeDamage(m_metadata.mana_loss_per_sec / ticksPerSecond);
 }
 
 void Unit::SetState(State state)
@@ -182,13 +184,13 @@ void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut
 	}
 	if (m_currentState == State::MOVING)
 	{
-		destinationOut = m_position + (direction * m_metadata.speed / (float)GetConfig().ticksPerSecond);
+		destinationOut = m_position + (direction * m_metadata.speed / (float)ticksPerSecond);
 	}
 	else if (m_currentState == State::DODGING)
 	{
 		if ((tick - m_dodgeStartTime) / (float)CLOCKS_PER_SEC < m_metadata.dodge_duration)
 		{
-			destinationOut = m_position + (m_direction * m_metadata.dodge_speed / (float)GetConfig().ticksPerSecond);
+			destinationOut = m_position + (m_direction * m_metadata.dodge_speed / (float)ticksPerSecond);
 		}
 		else // dodge ended
 		{

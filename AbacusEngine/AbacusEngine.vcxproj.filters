@@ -114,6 +114,15 @@
     <ClCompile Include="..\Code\source\Game\Exit.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\source\Client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\Server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\source\Utility\KeyMap.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\models\Levels\testLevel.csv">
@@ -218,6 +227,15 @@
     </ClInclude>
     <ClInclude Include="..\Code\include\Game\Exit.h">
       <Filter>Header Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Server.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Code\include\Utility\KeyMap.h">
+      <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

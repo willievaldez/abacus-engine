@@ -5,6 +5,8 @@ in vec3 fragVert;
 in vec3 fragNormal;
 in vec2 TexCoords;
 
+uniform vec3 debugHighlight;
+
 uniform bool usesTexture;
 uniform sampler2D texture_diffuse1;
 uniform vec3 colorOverride;
@@ -82,6 +84,6 @@ void main()
 		attenuation = 1.0f;
 	}
 
-	FragColor = color * attenuation;
+	FragColor = (color * attenuation) + vec4(debugHighlight, 0.0);
 	FragColor.a = color.a; // maintain alpha value
 } 

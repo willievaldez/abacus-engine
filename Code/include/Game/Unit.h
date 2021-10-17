@@ -67,4 +67,5 @@ private:
 	clock_t m_dodgeStartTime;
 	clock_t m_lastAttack;
 	std::vector<std::shared_ptr<Attack>> m_activeAttacks;
+	glm::vec3 m_direction;
 };

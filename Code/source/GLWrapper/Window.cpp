@@ -2,74 +2,82 @@
 #include <Game/Level.h>
 #include <Game/Unit.h>
 #include <Utility/Config.h>
+#include <Client.h>
 
 #include <FMOD/fmod_errors.h>
 #include <cmath>
 
-////glm::vec2 mousePos(0.0f);
+const Config& clientConfig = GetConfig(Client::ProcessName);
 
-GLFWwindow* Window::InitGLFWWindow()
+GLFWwindow* Window::GetGLFWWindow()
 {
-	// Initialize GLFW
-	if (!glfwInit())
-	{
-		fprintf(stderr, "Failed to initialize GLFW\n");
-		return nullptr;
-	}
+	static GLFWwindow* window = nullptr;
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// 4x antialiasing
-	glfwWindowHint(GLFW_SAMPLES, 4);
-
-	const Config& config = GetConfig();
-
-	// Create the GLFW window
-	GLFWwindow* window = glfwCreateWindow(config.windowWidth, config.windowHeight, "Lumaton v0.0.1", NULL, NULL);
-
-	// Check if the window could not be created
 	if (!window)
 	{
-		fprintf(stderr, "Failed to open GLFW window.\n");
-		glfwTerminate();
-		return nullptr;
-	}
+		// Initialize GLFW
+		if (!glfwInit())
+		{
+			fprintf(stderr, "Failed to initialize GLFW\n");
+			return nullptr;
+		}
 
-	const Camera& cam = GetCamera();
-	if (config.frustumType == FrustumType::Perspective)
-	{
-		AccessP() = glm::perspective(45.0f, (float)config.windowWidth / (float)config.windowHeight, 0.1f, 1000.0f);
-	}
-	else if (config.frustumType == FrustumType::Orthographic)
-	{
-		AccessP() = glm::ortho(-config.windowWidth / cam.FOV, config.windowWidth / cam.FOV, -config.windowHeight / cam.FOV, config.windowHeight / cam.FOV, 0.1f, 100.0f);
-	}
-	AccessV() = cam.GetView();
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// Make the context of the window
-	glfwMakeContextCurrent(window);
+		// anti-aliasing
+		if (clientConfig.antiAliasing >= 2)
+		{
+			glfwWindowHint(GLFW_SAMPLES, clientConfig.antiAliasing);
+		}
 
-	// Set swap interval to 1
-	glfwSwapInterval(1);
+		// Create the GLFW window
+		window = glfwCreateWindow(clientConfig.windowWidth, clientConfig.windowHeight, "Lumaton v0.0.1", NULL, NULL);
 
-	// setup callbacks
-	glfwSetErrorCallback(ErrorCallback);
-	glfwSetKeyCallback(window, KeyCallback);
-	glfwSetMouseButtonCallback(window, MouseButtonCallback);
-	glfwSetScrollCallback(window, ScrollCallback);
-	//glfwSetCursorPosCallback(window, cursor_pos_callback);
-	//glfwSetFramebufferSizeCallback(window, resize_callback);
+		// Check if the window could not be created
+		if (!window)
+		{
+			fprintf(stderr, "Failed to open GLFW window.\n");
+			glfwTerminate();
+			return nullptr;
+		}
 
-	if (config.is3D)
-	{
-		// disable cursor
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	}
-	else
-	{
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		const Camera& cam = GetCamera();
+		if (clientConfig.frustumType == FrustumType::Perspective)
+		{
+			AccessP() = glm::perspective(45.0f, (float)clientConfig.windowWidth / (float)clientConfig.windowHeight, 0.1f, 1000.0f);
+		}
+		else if (clientConfig.frustumType == FrustumType::Orthographic)
+		{
+			AccessP() = glm::ortho(-clientConfig.windowWidth / cam.FOV, clientConfig.windowWidth / cam.FOV,
+				-clientConfig.windowHeight / cam.FOV, clientConfig.windowHeight / cam.FOV, 0.1f, 100.0f);
+		}
+		AccessV() = cam.GetView();
+
+		// Make the context of the window
+		glfwMakeContextCurrent(window);
+
+		// Set swap interval to 1
+		glfwSwapInterval(1);
+
+		// setup callbacks
+		glfwSetErrorCallback(ErrorCallback);
+		glfwSetKeyCallback(window, KeyCallback);
+		glfwSetMouseButtonCallback(window, MouseButtonCallback);
+		glfwSetScrollCallback(window, ScrollCallback);
+		//glfwSetCursorPosCallback(window, CursorPosCallback);
+		//glfwSetFramebufferSizeCallback(window, resize_callback);
+
+		if (clientConfig.is3D)
+		{
+			// disable cursor
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+		else
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
 	}
 
 	return window;
@@ -77,10 +85,14 @@ GLFWwindow* Window::InitGLFWWindow()
 
 void Window::ConfigureGLWindow()
 {
+	// enable anti aliasing
+	glEnable(GL_MULTISAMPLE);
+
+	// enable alpha value in texture files
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if (GetConfig().is3D)
+	if (clientConfig.is3D)
 	{
 		glEnable(GL_DEPTH_TEST);
 	}
@@ -101,7 +113,7 @@ bool Window::InitializeSoundSystem()
 
 	if (result != FMOD_OK)
 	{
-		std::cout << FMOD_ErrorString(result) << std::endl;
+		printf("%s\n", FMOD_ErrorString(result));
 		return false;
 	}
 
@@ -111,8 +123,6 @@ bool Window::InitializeSoundSystem()
 void Window::InitializeObjects()
 {
 	GLObject::Initialize();
-
-	Level::Get(); // first call to Get will initialize the level
 }
 
 //void Window::ResizeCallback(GLFWwindow* window, int width, int height)
@@ -139,7 +149,7 @@ void Window::InitializeObjects()
 
 void Window::IdleCallback3D(GLFWwindow* window, clock_t time)
 {
-	bool* keyMap = AccessKeyMap();
+	const KeyMap& keyMap = GetKeyMap();
 	Camera& cam = AccessCamera();
 	glm::vec3 velocity(0.0f);
 	glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
@@ -172,7 +182,16 @@ void Window::IdleCallback3D(GLFWwindow* window, clock_t time)
 
 void Window::IdleCallback2D(GLFWwindow* window, clock_t time)
 {
-	Level::Get()->Update(time, window);
+	KeyMap& keyMap = AccessKeyMap();
+	for (int i = 0; i < keyMap.size(); i++)
+	{
+		KeyPress& keyPress = keyMap[i];
+		if (keyPress.m_state == KeyPress::State::Triggered)
+		{
+			keyPress.m_state = KeyPress::State::Depressed;
+		}
+	}
+	//Level::Get()->Update(time);
 }
 
 void Window::DisplayCallback(GLFWwindow* window)
@@ -207,43 +226,64 @@ void Window::ErrorCallback(int error, const char* description)
 
 void Window::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	AccessKeyMap()[key] = !(action == GLFW_RELEASE);
+	if (action == GLFW_PRESS)
+	{
+		AccessKeyMap()[key].m_state = KeyPress::State::Triggered;
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		AccessKeyMap()[key].m_state = KeyPress::State::Released;
+	}
 }
 
 void Window::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	AccessKeyMap()[button] = !(action == GLFW_RELEASE);
+	KeyCallback(window, button, 0, action, mods);
 }
 
 void Window::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	Camera& cam = AccessCamera();
-	if (GetConfig().frustumType == FrustumType::Perspective)
+	if (clientConfig.frustumType == FrustumType::Perspective)
 	{
 		cam.pos.z -= (float)yoffset;
 	}
-	else if (GetConfig().frustumType == FrustumType::Orthographic)
+	else if (clientConfig.frustumType == FrustumType::Orthographic)
 	{
+		float scrollAmt = 10.0f;
 		if (yoffset > 0.0f) // zoom in
 		{
 			if (cam.FOV < 300.0f)
 			{
-				cam.FOV += 5.0f;
+				cam.FOV += scrollAmt;
 			}
 		}
 		else // zoom out
 		{
 			if (cam.FOV > 10.0f)
 			{
-				cam.FOV -= 5.0f;
+				cam.FOV -= scrollAmt;
 			}
 		}
 
-		AccessP() = glm::ortho(-GetConfig().windowWidth / cam.FOV, GetConfig().windowWidth / cam.FOV, -GetConfig().windowHeight / cam.FOV, GetConfig().windowHeight / cam.FOV, 0.1f, 100.0f);
+		printf("FOV: %f\n", cam.FOV);
+
+		AccessP() = glm::ortho(-clientConfig.windowWidth / cam.FOV, clientConfig.windowWidth / cam.FOV,
+			-clientConfig.windowHeight / cam.FOV, clientConfig.windowHeight / cam.FOV, 0.1f, 100.0f);
 	}
 }
 
-void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
+glm::vec3 Window::GetCursorPosWorldSpace()
+{
+	double xpos, ypos;
+	glfwGetCursorPos(GetGLFWWindow(), &xpos, &ypos);
+	const Camera& cam = Window::GetCamera();
+	glm::vec4 mouseWorldSpaceVec4((xpos - (clientConfig.windowWidth / 2.0)) / (cam.FOV / 2.0f),
+		((clientConfig.windowHeight / 2.0) - ypos) / (cam.FOV / 2.0f), 0.0f, 1.0f);
+	return glm::vec3(mouseWorldSpaceVec4.x + cam.pos.x, mouseWorldSpaceVec4.y + cam.pos.y, 1.9f);
+}
+
+void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	//if (debug_mode)
 	//{

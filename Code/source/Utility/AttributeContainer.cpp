@@ -14,22 +14,25 @@ void AttributeContainer::SetAttribute(const std::string& key, const std::string&
 	}
 }
 
-SET_ATTRIBUTE_IMPL(std::string)
+FROM_STRING_IMPL(std::string)
 {
 	*m_data = rawVal;
+	return true;
 }
 
-SET_ATTRIBUTE_IMPL(int)
+FROM_STRING_IMPL(int)
 {
 	*m_data = std::stoi(rawVal);
+	return true;
 }
 
-SET_ATTRIBUTE_IMPL(float)
+FROM_STRING_IMPL(float)
 {
 	*m_data = std::stof(rawVal);
+	return true;
 }
 
-SET_ATTRIBUTE_IMPL(bool)
+FROM_STRING_IMPL(bool)
 {
 	std::string lowerCase = rawVal;
 	std::transform(rawVal.begin(),
@@ -38,4 +41,10 @@ SET_ATTRIBUTE_IMPL(bool)
 		::tolower);
 
 	*m_data = lowerCase == "true" ? true : false;
+	return true;
+}
+
+TO_STRING_IMPL(bool)
+{
+	return data ? "true" : "false";
 }

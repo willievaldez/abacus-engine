@@ -18,8 +18,9 @@ public:
 	TemplatedAttributeWrapper(T* data) : m_data(data) {};
 
 	// the parser is abstracted to a static function to be
-	// used in the general-purpose utility func FromString
-	static void ParseFromString(T* data, const std::string& rawVal);
+	// used in the general-purpose utility func FromString and ToString
+	static bool ParseFromString(T* data, const std::string& rawVal);
+	static std::string ToString(const T& data);
 protected:
 
 	void SetAttribute(const std::string& rawVal) override
@@ -42,16 +43,22 @@ public:
 
 	void SetAttribute(const std::string& key, const std::string& val);
 
-
 private:
 	std::unordered_map<std::string, AttributeWrapper*> m_map;
 };
 
 // utility function to use the parse function for any data type
 template<typename T>
-void FromString(T* data, const std::string& rawVal)
+bool FromString(T* data, const std::string& rawVal)
 {
-	TemplatedAttributeWrapper<T>::ParseFromString(data, rawVal);
+	return TemplatedAttributeWrapper<T>::ParseFromString(data, rawVal);
 };
 
-#define SET_ATTRIBUTE_IMPL(TYPE) void TemplatedAttributeWrapper<TYPE>::ParseFromString(TYPE* m_data, const std::string& rawVal)
+template<typename T>
+std::string ToString(const T& data)
+{
+	return TemplatedAttributeWrapper<T>::ToString(data);
+};
+
+#define FROM_STRING_IMPL(TYPE) bool TemplatedAttributeWrapper<TYPE>::ParseFromString(TYPE* m_data, const std::string& rawVal)
+#define TO_STRING_IMPL(TYPE) std::string TemplatedAttributeWrapper<TYPE>::ToString(const TYPE& data)

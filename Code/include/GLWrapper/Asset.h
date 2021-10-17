@@ -17,7 +17,7 @@ public:
 	static void SetUniform(const std::string&, const T&) {};
 
 	GLint getTextureID();
-	void Render(const glm::vec3&,const UniformContainer& uniforms = UniformContainer());
+	void Render(const glm::vec3&,const UniformContainer& uniforms);
 	void DrawStatusBar(const glm::vec3& , float);
 
 	int GetNumFrames() {
@@ -28,19 +28,20 @@ private:
 	friend class GLObject;
 	friend class UniformContainer;
 
-	Asset(std::string&);
-	~Asset();
+	Asset(const std::string& filename) : m_filename(filename) {};
+	~Asset() = default;
+	void LoadAsset();
 	static void releaseBuffers();
 
+	std::string m_filename;
 	GLuint m_textureID;
 	int m_width, m_height;
 	float m_ratio = 1.0f;
 	int m_numFrames = 1;
+	bool m_assetLoaded = false;
 
-	//static void setIsometricSkew(float skew, float rotation);
 	static void generateVertexArray();
 	static void useShaderProgram(const glm::mat4&, const glm::mat4&, const glm::vec3&);
-	//static glm::mat4 isometricSkew;
 	static GLuint VBO, VAO, EBO;
 	static GLuint shaderProgram;
 };

@@ -5,6 +5,8 @@
 #include <Game/Unit.h>
 #include <Game/Tile.h>
 
+#include <Utility/KeyMap.h>
+
 class Tile;
 class Unit;
 class Player;
@@ -22,7 +24,7 @@ enum class LevelState
 class Level
 {
 public:
-	Level(const char*);
+	Level(const char* file);
 	~Level();
 
 	static Level* Get();
@@ -34,7 +36,7 @@ public:
 
 	void BasicAttack(const glm::vec3& direction);
 
-	void Update(const clock_t& tick, GLFWwindow* window);
+	void Update(const clock_t& tick, const KeyMap& keyMap);
 
 	void Render();
 	void Reload();

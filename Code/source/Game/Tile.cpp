@@ -62,13 +62,16 @@ void Tile::Update(clock_t tick)
 	}
 }
 
-void Tile::Render()
+void Tile::Render(const UniformContainer& uniforms)
 {
-	if (m_asset) GLObject::Render();
+	if (m_asset) GLObject::Render(uniforms);
 }
 void Tile::Render(std::vector<GLObject*>& deferredAssets)
 {
-	Render();
+	UniformContainer uniforms;
+	uniforms.AddObject("debugHighlight", m_debugHighlight);
+	Render(uniforms);
+
 	if (m_structure) deferredAssets.push_back(m_structure);
 	for (auto& item : m_items)
 	{
@@ -170,4 +173,9 @@ void Tile::Interact(Unit* player)
 	}
 
 	m_items.clear();
+}
+
+void Tile::SetDebugHighlight(const glm::vec3& color)
+{
+	m_debugHighlight = color;
 }

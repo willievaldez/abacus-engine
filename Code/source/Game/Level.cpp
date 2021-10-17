@@ -7,13 +7,16 @@
 #include <fstream>
 #include <sstream>
 
-#include <Utility/Config.h>
 #include <GLWrapper/Window.h>
 #include <GLWrapper/PointLight.h>
+
+#include <Utility/Config.h>
 
 // TODO TEMP:
 float attenuationUniform = 50.0f;
 int attenuationType = 2;
+bool debugHighlight = false;
+const Config& config = GetConfig("Shared");
 
 Level* Level::Get()
 {
@@ -21,7 +24,7 @@ Level* Level::Get()
 	if (!level)
 	{
 		int testVal = 0;
-		level = new Level(GetConfig().level.c_str());
+		level = new Level(config.level.c_str());
 		level->m_player = new Player(level->m_spawn);
 		level->m_tickTime = clock();
 	}
@@ -97,7 +100,7 @@ void Level::MakeLevelFromFile()
 		return;
 	}
 
-	float tileSize = GetConfig().tileSize;
+	float tileSize = config.tileSize;
 
 	if (playerSpawn.first == -1)
 	{
@@ -154,8 +157,12 @@ void Level::MakeLevelFromFile()
 	}
 }
 
-void Level::Update(const clock_t& tick, GLFWwindow* window)
+void Level::Update(const clock_t& tick, const KeyMap& keyMap)
 {
+	static clock_t lastTick = clock();
+	//printf("seconds since last tick: %f\n", (tick - lastTick) / (float)CLOCKS_PER_SEC);
+	lastTick = tick;
+
 	if (m_levelState == LevelState::WON)
 	{
 		return;
@@ -164,7 +171,6 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 	{
 		return;
 	}
-
 
 	std::vector<Tile*> prevTiles;
 	std::vector<Tile*> currTiles;
@@ -195,7 +201,6 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 	}
 
 	// get player input and update behavior
-	const bool* keyMap = Window::GetKeyMap();
 	const Camera& cam = Window::GetCamera();
 
 	prevTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
@@ -208,26 +213,33 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 	if (playerUnit->GetState() == State::IDLE || playerUnit->GetState() == State::MOVING) // move
 	{
 		glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
-		if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP]) {
+		if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP])
+		{
 			direction.y += 1.0f;
 		}
-		if (keyMap[GLFW_KEY_A] || keyMap[GLFW_KEY_LEFT]) {
+		if (keyMap[GLFW_KEY_A] || keyMap[GLFW_KEY_LEFT])
+		{
 			direction += glm::cross(cam.up, cam_direction_no_y);
 		}
-		if (keyMap[GLFW_KEY_S] || keyMap[GLFW_KEY_DOWN]) {
+		if (keyMap[GLFW_KEY_S] || keyMap[GLFW_KEY_DOWN])
+		{
 			direction.y -= 1.0f;
 		}
-		if (keyMap[GLFW_KEY_D] || keyMap[GLFW_KEY_RIGHT]) {
+		if (keyMap[GLFW_KEY_D] || keyMap[GLFW_KEY_RIGHT])
+		{
 			direction += glm::cross(cam_direction_no_y, cam.up);
 		}
 
 		// TODO: TEMP
-		if (keyMap[GLFW_KEY_MINUS]) {
+		if (keyMap[GLFW_KEY_MINUS])
+		{
 			attenuationUniform--;
 		}
-		else if (keyMap[GLFW_KEY_EQUAL]) {
+		else if (keyMap[GLFW_KEY_EQUAL])
+		{
 			attenuationUniform++;
 		}
+
 		if (keyMap[GLFW_KEY_1])
 		{
 			attenuationType = 0;
@@ -239,6 +251,11 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 		else if (keyMap[GLFW_KEY_3])
 		{
 			attenuationType = 2;
+		}
+
+		if (keyMap[GLFW_KEY_4].m_state == KeyPress::State::Triggered)
+		{
+			debugHighlight = !debugHighlight;
 		}
 
 		if (glm::length(direction) != 0.0f)
@@ -284,11 +301,16 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 	for (auto& prevTile : prevTiles)
 	{
 		prevTile->RemoveUnit(playerUnit);
+		prevTile->SetDebugHighlight(glm::vec3(0.0f));
 	}
 
 	for (auto& currTile : currTiles)
 	{
 		currTile->AddUnit(playerUnit);
+		if (debugHighlight)
+		{
+			currTile->SetDebugHighlight(glm::vec3(0.0f, 0.2f, 0.0f));
+		}
 	}
 
 	Window::SetCameraPos(playerUnit->GetPosition()); // always update cam to player position
@@ -296,11 +318,7 @@ void Level::Update(const clock_t& tick, GLFWwindow* window)
 	// basic attack
 	if (keyMap[GLFW_MOUSE_BUTTON_1] && (playerUnit->GetState() == State::IDLE || playerUnit->GetState() == State::MOVING))
 	{
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		const Camera& cam = Window::GetCamera();
-		glm::vec4 mouseWorldSpaceVec4((xpos - (GetConfig().windowWidth / 2.0)) / (cam.FOV / 2.0f), ((GetConfig().windowHeight / 2.0) - ypos) / (cam.FOV / 2.0f), 0.0f, 1.0f);
-		glm::vec3 mouseWorldSpace(mouseWorldSpaceVec4.x + cam.pos.x, mouseWorldSpaceVec4.y + cam.pos.y, 1.9f);
+		glm::vec3 mouseWorldSpace = Window::GetCursorPosWorldSpace();
 		glm::vec3 attackDirection = glm::normalize(mouseWorldSpace - cam.pos);
 		attackDirection.z = 0.0f;
 		BasicAttack(attackDirection);
@@ -472,7 +490,7 @@ void Level::BasicAttack(const glm::vec3& direction)
 Tile* Level::GetTileFromCoords(const glm::vec3& dest)
 {
 	std::pair<int, int> tileCoords;
-	float tileSize = GetConfig().tileSize;
+	float tileSize = config.tileSize;
 	tileCoords.second = (int)(dest.x / tileSize);
 	tileCoords.first = (int)(ceil(((m_tileGrid.size() * tileSize) - dest.y) / tileSize));
 
@@ -490,7 +508,7 @@ std::vector<Tile*> Level::GetTilesFromCoords(const glm::vec3& dest, float radius
 	std::vector<Tile*> returnedTiles;
 
 	std::pair<int, int> minTileCoords;
-	float tileSize = GetConfig().tileSize;
+	float tileSize = config.tileSize;
 	minTileCoords.second = (int)((dest.x - radius) / tileSize);
 	minTileCoords.first = (int)(ceil(((m_tileGrid.size() * tileSize) - (dest.y - radius)) / tileSize));
 
@@ -523,7 +541,7 @@ bool Level::getCoordsFromTile(std::pair<int, int> tileCoords, glm::vec3& dest)
 		return false;
 	}
 
-	float tileSize = GetConfig().tileSize;
+	float tileSize = config.tileSize;
 	dest.x = (tileCoords.second * tileSize) + (tileSize / 2.0f);
 	dest.y = ((m_tileGrid.size() - tileCoords.first) * tileSize) + (tileSize / 2.0f);
 	dest.z = 0.0f;

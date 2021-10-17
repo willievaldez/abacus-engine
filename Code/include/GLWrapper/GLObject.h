@@ -27,6 +27,7 @@ public:
 	~GLObject();
 
 	virtual void Render();
+	virtual void Render(const UniformContainer& uniforms);
 
 	const glm::vec3& GetPosition();
 	virtual void SetPosition(const glm::vec3&);
@@ -37,8 +38,6 @@ public:
 	static void Initialize();
 	static void releaseBuffers();
 	static Asset* GLAsset(const char*);
-	//static void setIsometricSkew(float, float);
-	//static const glm::mat4 getIsometricSkew();
 
 protected:
 	//FMOD::Sound* moveSound;
