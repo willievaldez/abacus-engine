@@ -166,8 +166,9 @@ bool Unit::TakeDamage(float dmg)
 	return false;
 }
 
-void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut)
+glm::vec3 Unit::GetNextPosition()
 {
+	glm::vec3 destinationOut(m_position);
 	clock_t tick = clock();
 	if (m_currentState == State::MOVING || m_currentState == State::DODGING)
 	{
@@ -184,7 +185,7 @@ void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut
 	}
 	if (m_currentState == State::MOVING)
 	{
-		destinationOut = m_position + (direction * m_metadata.speed / (float)ticksPerSecond);
+		destinationOut = m_position + (m_direction * m_metadata.speed / (float)ticksPerSecond);
 	}
 	else if (m_currentState == State::DODGING)
 	{
@@ -198,6 +199,7 @@ void Unit::GetMovePosition(const glm::vec3& direction, glm::vec3& destinationOut
 		}
 	}
 
+	return destinationOut;
 }
 
 void Unit::StartDodge()

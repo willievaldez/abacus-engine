@@ -49,7 +49,7 @@ public:
 	void BasicAttack(const glm::vec3& direction);
 	bool TakeDamage(float);
 	float GetHealth() const { return m_currentHealth; };
-	void GetMovePosition(const::glm::vec3& direction, glm::vec3& destination);
+	glm::vec3 GetNextPosition();
 	void StartDodge();
 private:
 	Unit(const UnitMetadata&);
@@ -67,5 +67,4 @@ private:
 	clock_t m_dodgeStartTime;
 	clock_t m_lastAttack;
 	std::vector<std::shared_ptr<Attack>> m_activeAttacks;
-	glm::vec3 m_direction;
 };

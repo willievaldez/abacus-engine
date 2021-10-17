@@ -262,6 +262,7 @@ void Level::Update(const clock_t& tick, const KeyMap& keyMap)
 		{
 			direction = glm::normalize(direction);
 			playerUnit->SetState(State::MOVING);
+			playerUnit->SetDirection(direction);
 		}
 		else
 		{
@@ -271,9 +272,7 @@ void Level::Update(const clock_t& tick, const KeyMap& keyMap)
 
 	if (playerUnit->GetState() == State::DODGING || playerUnit->GetState() == State::MOVING)
 	{
-		glm::vec3 destination(0.0f);
-		playerUnit->GetMovePosition(direction, destination);
-
+		glm::vec3 destination = playerUnit->GetNextPosition();
 		Tile* destTile = GetTileFromCoords(destination);
 
 		if (destTile && !destTile->Collision(destination))

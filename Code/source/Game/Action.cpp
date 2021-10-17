@@ -57,9 +57,8 @@ bool IdleAttackAction::Execute(clock_t& tick, Unit* unit)
 		else if (dist < 10.0f && dist > 0.5f)
 		{
 			unit->SetState(State::MOVING);
-			glm::vec3 newPosition(0.0f);
-			unit->GetMovePosition(glm::normalize(dirToPlayer), newPosition);
-			unit->SetPosition(newPosition);
+			unit->SetDirection(glm::normalize(dirToPlayer));
+			unit->SetPosition(unit->GetNextPosition());
 		}
 		// if in attack range, attack
 		else if (dist < 0.5f)
