@@ -8,6 +8,6 @@ ATTRIBUTE(std::string, basic_attack, "BasicMelee");
 ATTRIBUTE(float, hitbox_radius, 2.0f);
 ATTRIBUTE(float, dodge_speed, 15.0f);
 ATTRIBUTE(float, dodge_duration, 0.25f);
-ATTRIBUTE(float, dodge_cost, 5.0f);
+ATTRIBUTE(float, dodge_cost, 3.0f);
 ATTRIBUTE(float, attack_cooldown, 0.35f);
 ATTRIBUTE(bool, friendly, false);

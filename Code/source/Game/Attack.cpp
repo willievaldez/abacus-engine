@@ -57,6 +57,7 @@ std::shared_ptr<Attack> Attack::Create(const char* attackName, Unit* owner)
 RangedAttack::RangedAttack(Unit* owner, const AttackMetadata& metadata) : Attack(owner, metadata)
 {
 	m_light = PointLight::Create(glm::vec3(0.0f), 0.5f, 1.5f);
+	SetState(State::CHANNELING);
 }
 
 void RangedAttack::SetPosition(const glm::vec3& pos)
@@ -73,46 +74,102 @@ RangedAttack::~RangedAttack()
 	}
 }
 
-bool RangedAttack::Update()
+void Attack::SetState(State state)
 {
-	if (m_owner->GetState() == State::ATTACKING)
+	m_stateStart = clock();
+	m_state = state;
+}
+
+void RangedAttack::Update()
+{
+	static int numFading = 0;
+
+	if (m_state == State::CHANNELING)
 	{
+		if (m_owner->GetState() == Unit::State::ATTACKING)
+		{
+			clock_t tick = clock();
+			if ((tick - m_stateStart) / (float)CLOCKS_PER_SEC >= m_metadata.cast_time)
+			{
+				SetState(State::FIRING);
+				m_owner->SetState(Unit::State::IDLE);
+			}
+		}
+	}
+
+	if (m_state == State::FIRING)
+	{
+		bool keepGoing = true;
+		std::set<Unit*> hitUnits;
+		std::vector<Tile*> tiles = Level::Get()->GetTilesFromCoords(GetPosition(), m_metadata.radius, GetDirection());
+		for (auto& tile : tiles)
+		{
+			keepGoing = keepGoing && !tile->Collision(GetPosition(), hitUnits, m_metadata.radius);
+		}
+
+		for (auto& hitUnit : hitUnits)
+		{
+			if (hitUnit != m_owner)
+			{
+				m_attachedUnit = hitUnit;
+				m_attachmentOffset = GetPosition() - m_attachedUnit->GetPosition();
+				hitUnit->TakeDamage(m_metadata.damage);
+				keepGoing = false;
+			}
+		}
+
+		if (!keepGoing)
+		{
+			numFading++;
+			SetState(State::FADING);
+		}
+		else
+		{
+			// no collision, keep moving
+			glm::vec3 newAttackPos = GetPosition() + (GetDirection() * m_metadata.speed);
+			SetPosition(newAttackPos);
+		}
+	}
+
+	if (m_state == State::FADING)
+	{
+		if (m_attachedUnit)
+		{
+			if (Level::Get()->FindUnit(m_attachedUnit))
+			{
+				SetPosition(m_attachedUnit->GetPosition() + m_attachmentOffset);
+			}
+			else
+			{
+				// attached unit deleted
+				m_attachedUnit = nullptr;
+			}
+		}
+
 		clock_t tick = clock();
-		if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_metadata.cast_time)
+		if ((tick - m_stateStart) / (float)CLOCKS_PER_SEC >= 2.0f) // TODO hard coded fade time
 		{
-			m_owner->SetState(State::IDLE);
+			numFading--;
+			SetState(State::DONE);
 		}
 	}
+}
 
-	bool keepGoing = true;
-	std::set<Unit*> hitUnits;
-	std::vector<Tile*> tiles = Level::Get()->GetTilesFromCoords(GetPosition(), m_metadata.radius);
-	for (auto& tile : tiles)
+void RangedAttack::Render()
+{
+	if (m_state != State::DONE)
 	{
-		keepGoing = keepGoing && !tile->Collision(GetPosition(), hitUnits, m_metadata.radius);
+		Attack::Render();
 	}
-
-	for (auto& hitUnit : hitUnits)
-	{
-		if (hitUnit != m_owner)
-		{
-			hitUnit->TakeDamage(m_metadata.damage);
-			keepGoing = false;
-		}
-	}
-
-	// no collision, keep moving
-	glm::vec3 newAttackPos = GetPosition() + (GetDirection() * m_metadata.speed);
-	SetPosition(newAttackPos);
-	return keepGoing;
 }
 
 
-bool MeleeAttack::Update()
+void MeleeAttack::Update()
 {
 	clock_t tick = clock();
-	if ((tick - m_attackStart) / (float)CLOCKS_PER_SEC >= m_metadata.cast_time)
+	if ((tick - m_stateStart) / (float)CLOCKS_PER_SEC >= m_metadata.cast_time)
 	{
+		SetState(State::FIRING);
 		if (!m_hit)
 		{
 			std::set<Unit*> hitUnits;
@@ -133,8 +190,7 @@ bool MeleeAttack::Update()
 			}
 		}
 
-		m_owner->SetState(State::IDLE);
-		return false;
+		m_owner->SetState(Unit::State::IDLE);
+		SetState(State::DONE);
 	}
-	return true;
 }

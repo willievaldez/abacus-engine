@@ -6,7 +6,6 @@
 
 #include <fstream>
 #include <sstream>
-#include <glm/gtc/matrix_transform.hpp> // translate
 
 static const int ticksPerSecond = GetConfig("Shared").ticksPerSecond;
 
@@ -99,7 +98,8 @@ void Unit::Update(clock_t tick)
 	while (attackIterator != m_activeAttacks.end())
 	{
 		std::shared_ptr<Attack> attack = *attackIterator;
-		if (!attack->Update()) // attack ended
+		attack->Update();
+		if (attack->GetState() == Attack::State::DONE) // attack ended
 		{
 			// delete the object (shared_ptr will delete it for us when ref cout <1)
 			attackIterator = m_activeAttacks.erase(attackIterator); // advance the iterator
@@ -118,7 +118,7 @@ void Unit::SetState(State state)
 	m_currentState = state;
 }
 
-const State& Unit::GetState() const
+const Unit::State& Unit::GetState() const
 {
 	return m_currentState;
 }
@@ -135,7 +135,6 @@ void Unit::BasicAttack(const glm::vec3& direction)
 	if ((tick - m_lastAttack) / (float)CLOCKS_PER_SEC >= m_metadata.attack_cooldown)
 	{
 		SetState(State::ATTACKING);
-		// TODO: cannot shoot while standing next to wall
 		m_lastAttack = tick;
 		std::shared_ptr<Attack> attack = Attack::Create(m_metadata.basic_attack.c_str(), this);
 		attack->SetPosition(GetPosition());
@@ -153,7 +152,6 @@ bool Unit::TakeDamage(float dmg)
 
 		if (m_currentHealth <= 0.0f)
 		{
-			//isDead = true;
 			m_currentHealth = 0.0f;
 			return true;
 		}
@@ -166,10 +164,9 @@ bool Unit::TakeDamage(float dmg)
 	return false;
 }
 
-glm::vec3 Unit::GetNextPosition()
+void Unit::MoveToNextPosition(const clock_t& tick)
 {
-	glm::vec3 destinationOut(m_position);
-	clock_t tick = clock();
+	glm::vec3 destination(m_position);
 	if (m_currentState == State::MOVING || m_currentState == State::DODGING)
 	{
 		// TODO: only update animation frame if actually moving
@@ -185,13 +182,13 @@ glm::vec3 Unit::GetNextPosition()
 	}
 	if (m_currentState == State::MOVING)
 	{
-		destinationOut = m_position + (m_direction * m_metadata.speed / (float)ticksPerSecond);
+		destination = m_position + (m_direction * m_metadata.speed / (float)ticksPerSecond);
 	}
 	else if (m_currentState == State::DODGING)
 	{
 		if ((tick - m_dodgeStartTime) / (float)CLOCKS_PER_SEC < m_metadata.dodge_duration)
 		{
-			destinationOut = m_position + (m_direction * m_metadata.dodge_speed / (float)ticksPerSecond);
+			destination = m_position + (m_direction * m_metadata.dodge_speed / (float)ticksPerSecond);
 		}
 		else // dodge ended
 		{
@@ -199,7 +196,58 @@ glm::vec3 Unit::GetNextPosition()
 		}
 	}
 
-	return destinationOut;
+	Tile* destTile = Level::Get()->GetTileFromCoords(destination);
+
+	if (destTile)
+	{
+		if (destTile->Collision(destination))
+		{
+			Tile* srcTile = Level::Get()->GetTileFromCoords(GetPosition());
+			glm::vec3 tileChangeDirection = destTile->GetPosition() - srcTile->GetPosition();
+			destTile = nullptr; // reset dest tile
+
+			if (tileChangeDirection.x)
+			{
+				glm::vec3 newDest = destination;
+				newDest.x = GetPosition().x;
+				destTile = Level::Get()->GetTileFromCoords(newDest);
+
+				if (destTile && !destTile->Collision(newDest))
+				{
+					destination = newDest;
+				}
+				else
+				{
+					destTile = nullptr;
+				}
+			}
+			if (!destTile && tileChangeDirection.y)
+			{
+				glm::vec3 newDest = destination;
+				newDest.y = GetPosition().y;
+				destTile = Level::Get()->GetTileFromCoords(newDest);
+
+				if (destTile && !destTile->Collision(destination))
+				{
+					destination = newDest;
+				}
+				else
+				{
+					destTile = nullptr;
+				}
+			}
+		}
+
+		if (destTile)
+		{
+			SetPosition(destination);
+			destTile->Interact(this);
+		}
+	}
+	else
+	{
+		SetState(State::IDLE);
+	}
 }
 
 void Unit::StartDodge()

@@ -2,25 +2,15 @@
 
 #include <Game/Unit.h>
 #include <Game/Level.h>
+
 #include <GLWrapper/PointLight.h>
-
-PointLight* PointLight::Create(const glm::vec3& p, float i, float r)
-{
-	PointLight* light = new PointLight(p, i, r);
-	Level::Get()->AddLight(light);
-	return light;
-}
-
-PointLight::~PointLight()
-{
-	Level::Get()->RemoveLight(this);
-}
 
 Player::Player(const glm::vec3& pos)
 {
 	m_unit = Unit::Create("Lumaton");
 	m_unit->SetPosition(pos);
 	m_light = PointLight::Create(pos);
+	m_light->ambientRadius = 10.0f;
 	m_light->radius = m_unit->GetHealth() / 10.0f;
 }
 

@@ -1,7 +1,7 @@
 WT,WT,WT,WT,WT,WT,WT,WT,CR
 WL,,,,,,,,W
 WL,,Exit,,,,,,W
-WL,,,,,,,,W
+WL,,,,,,Wretch,,W
 WL,,,,,,,,W
 WL,,,,,,,,W
 CL,WT,WT,,,,WT,WT,CR
@@ -11,11 +11,11 @@ CL,WT,WT,,,,WT,WT,CR
 0,0,WL,,,,W,0,0
 CL,WT,WT,,,,W,W,W
 WL,,,,,,,,W
-WL,,,,,,Wretch,,W
 WL,,,,,,,,W
 WL,,,,,,,,W
+WL,,Wretch,,,,,,W
 WL,,,,,,,,W
-WL,Wretch,,,,,,,W
+WL,,,,,,,,W
 WL,,,,,,,,W
 WL,,,,,,,,W
 CL,WT,WT,WT,WT,,,WT,CR

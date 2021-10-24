@@ -120,5 +120,5 @@ const glm::vec3& GLObject::GetDirection()
 
 void GLObject::SetDirection(const glm::vec3& dir)
 {
-	m_direction = dir;
+	m_direction = glm::normalize(dir);
 }

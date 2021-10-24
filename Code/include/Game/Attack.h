@@ -37,8 +37,17 @@ std::shared_ptr<Attack> AttackFactory(Unit* owner, const AttackMetadata& metadat
 class Attack : public GLObject
 {
 public:
-	virtual bool Update() = 0;
+	enum class State
+	{
+		CHANNELING,
+		FIRING,
+		FADING,
+		DONE
+	};
+	virtual void Update() = 0;
+	State GetState() { return m_state; };
 	float GetCost() const { return m_metadata.cast_cost; };
+	Unit* GetAttachedUnit() { return m_attachedUnit; };
 
 	template<typename T>
 	static size_t Register(const char* attackName)
@@ -57,14 +66,18 @@ protected:
 		: GLObject(metadata.sprite.c_str())
 		, m_metadata(metadata)
 		, m_owner(owner)
-		, m_attackStart(clock()) {};
+		, m_stateStart(clock()) {};
 
 	using AttackBPMap = std::unordered_map<std::string, AttackMetadata>;
 	static AttackBPMap& GetAttackBlueprints() { static AttackBPMap attackBPMap; return attackBPMap; };
 	AttackMetadata m_metadata;
 
 	Unit* m_owner = nullptr;
-	clock_t m_attackStart;
+	Unit* m_attachedUnit = nullptr;
+	glm::vec3 m_attachmentOffset;
+	clock_t m_stateStart;
+	State m_state = State::CHANNELING;
+	void SetState(State);
 
 	static AttackClassMap& AccessAttacks() { static AttackClassMap attackClassMap; return attackClassMap; };
 };
@@ -72,9 +85,11 @@ protected:
 class RangedAttack : public Attack
 {
 public:
+
 	RangedAttack(Unit* owner, const AttackMetadata& metadata);
 	~RangedAttack();
-	bool Update() override;
+	void Update() override;
+	void Render() override;
 
 	void SetPosition(const glm::vec3&) override;
 private:
@@ -85,7 +100,7 @@ class MeleeAttack : public Attack
 {
 public:
 	MeleeAttack(Unit* owner, const AttackMetadata& metadata) : Attack(owner, metadata) {};
-	bool Update() override;
+	void Update() override;
 private:
 	bool m_hit = false;
 };

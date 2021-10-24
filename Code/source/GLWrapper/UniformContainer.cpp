@@ -53,6 +53,7 @@ SET_UNIFORM_IMPL(PointLight)
 	UniformContainer::SetUniform((uniformName + ".pos").c_str(), val.pos);
 	UniformContainer::SetUniform((uniformName + ".intensity").c_str(), val.intensity);
 	UniformContainer::SetUniform((uniformName + ".radius").c_str(), val.radius);
+	UniformContainer::SetUniform((uniformName + ".ambientRadius").c_str(), val.ambientRadius);
 }
 
 #undef SET_UNIFORM_IMPL

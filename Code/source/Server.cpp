@@ -65,7 +65,7 @@ void Server::Init()
 			{
 				if (clients.size() != 0)
 				{
-					level->Update(now, clients.begin()->second);
+					level->Update(clients.begin()->second);
 					lastIdleCallback = now;
 				}
 
@@ -109,11 +109,13 @@ void Server::Init()
 					//	netEvent.packet->dataLength,
 					//	(char*)netEvent.peer->data,
 					//	netEvent.channelID);
+					int keyMapPacket[KeyMap::GetPacketArraySize()];
+					memcpy(keyMapPacket, netEvent.packet->data, netEvent.packet->dataLength);
+					clients[netEvent.peer] = KeyMap(keyMapPacket);
+
 					/* Clean up the packet now that we're done using it. */
 					enet_packet_destroy(netEvent.packet);
-					char packet[44] = "";
-					memcpy(packet, netEvent.packet->data, netEvent.packet->dataLength);
-					clients[netEvent.peer] = KeyMap(packet);
+
 					break;
 				}
 				case ENET_EVENT_TYPE_DISCONNECT:

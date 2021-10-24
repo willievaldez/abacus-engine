@@ -21,7 +21,7 @@ struct Camera
 	glm::vec3 pos = glm::vec3(0.0f, 0.0f, 2.0f);		// e  | Position of camera
 	glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f);	// d  | This is where the camera is looking
 	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
-	float FOV = 150.0f;
+	float FOV = 50.0f;
 
 	glm::mat4 GetView() const { return glm::lookAt(pos, pos + direction, up); };
 	void SetPos(const glm::vec3& newPos) { pos.x = newPos.x; pos.y = newPos.y; };

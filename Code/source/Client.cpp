@@ -224,9 +224,9 @@ void Client::Init()
 					}
 				}
 
-				const char* keyMapPacket = Window::GetKeyMap().ToPacket();
+				const int* keyMapPacket = Window::GetKeyMap().ToPacket();				
 				ENetPacket* packet = enet_packet_create(keyMapPacket,
-					44,
+					KeyMap::GetPacketArraySize() * sizeof(int),
 					ENET_PACKET_FLAG_RELIABLE);
 				enet_peer_send(peer, 0, packet);
 				enet_host_flush(client);

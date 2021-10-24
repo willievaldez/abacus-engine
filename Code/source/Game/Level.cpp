@@ -45,7 +45,7 @@ void Level::SetLevelState(LevelState state)
 
 void Level::Reload()
 {
-	SetLevelState(LevelState::RUNNING);
+	SetLevelState(LevelState::INTRO);
 
 	for (std::vector<Tile*> tileRow : m_tileGrid)
 	{
@@ -157,11 +157,12 @@ void Level::MakeLevelFromFile()
 	}
 }
 
-void Level::Update(const clock_t& tick, const KeyMap& keyMap)
+void Level::Update(const KeyMap& keyMap)
 {
-	static clock_t lastTick = clock();
+	clock_t tick = clock();
+	//static clock_t lastTick = clock();
 	//printf("seconds since last tick: %f\n", (tick - lastTick) / (float)CLOCKS_PER_SEC);
-	lastTick = tick;
+	//lastTick = tick;
 
 	if (m_levelState == LevelState::WON)
 	{
@@ -171,169 +172,155 @@ void Level::Update(const clock_t& tick, const KeyMap& keyMap)
 	{
 		return;
 	}
-
-	std::vector<Tile*> prevTiles;
-	std::vector<Tile*> currTiles;
-	Unit* playerUnit = GetPlayerUnit();
-
-	m_player->Update(tick);
-
-	// update all units
-	for (auto& unit : m_units)
+	else if (m_levelState == LevelState::INTRO)
 	{
-		if (unit != playerUnit)
-		{
-			prevTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
-			unit->Update(tick);
-			currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
+		m_levelState = LevelState::RUNNING;
+	}
+	else if (m_levelState == LevelState::RUNNING)
+	{
+		std::vector<Tile*> prevTiles;
+		std::vector<Tile*> currTiles;
+		Unit* playerUnit = GetPlayerUnit();
 
-			// remove from old tiles, add to new tiles TODO inefficient
-			for (auto& prevTile : prevTiles)
+		m_player->Update(tick);
+
+		// update all units
+		for (auto& unit : m_units)
+		{
+			if (unit != playerUnit)
 			{
-				prevTile->RemoveUnit(unit);
+				prevTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
+				unit->Update(tick);
+				currTiles = GetTilesFromCoords(unit->GetPosition(), unit->GetMetadata().hitbox_radius);
+
+				// remove from old tiles, add to new tiles TODO inefficient
+				for (auto& prevTile : prevTiles)
+				{
+					prevTile->RemoveUnit(unit);
+				}
+
+				for (auto& currTile : currTiles)
+				{
+					currTile->AddUnit(unit);
+				}
+			}
+		}
+
+		// get player input and update behavior
+		const Camera& cam = Window::GetCamera();
+
+		prevTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
+		if (keyMap[GLFW_KEY_SPACE] && (playerUnit->GetState() == Unit::State::IDLE || playerUnit->GetState() == Unit::State::MOVING)) // dodge
+		{
+			playerUnit->StartDodge();
+		}
+
+		glm::vec3 direction(0.0f);
+		if (playerUnit->GetState() == Unit::State::IDLE || playerUnit->GetState() == Unit::State::MOVING) // move
+		{
+			glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
+			if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP])
+			{
+				direction.y += 1.0f;
+			}
+			if (keyMap[GLFW_KEY_A] || keyMap[GLFW_KEY_LEFT])
+			{
+				direction += glm::cross(cam.up, cam_direction_no_y);
+			}
+			if (keyMap[GLFW_KEY_S] || keyMap[GLFW_KEY_DOWN])
+			{
+				direction.y -= 1.0f;
+			}
+			if (keyMap[GLFW_KEY_D] || keyMap[GLFW_KEY_RIGHT])
+			{
+				direction += glm::cross(cam_direction_no_y, cam.up);
 			}
 
-			for (auto& currTile : currTiles)
+			// TODO: TEMP
+			if (keyMap[GLFW_KEY_MINUS])
 			{
-				currTile->AddUnit(unit);
+				attenuationUniform--;
+			}
+			else if (keyMap[GLFW_KEY_EQUAL])
+			{
+				attenuationUniform++;
+			}
+
+			if (keyMap[GLFW_KEY_1])
+			{
+				attenuationType = 0;
+			}
+			else if (keyMap[GLFW_KEY_2])
+			{
+				attenuationType = 1;
+			}
+			else if (keyMap[GLFW_KEY_3])
+			{
+				attenuationType = 2;
+			}
+
+			if (keyMap[GLFW_KEY_4])
+			{
+				debugHighlight = !debugHighlight;
+			}
+
+			if (glm::length(direction) != 0.0f)
+			{
+				playerUnit->SetState(Unit::State::MOVING);
+				playerUnit->SetDirection(direction);
+			}
+			else
+			{
+				playerUnit->SetState(Unit::State::IDLE);
 			}
 		}
-	}
 
-	// get player input and update behavior
-	const Camera& cam = Window::GetCamera();
-
-	prevTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
-	if (keyMap[GLFW_KEY_SPACE] && (playerUnit->GetState() == State::IDLE || playerUnit->GetState() == State::MOVING)) // dodge
-	{
-		playerUnit->StartDodge();
-	}
-
-	glm::vec3 direction(0.0f);
-	if (playerUnit->GetState() == State::IDLE || playerUnit->GetState() == State::MOVING) // move
-	{
-		glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
-		if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP])
+		if (playerUnit->GetState() == Unit::State::DODGING || playerUnit->GetState() == Unit::State::MOVING)
 		{
-			direction.y += 1.0f;
-		}
-		if (keyMap[GLFW_KEY_A] || keyMap[GLFW_KEY_LEFT])
-		{
-			direction += glm::cross(cam.up, cam_direction_no_y);
-		}
-		if (keyMap[GLFW_KEY_S] || keyMap[GLFW_KEY_DOWN])
-		{
-			direction.y -= 1.0f;
-		}
-		if (keyMap[GLFW_KEY_D] || keyMap[GLFW_KEY_RIGHT])
-		{
-			direction += glm::cross(cam_direction_no_y, cam.up);
+			playerUnit->MoveToNextPosition(tick);
 		}
 
-		// TODO: TEMP
-		if (keyMap[GLFW_KEY_MINUS])
-		{
-			attenuationUniform--;
-		}
-		else if (keyMap[GLFW_KEY_EQUAL])
-		{
-			attenuationUniform++;
-		}
+		currTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
 
-		if (keyMap[GLFW_KEY_1])
+		// remove player unit from old tiles, add to new tiles TODO inefficient
+		for (auto& prevTile : prevTiles)
 		{
-			attenuationType = 0;
-		}
-		else if (keyMap[GLFW_KEY_2])
-		{
-			attenuationType = 1;
-		}
-		else if (keyMap[GLFW_KEY_3])
-		{
-			attenuationType = 2;
+			prevTile->RemoveUnit(playerUnit);
+			prevTile->SetDebugHighlight(glm::vec3(0.0f));
 		}
 
-		if (keyMap[GLFW_KEY_4].m_state == KeyPress::State::Triggered)
+		for (auto& currTile : currTiles)
 		{
-			debugHighlight = !debugHighlight;
+			currTile->AddUnit(playerUnit);
+			if (debugHighlight)
+			{
+				currTile->SetDebugHighlight(glm::vec3(0.0f, 0.2f, 0.0f));
+			}
 		}
 
-		if (glm::length(direction) != 0.0f)
+		Window::SetCameraPos(playerUnit->GetPosition()); // always update cam to player position
+
+		// basic attack
+		if (keyMap[GLFW_MOUSE_BUTTON_1] && (playerUnit->GetState() == Unit::State::IDLE || playerUnit->GetState() == Unit::State::MOVING))
 		{
-			direction = glm::normalize(direction);
-			playerUnit->SetState(State::MOVING);
-			playerUnit->SetDirection(direction);
+			glm::vec3 mouseWorldSpace = Window::GetCursorPosWorldSpace();
+			glm::vec3 attackDirection = glm::normalize(mouseWorldSpace - cam.pos);
+			attackDirection.z = 0.0f;
+			BasicAttack(attackDirection);
 		}
-		else
+
+		for (std::vector<Tile*> tileRow : m_tileGrid)
 		{
-			playerUnit->SetState(State::IDLE);
+			for (Tile* tile : tileRow)
+			{
+				tile->Update(tick);
+			}
 		}
-	}
 
-	if (playerUnit->GetState() == State::DODGING || playerUnit->GetState() == State::MOVING)
-	{
-		glm::vec3 destination = playerUnit->GetNextPosition();
-		Tile* destTile = GetTileFromCoords(destination);
-
-		if (destTile && !destTile->Collision(destination))
+		if (playerUnit->GetHealth() <= 0.0)
 		{
-			playerUnit->SetPosition(destination);
-			destTile->Interact(playerUnit);
+			SetLevelState(LevelState::LOST);
 		}
-		else
-		{
-			// knock back
-			//if (hitUnit)
-			//{
-			//	m_player->TakeDamage(15.0f);
-			//	glm::vec3 newPlayerPosition = m_player->GetPosition() + (m_player->GetDirection() * -1.0f);
-			//	m_player->SetPosition(newPlayerPosition);
-			//}
-
-			playerUnit->SetState(State::IDLE);
-		}
-	}
-
-	currTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
-
-	// remove player unit from old tiles, add to new tiles TODO inefficient
-	for (auto& prevTile : prevTiles)
-	{
-		prevTile->RemoveUnit(playerUnit);
-		prevTile->SetDebugHighlight(glm::vec3(0.0f));
-	}
-
-	for (auto& currTile : currTiles)
-	{
-		currTile->AddUnit(playerUnit);
-		if (debugHighlight)
-		{
-			currTile->SetDebugHighlight(glm::vec3(0.0f, 0.2f, 0.0f));
-		}
-	}
-
-	Window::SetCameraPos(playerUnit->GetPosition()); // always update cam to player position
-
-	// basic attack
-	if (keyMap[GLFW_MOUSE_BUTTON_1] && (playerUnit->GetState() == State::IDLE || playerUnit->GetState() == State::MOVING))
-	{
-		glm::vec3 mouseWorldSpace = Window::GetCursorPosWorldSpace();
-		glm::vec3 attackDirection = glm::normalize(mouseWorldSpace - cam.pos);
-		attackDirection.z = 0.0f;
-		BasicAttack(attackDirection);
-	}
-
-	for (std::vector<Tile*> tileRow : m_tileGrid)
-	{
-		for (Tile* tile : tileRow)
-		{
-			tile->Update(tick);
-		}
-	}
-
-	if (playerUnit->GetHealth() <= 0.0)
-	{
-		SetLevelState(LevelState::LOST);
 	}
 }
 
@@ -408,27 +395,34 @@ Unit* Level::GetPlayerUnit()
 	return m_player->GetUnit();
 }
 
+Unit* Level::FindUnit(Unit* unit)
+{
+	auto foundUnit = m_units.find(unit);
+	if (foundUnit != m_units.end())
+	{
+		return *foundUnit;
+	}
+
+	return nullptr;
+}
 
 int Level::AddUnit(Unit* unit)
 {
-	m_units.push_back(unit);
+	m_units.emplace(unit);
 	return (int)m_units.size();
 }
 
-// TODO: computationally expensive
 bool Level::RemoveUnit(Unit* unit)
 {
-	for (int i = 0; i < m_units.size(); i++)
+	auto foundUnit = m_units.find(unit);
+	if (foundUnit != m_units.end())
 	{
-		if (m_units[i] == unit)
+		Tile* tile = GetTileFromCoords(unit->GetPosition());
+		if (tile)
 		{
-			Tile* tile = GetTileFromCoords(unit->GetPosition());
-			if (tile)
-			{
-				tile->RemoveUnit(unit);
-				m_units.erase(m_units.begin() + i);
-				return true;
-			}
+			tile->RemoveUnit(unit);
+			m_units.erase(foundUnit);
+			return true;
 		}
 	}
 
@@ -460,32 +454,6 @@ void Level::BasicAttack(const glm::vec3& direction)
 	GetPlayerUnit()->BasicAttack(direction);
 }
 
-//void Level::updateUnits(std::vector<Unit*>& units, clock_t& tick)
-//{
-//	for (int i = 0; i < units.size(); i++)
-//	{
-//		while (i < units.size() && units[i]->isDead)
-//		{
-//			if (units[i]->friendly)
-//			{
-//				printf("deleting friendly unit, ");
-//			}
-//			else
-//			{
-//				printf("deleting enemy unit, ");
-//			}
-//			deadUnits.push_back(*(units.begin() + i));
-//			units.erase(units.begin()+i);
-//			printf("size: %d\n", (int)units.size());
-//		}
-//
-//		if (i >= units.size()) break;
-//
-//		units[i]->update(tick);
-//
-//	}
-//}
-
 Tile* Level::GetTileFromCoords(const glm::vec3& dest)
 {
 	std::pair<int, int> tileCoords;
@@ -502,19 +470,42 @@ Tile* Level::GetTileFromCoords(const glm::vec3& dest)
 	return m_tileGrid[tileCoords.first][tileCoords.second];
 }
 
-std::vector<Tile*> Level::GetTilesFromCoords(const glm::vec3& dest, float radius)
+std::pair<int, int> Level::GetTileIndices(const glm::vec3& pos)
 {
-	std::vector<Tile*> returnedTiles;
-
-	std::pair<int, int> minTileCoords;
+	std::pair<int, int> tileIndices;
 	float tileSize = config.tileSize;
-	minTileCoords.second = (int)((dest.x - radius) / tileSize);
-	minTileCoords.first = (int)(ceil(((m_tileGrid.size() * tileSize) - (dest.y - radius)) / tileSize));
+	tileIndices.second = (int)((pos.x) / tileSize);
+	tileIndices.first = (int)(ceil(((m_tileGrid.size() * tileSize) - (pos.y)) / tileSize));
+	return tileIndices;
+}
 
-	std::pair<int, int> maxTileCoords;
-	maxTileCoords.second = (int)((dest.x + radius) / tileSize);
-	maxTileCoords.first = (int)(ceil(((m_tileGrid.size() * tileSize) - (dest.y + radius)) / tileSize));
+std::vector<Tile*> Level::GetTilesFromCoords(const glm::vec3& pos, float radius, const glm::vec3& dir)
+{
+	std::pair<int, int> tileCoords = GetTileIndices(pos);
+	std::pair<int, int> minTileCoords = GetTileIndices(pos - radius);
+	std::pair<int, int> maxTileCoords = GetTileIndices(pos + radius);
 
+	if (glm::length(dir))
+	{
+		if (dir.x > 0)
+		{
+			minTileCoords.first = tileCoords.first;
+		}
+		else if (dir.x < 0)
+		{
+			maxTileCoords.first = tileCoords.first;
+		}
+		if (dir.y > 0)
+		{
+			minTileCoords.second = tileCoords.second;
+		}
+		else if (dir.y < 0)
+		{
+			maxTileCoords.second = tileCoords.second;
+		}
+	}
+
+	std::vector<Tile*> returnedTiles;
 	for (int x = maxTileCoords.first; x <= minTileCoords.first; x++) // iterate in reverse because the mappings are reversed
 	{
 		if (x >= 0 && x < m_tileGrid.size())
@@ -547,83 +538,3 @@ bool Level::getCoordsFromTile(std::pair<int, int> tileCoords, glm::vec3& dest)
 
 	return true;
 }
-
-//void Level::addTarget(glm::vec3& coords, bool modifier)
-//{
-//	std::vector<GLObject*> targetedEntities = getEntitiesFromCoords(coords);
-//	GLObject* target = nullptr;
-//	for (GLObject* targetedEntity : targetedEntities)
-//	{
-//		if ((targetedEntity->OBJECT_TYPE == ObjectType::UNIT
-//			&& !((Unit*)targetedEntity)->isDead
-//			&& !((Unit*)targetedEntity)->friendly)
-//			|| (targetedEntity->OBJECT_TYPE == ObjectType::STRUCTURE
-//				&& !((Structure*)targetedEntity)->built))
-//		{
-//			target = targetedEntity;
-//			break;
-//		}
-//	}
-//
-//	for (Unit* activeUnit : unitGroups[0])
-//	{
-//		if (target)
-//		{
-//			Action* targetAction = nullptr;
-//			if (target->OBJECT_TYPE == ObjectType::UNIT)
-//			{
-//				targetAction = new TargetAction((Unit*)target);
-//			}
-//			else if (target->OBJECT_TYPE == ObjectType::STRUCTURE)
-//			{
-//				targetAction = new BuildOrRepairAction((Structure*)target);
-//			}
-//			activeUnit->addAction(targetAction, !modifier);
-//		}
-//		else
-//		{
-//			MoveAction* moveAction = new MoveAction(coords);
-//			activeUnit->addAction(moveAction, !modifier);
-//		}
-//	}
-//}
-
-//void Level::selectUnit(glm::vec3& coords, bool modifier)
-//{
-//	std::vector<GLObject*> targetedEntities = getEntitiesFromCoords(coords);
-//	Unit* targetedUnit = nullptr;
-//	for (GLObject* targetedEntity : targetedEntities)
-//	{
-//		if (targetedEntity
-//			&& targetedEntity->OBJECT_TYPE == ObjectType::UNIT
-//			&& !((Unit*)targetedEntity)->isDead
-//			&& ((Unit*)targetedEntity)->friendly
-//			&& std::find(unitGroups[0].begin(), unitGroups[0].end(), targetedEntity) == unitGroups[0].end())
-//		{
-//			targetedUnit = (Unit*)targetedEntity;
-//		}
-//	}
-//
-//	if (!modifier)
-//		unitGroups[0].clear();
-//
-//	if (targetedUnit)
-//	{
-//		/*if (targetedEntity->OBJECT_TYPE == ObjectType::UNIT)
-//		{*/
-//			if (targetedUnit->friendly && !targetedUnit->isDead)
-//			{
-//				printf("adding unit to selection, size: %d\n", (int)unitGroups[0].size());
-//				unitGroups[0].push_back(targetedUnit);
-//			}
-//
-//			
-//		//}
-//		//else if (targetedEntity->OBJECT_TYPE == ObjectType::STRUCTURE)
-//		//{
-//		//	// TODO: show range and what not
-//		//}
-//	}
-//
-//
-//}

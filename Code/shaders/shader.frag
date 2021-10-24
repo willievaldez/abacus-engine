@@ -19,6 +19,7 @@ struct PointLight
   vec3 pos;
   float intensity;
   float radius;
+  float ambientRadius;
 };
 
 uniform int numLights;
@@ -75,6 +76,27 @@ void main()
 				if (logAttenuation * light.intensity > attenuation)
 				{
 					attenuation = logAttenuation * light.intensity;
+				}
+			}
+		}
+
+		if (attenuation <= 0.0f && light.ambientRadius > 0.0f && distToLight < (light.radius+light.ambientRadius))
+		{
+			if (usesTexture)
+			{
+				// logarithmic attenuation
+				float withinRadius = logFactor - (logFactor * distToLight / (light.radius+light.ambientRadius));
+				if (withinRadius > 0.0f)
+				{
+					float logAttenuation = (log2(withinRadius)) / (log2(logFactor)) * 0.05f;
+					if (logAttenuation < 0.0f)
+					{
+						logAttenuation = 0.0f;
+					}
+					if (logAttenuation * light.intensity > attenuation)
+					{
+						attenuation = logAttenuation * light.intensity;
+					}
 				}
 			}
 		}

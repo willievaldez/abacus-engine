@@ -6,14 +6,6 @@
 
 #include <chrono>
 
-enum class State
-{
-	IDLE,
-	DODGING,
-	MOVING,
-	ATTACKING
-};
-
 class Action; // lawsuit
 class Attack;
 
@@ -36,6 +28,14 @@ struct UnitMetadata
 class Unit : public GLObject
 {
 public:
+	enum class State
+	{
+		IDLE,
+		DODGING,
+		MOVING,
+		ATTACKING
+	};
+
 	static Unit* Create(const char* entityName);
 	~Unit();
 
@@ -49,7 +49,7 @@ public:
 	void BasicAttack(const glm::vec3& direction);
 	bool TakeDamage(float);
 	float GetHealth() const { return m_currentHealth; };
-	glm::vec3 GetNextPosition();
+	void MoveToNextPosition(const clock_t& tick);
 	void StartDodge();
 private:
 	Unit(const UnitMetadata&);

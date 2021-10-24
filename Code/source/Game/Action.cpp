@@ -43,7 +43,7 @@ IdleAttackAction::~IdleAttackAction()
 bool IdleAttackAction::Execute(clock_t& tick, Unit* unit)
 {
 	// move to player if not currently attacking
-	if (unit->GetState() != State::ATTACKING)
+	if (unit->GetState() != Unit::State::ATTACKING)
 	{
 		Unit* player = Level::Get()->GetPlayerUnit();
 		glm::vec3 dirToPlayer = player->GetPosition() - unit->GetPosition();
@@ -51,14 +51,14 @@ bool IdleAttackAction::Execute(clock_t& tick, Unit* unit)
 		float dist = glm::length(dirToPlayer);
 		if (dist > 20.0f)
 		{
-			unit->SetState(State::IDLE);
+			unit->SetState(Unit::State::IDLE);
 		}
 		// if within view, walk to player
 		else if (dist < 10.0f && dist > 0.5f)
 		{
-			unit->SetState(State::MOVING);
-			unit->SetDirection(glm::normalize(dirToPlayer));
-			unit->SetPosition(unit->GetNextPosition());
+			unit->SetState(Unit::State::MOVING);
+			unit->SetDirection(dirToPlayer);
+			unit->MoveToNextPosition(tick);
 		}
 		// if in attack range, attack
 		else if (dist < 0.5f)

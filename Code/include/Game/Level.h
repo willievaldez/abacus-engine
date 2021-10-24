@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_set>
 
 #include <Game/Unit.h>
 #include <Game/Tile.h>
@@ -16,6 +17,7 @@ class PointLight;
 
 enum class LevelState
 {
+	INTRO,
 	RUNNING,
 	WON,
 	LOST
@@ -31,16 +33,18 @@ public:
 	void SetLevelState(LevelState);
 
 	Tile* GetTileFromCoords(const glm::vec3&);
-	std::vector<Tile*> GetTilesFromCoords(const glm::vec3&, float radius);
+	std::pair<int, int> GetTileIndices(const glm::vec3& pos);
+	std::vector<Tile*> GetTilesFromCoords(const glm::vec3& pos, float radius, const glm::vec3& dir = glm::vec3(0.0f));
 	bool getCoordsFromTile(std::pair<int, int>, glm::vec3&);
 
 	void BasicAttack(const glm::vec3& direction);
 
-	void Update(const clock_t& tick, const KeyMap& keyMap);
+	void Update(const KeyMap& keyMap);
 
 	void Render();
 	void Reload();
 	Unit* GetPlayerUnit();
+	Unit* FindUnit(Unit*);
 
 	int AddUnit(Unit*);
 	bool RemoveUnit(Unit*);
@@ -50,14 +54,14 @@ public:
 
 private:
 	std::vector<std::vector<Tile*>> m_tileGrid;
-	std::vector<Unit*> m_units;
+	std::unordered_set<Unit*> m_units;
 	glm::vec3 m_spawn;
 	std::string m_filepath;
 	clock_t m_tickTime;
 	Player* m_player = nullptr;
 	std::vector<PointLight*> m_lightSources;
 
-	LevelState m_levelState = LevelState::RUNNING;
+	LevelState m_levelState = LevelState::INTRO;
 
 	void MakeLevelFromFile();
 };

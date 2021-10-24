@@ -1,8 +1,29 @@
 #include <Utility/KeyMap.h>
 
-KeyPress& KeyMap::operator[](size_t index)
+#include <iostream>
+
+namespace 
 {
-	return m_keyMap[index];
+	static const int s_numBits = sizeof(int) * 8;
+}
+
+void KeyMap::Set(const size_t& index, KeyPress::State state)
+{
+	m_keyMap[index].m_state = state;
+
+	int intOffset = index / s_numBits;
+	int bitOffset = index % s_numBits;
+
+	if (m_keyMap[index])
+	{
+		m_asPacket[intOffset] |= 1 << bitOffset;
+	}
+	else
+	{
+		m_asPacket[intOffset] &= ~(1 << bitOffset);
+	}
+
+	m_dirty = true;
 }
 
 const KeyPress& KeyMap::operator[](size_t index) const
@@ -12,29 +33,39 @@ const KeyPress& KeyMap::operator[](size_t index) const
 
 size_t KeyMap::size()
 {
-	return m_keyMap.size();
+	return GetKeyMapSize();
 }
 
-const char* KeyMap::ToPacket() const
+void KeyMap::Print() const
 {
-	char packet[44] = { 0 };
-
-	for (int i = 0; i < 350; i++)
+	for (int i = 0; i < KeyMap::GetKeyMapSize(); i++)
 	{
-		int charOffset = i / 8;
-		int bitOffset = i % 8;
-		int val = m_keyMap[i] ? 1 : 0;
-		packet[charOffset] |= val << bitOffset;
+		printf("%i", m_keyMap[i] ? 1 : 0);
+	}
+	printf("\n\n");
+}
+
+const int* KeyMap::ToPacket() const
+{
+	if (m_dirty)
+	{
+		m_dirty = false;
 	}
 
-	return packet;
+	return m_asPacket;
 }
 
-KeyMap::KeyMap(const char* packet)
+KeyMap::KeyMap()
 {
-	for (int i = 0; i < 350; i++)
+	memset(m_asPacket, 0, GetPacketArraySize());
+	memset(m_keyMap, 0, GetKeyMapSize());
+}
+
+KeyMap::KeyMap(const int* packet)
+{
+	for (int i = 0; i < GetKeyMapSize(); i++)
 	{
-		int val = (packet[i / 8] >> (i % 8)) & 1;
+		int val = (packet[i / s_numBits] >> (i % s_numBits)) & 1;
 		m_keyMap[i].m_state = val ? KeyPress::State::Depressed : KeyPress::State::Released;
 	}
 }

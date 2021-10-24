@@ -47,7 +47,7 @@ private:
 	bool m_traversable = false;
 	std::vector<Item*> m_items;
 	std::vector<Unit*> m_units;
-	glm::vec3 m_debugHighlight;
+	glm::vec3 m_debugHighlight = glm::vec3(0.0f);
 
 	static TileTypeMap& AccessTileTypes();
 };
