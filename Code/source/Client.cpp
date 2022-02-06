@@ -173,7 +173,7 @@ void Client::Init()
 			/* received. Reset the peer in the event the 5 seconds   */
 			/* had run out without any significant event.            */
 			enet_peer_reset(peer);
-			printf("CLIENT: Connection to %s:%d failed./n", host, address.port);
+			printf("CLIENT: Connection to %s:%d failed.\n", host, address.port);
 		}
 
 		Window::InitializeObjects();
@@ -213,8 +213,6 @@ void Client::Init()
 						//	netEvent.packet->data,
 						//	(char*)netEvent.peer->data,
 						//	netEvent.channelID);
-						/* Clean up the packet now that we're done using it. */
-						enet_packet_destroy(netEvent.packet);
 						break;
 					case ENET_EVENT_TYPE_DISCONNECT:
 						printf("CLIENT: %s disconnected.\n", (char*)netEvent.peer->data);
@@ -222,6 +220,8 @@ void Client::Init()
 						netEvent.peer->data = NULL;
 						break;
 					}
+					/* Clean up the packet now that we're done using it. */
+					enet_packet_destroy(netEvent.packet);
 				}
 
 				const int* keyMapPacket = Window::GetKeyMap().ToPacket();				
@@ -236,7 +236,24 @@ void Client::Init()
 		}
 
 		Window::Cleanup();
-
+		enet_peer_disconnect(peer, 0);
+		bool disconnectReceived = false;
+		while (!disconnectReceived && enet_host_service(client, &netEvent, 0) > 0)
+		{
+			switch (netEvent.type)
+			{
+			case ENET_EVENT_TYPE_RECEIVE:
+				enet_packet_destroy(netEvent.packet);
+				break;
+			case ENET_EVENT_TYPE_DISCONNECT:
+				puts("Disconnection succeeded.");
+				disconnectReceived = true;
+				break;
+			}
+		}
+		/* We've arrived here, so the disconnect attempt didn't */
+		/* succeed yet.  Force the connection down.             */
+		enet_peer_reset(peer);
 		enet_host_destroy(client);
 
 		// glfw: terminate, clearing all previously allocated GLFW resources.

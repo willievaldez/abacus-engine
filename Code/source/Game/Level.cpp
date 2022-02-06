@@ -25,12 +25,20 @@ Level* Level::Get()
 	{
 		int testVal = 0;
 		level = new Level(config.level.c_str());
-		level->m_player = new Player(level->m_spawn);
 		level->m_tickTime = clock();
 	}
 	return level;
 }
 
+void Level::AddPlayer()
+{
+	if (m_players.size() == m_spawns.size())
+	{
+		printf("Could not add new player. not enough spawns!");
+		return;
+	}
+	m_players.push_back(new Player(m_spawns[m_players.size()]));
+}
 
 Level::Level(const char* lvlFile)
 {
@@ -108,11 +116,13 @@ void Level::MakeLevelFromFile()
 	}
 	else
 	{
+		glm::vec3 spawnPoint;
 		// now that the m_tileGrid size is known, parse real position of player spawn location
-		m_spawn.x = (playerSpawn.first * tileSize) + (tileSize / 2.0f);
-		m_spawn.y = ((m_tileGrid.size() - playerSpawn.second) * tileSize) + (tileSize / 2.0f);
-		m_spawn.z = 0.0f;
-		Window::SetCameraPos(m_spawn);
+		spawnPoint.x = (playerSpawn.first * tileSize) + (tileSize / 2.0f);
+		spawnPoint.y = ((m_tileGrid.size() - playerSpawn.second) * tileSize) + (tileSize / 2.0f);
+		spawnPoint.z = 0.0f;
+		Window::SetCameraPos(spawnPoint);
+		m_spawns.push_back(std::move(spawnPoint));
 	}
 
 	int numRows = (int)m_tileGrid.size();
@@ -182,7 +192,10 @@ void Level::Update(const KeyMap& keyMap)
 		std::vector<Tile*> currTiles;
 		Unit* playerUnit = GetPlayerUnit();
 
-		m_player->Update(tick);
+		for (auto player : m_players)
+		{
+			player->Update(tick);
+		}
 
 		// update all units
 		for (auto& unit : m_units)
@@ -392,7 +405,22 @@ void Level::Render()
 
 Unit* Level::GetPlayerUnit()
 {
-	return m_player->GetUnit();
+	return (*m_players.begin())->GetUnit();
+}
+
+Unit* Level::GetClosestPlayerUnit(const glm::vec3& pos)
+{
+	float distToNearestPlayer = std::numeric_limits<float>::max();
+	Unit* nearestPlayer = nullptr;
+	for (const auto& player : m_players)
+	{
+		float distToPlayer = glm::length(player->GetUnit()->GetPosition() - pos);
+		if (distToPlayer < distToNearestPlayer)
+		{
+			nearestPlayer = player->GetUnit();
+		}
+	}
+	return nearestPlayer;
 }
 
 Unit* Level::FindUnit(Unit* unit)

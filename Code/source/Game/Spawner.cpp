@@ -26,7 +26,7 @@ void Spawner::Update(clock_t time)
 	float elapsedSeconds = (time - m_lastSpawnTime) / (float)CLOCKS_PER_SEC;
 	if (elapsedSeconds >= m_periodSec && !m_spawnedUnit)
 	{
-		float distToPlayer = glm::length(Level::Get()->GetPlayerUnit()->GetPosition() - GetPosition());
+		float distToPlayer = glm::length(Level::Get()->GetClosestPlayerUnit(GetPosition())->GetPosition() - GetPosition());
 		if (distToPlayer > 20.0f) // don't respawn if player is near by
 		{
 			m_spawnedUnit = Unit::Create(m_entityName.c_str());

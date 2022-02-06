@@ -45,7 +45,7 @@ bool IdleAttackAction::Execute(clock_t& tick, Unit* unit)
 	// move to player if not currently attacking
 	if (unit->GetState() != Unit::State::ATTACKING)
 	{
-		Unit* player = Level::Get()->GetPlayerUnit();
+		Unit* player = Level::Get()->GetClosestPlayerUnit(unit->GetPosition());
 		glm::vec3 dirToPlayer = player->GetPosition() - unit->GetPosition();
 		dirToPlayer.z = 0.0f;
 		float dist = glm::length(dirToPlayer);

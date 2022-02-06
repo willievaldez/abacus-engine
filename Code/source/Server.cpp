@@ -57,7 +57,8 @@ void Server::Init()
 		float secondsPerTick = 1.0f / config.ticksPerSecond;
 		clock_t lastIdleCallback = clock();
 
-		while (true)
+		bool shutdownServer = false;
+		while (!shutdownServer)
 		{
 			clock_t now = clock();
 			float secondsSinceLastCallback = (now - lastIdleCallback) / (float)CLOCKS_PER_SEC;
@@ -85,13 +86,13 @@ void Server::Init()
 					enet_peer_send(client.first, 0, packet);
 
 					/* One could just use enet_host_service() instead. */
-					enet_host_flush(server);
+					//enet_host_flush(server);
 				}
 			}
 
 			// poll for net events
 			ENetEvent netEvent;
-			while (enet_host_service(server, &netEvent, 0) > 0)
+			while (!shutdownServer && enet_host_service(server, &netEvent, 0) > 0)
 			{
 				//printf("===========NEW EVENT===========\n");
 				switch (netEvent.type)
@@ -102,6 +103,11 @@ void Server::Init()
 						netEvent.peer->address.port);
 					/* Store any relevant client information here. */
 					netEvent.peer->data = (void*)"ClientInfo";
+					if (clients.find(netEvent.peer) == clients.end())
+					{
+						clients[netEvent.peer] = KeyMap();
+						level->AddPlayer();
+					}
 					break;
 				case ENET_EVENT_TYPE_RECEIVE:
 				{
@@ -112,22 +118,24 @@ void Server::Init()
 					int keyMapPacket[KeyMap::GetPacketArraySize()];
 					memcpy(keyMapPacket, netEvent.packet->data, netEvent.packet->dataLength);
 					clients[netEvent.peer] = KeyMap(keyMapPacket);
-
-					/* Clean up the packet now that we're done using it. */
-					enet_packet_destroy(netEvent.packet);
-
 					break;
 				}
 				case ENET_EVENT_TYPE_DISCONNECT:
 					printf("SERVER: %s disconnected.\n", (char*)netEvent.peer->data);
 					/* Reset the peer's client information. */
+					clients.erase(netEvent.peer);
 					netEvent.peer->data = NULL;
+					shutdownServer = clients.empty();
+					break;
 				}
+
+				/* Clean up the packet now that we're done using it. */
+				enet_packet_destroy(netEvent.packet);
 			}
 		}
 
 		printf("shutting down server...\n");
 
-		enet_host_destroy(server);
+		//enet_host_destroy(server);
 	}
 }

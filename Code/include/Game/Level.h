@@ -30,6 +30,7 @@ public:
 	~Level();
 
 	static Level* Get();
+	void AddPlayer();
 	void SetLevelState(LevelState);
 
 	Tile* GetTileFromCoords(const glm::vec3&);
@@ -44,6 +45,7 @@ public:
 	void Render();
 	void Reload();
 	Unit* GetPlayerUnit();
+	Unit* GetClosestPlayerUnit(const glm::vec3& pos);
 	Unit* FindUnit(Unit*);
 
 	int AddUnit(Unit*);
@@ -55,10 +57,10 @@ public:
 private:
 	std::vector<std::vector<Tile*>> m_tileGrid;
 	std::unordered_set<Unit*> m_units;
-	glm::vec3 m_spawn;
+	std::vector<glm::vec3> m_spawns;
 	std::string m_filepath;
 	clock_t m_tickTime;
-	Player* m_player = nullptr;
+	std::vector<Player*> m_players;
 	std::vector<PointLight*> m_lightSources;
 
 	LevelState m_levelState = LevelState::INTRO;
