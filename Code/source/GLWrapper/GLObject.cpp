@@ -118,7 +118,14 @@ const glm::vec3& GLObject::GetDirection()
 	return m_direction;
 }
 
-void GLObject::SetDirection(const glm::vec3& dir)
+void GLObject::SetDirection(const glm::vec3& dir, bool normalize/*=true*/)
 {
-	m_direction = glm::normalize(dir);
+	if (normalize)
+	{
+		m_direction = glm::normalize(dir);
+	}
+	else
+	{
+		m_direction = dir;
+	}
 }

@@ -10,6 +10,11 @@
 REGISTER_ATTACK("Ranged", RangedAttack);
 REGISTER_ATTACK("Melee", MeleeAttack);
 
+namespace
+{
+	const bool debugHighlight = GetConfig("Shared").debugHighlight;
+}
+
 /*static*/
 std::shared_ptr<Attack> Attack::Create(const char* attackName, Unit* owner)
 {
@@ -56,13 +61,19 @@ std::shared_ptr<Attack> Attack::Create(const char* attackName, Unit* owner)
 
 RangedAttack::RangedAttack(Unit* owner, const AttackMetadata& metadata) : Attack(owner, metadata)
 {
-	m_light = PointLight::Create(glm::vec3(0.0f), 0.5f, 1.5f);
+	if (m_metadata.creates_light)
+	{
+		m_light = PointLight::Create(glm::vec3(0.0f), 0.5f, 1.5f);
+	}
 	SetState(State::CHANNELING);
 }
 
 void RangedAttack::SetPosition(const glm::vec3& pos)
 {
-	m_light->pos = pos;
+	if (m_light)
+	{
+		m_light->pos = pos;
+	}
 	Attack::SetPosition(pos);
 }
 
@@ -82,8 +93,6 @@ void Attack::SetState(State state)
 
 void RangedAttack::Update()
 {
-	static int numFading = 0;
-
 	if (m_state == State::CHANNELING)
 	{
 		if (m_owner->GetState() == Unit::State::ATTACKING)
@@ -100,27 +109,47 @@ void RangedAttack::Update()
 	if (m_state == State::FIRING)
 	{
 		bool keepGoing = true;
-		std::set<Unit*> hitUnits;
-		std::vector<Tile*> tiles = Level::Get()->GetTilesFromCoords(GetPosition(), m_metadata.radius, GetDirection());
-		for (auto& tile : tiles)
-		{
-			keepGoing = keepGoing && !tile->Collision(GetPosition(), hitUnits, m_metadata.radius);
-		}
 
-		for (auto& hitUnit : hitUnits)
+		// clear debug highlight (TODO: expensive)
+		if (debugHighlight)
 		{
-			if (hitUnit != m_owner)
+			std::set<Unit*> dummyHitUnits;
+			for (auto& tile : m_tilesAffected)
 			{
-				m_attachedUnit = hitUnit;
-				m_attachmentOffset = GetPosition() - m_attachedUnit->GetPosition();
-				hitUnit->TakeDamage(m_metadata.damage);
-				keepGoing = false;
+				//keepGoing = keepGoing && !tile->Collision(GetPosition(), dummyHitUnits, m_metadata.radius);
+				tile->SetDebugHighlight(glm::vec3(0.0f, 0.0f, 0.0f));
 			}
 		}
 
+		m_tilesAffected = Level::Get()->GetTilesFromCoords(GetPosition(), m_metadata.radius, GetDirection());
+		bool anyTraversable = false;
+		for (auto& tile : m_tilesAffected)
+		{
+			bool traversable = tile->Traversable();
+			anyTraversable = anyTraversable || traversable;
+			if (debugHighlight)
+			{
+				tile->SetDebugHighlight(glm::vec3(0.2f, 0.0f, 0.0f));
+			}
+
+			std::set<Unit*> hitUnits;
+			tile->Collision(GetPosition(), hitUnits, m_metadata.radius);
+			for (auto& hitUnit : hitUnits)
+			{
+				if (m_owner->GetMetadata().friendly != hitUnit->GetMetadata().friendly)
+				{
+					m_attachedUnit = hitUnit;
+					m_attachmentOffset = GetPosition() - m_attachedUnit->GetPosition();
+					hitUnit->TakeDamage(m_metadata.damage);
+					keepGoing = false;
+				}
+			}
+		}
+
+		keepGoing &= anyTraversable;
+
 		if (!keepGoing)
 		{
-			numFading++;
 			SetState(State::FADING);
 		}
 		else
@@ -147,10 +176,17 @@ void RangedAttack::Update()
 		}
 
 		clock_t tick = clock();
-		if ((tick - m_stateStart) / (float)CLOCKS_PER_SEC >= 2.0f) // TODO hard coded fade time
+		if ((tick - m_stateStart) / (float)CLOCKS_PER_SEC >= m_metadata.fadeTimeSec) // TODO hard coded fade time
 		{
-			numFading--;
 			SetState(State::DONE);
+			// clear debug highlight (TODO: expensive)
+			if (debugHighlight)
+			{
+				for (auto& tile : m_tilesAffected)
+				{
+					tile->SetDebugHighlight(glm::vec3(0.0f, 0.0f, 0.0f));
+				}
+			}
 		}
 	}
 }

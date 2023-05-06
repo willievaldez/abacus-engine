@@ -7,9 +7,20 @@ namespace
 	static const int s_numBits = sizeof(int) * 8;
 }
 
-void KeyMap::Set(const size_t& index, KeyPress::State state)
+void KeyMap::Set(const size_t& index, bool pressed)
 {
-	m_keyMap[index].m_state = state;
+	m_keyMap[index] = pressed;
+
+	if (pressed)
+	{
+		m_pressedKeys.insert(index);
+		m_null = false;
+	}
+	else
+	{
+		m_pressedKeys.erase(index);
+		m_null = m_pressedKeys.empty();
+	}
 
 	int intOffset = index / s_numBits;
 	int bitOffset = index % s_numBits;
@@ -26,7 +37,7 @@ void KeyMap::Set(const size_t& index, KeyPress::State state)
 	m_dirty = true;
 }
 
-const KeyPress& KeyMap::operator[](size_t index) const
+const bool& KeyMap::operator[](size_t index) const
 {
 	return m_keyMap[index];
 }
@@ -65,7 +76,12 @@ KeyMap::KeyMap(const int* packet)
 {
 	for (int i = 0; i < GetKeyMapSize(); i++)
 	{
-		int val = (packet[i / s_numBits] >> (i % s_numBits)) & 1;
-		m_keyMap[i].m_state = val ? KeyPress::State::Depressed : KeyPress::State::Released;
+		bool pressed = (packet[i / s_numBits] >> (i % s_numBits)) & 1;
+		if (pressed)
+		{
+			m_null = false;
+		}
+
+		m_keyMap[i] = pressed; // TODO: does this need to be set even if false?
 	}
 }

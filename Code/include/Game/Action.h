@@ -24,7 +24,6 @@ public:
 	~Action();
 
 	virtual bool Execute(clock_t&, Unit*) = 0;
-	virtual void Render() = 0;
 
 	template<typename T>
 	static size_t Register(const char* actionName)
@@ -72,20 +71,19 @@ protected:
 //private:
 //	Structure* target;
 //};
-//
-//class MoveAction : public Action
-//{
-//public:
-//	MoveAction(glm::vec3&);
-//	~MoveAction();
-//
-//	bool Execute(clock_t&, Unit*) override;
-//	void Render() override;
-//
-//private:
-//	glm::vec3 destination;
-//};
-//
+
+class MoveAction : public Action
+{
+public:
+	MoveAction(const glm::vec3&);
+	~MoveAction();
+
+	bool Execute(clock_t&, Unit*) override;
+
+private:
+	glm::vec3 m_destination;
+};
+
 //class Unit;
 //class IdleDefendAction : public Action
 //{
@@ -99,16 +97,37 @@ protected:
 //private:
 //	float range;
 //};
-
-class IdleAttackAction : public Action
+class IdleAction : public Action
 {
 public:
-	IdleAttackAction();
-	~IdleAttackAction();
+	IdleAction(float durationMS);
+	~IdleAction();
 
 	bool Execute(clock_t&, Unit*) override;
-	void Render() override;
+private:
+	float m_durationMS = 0.0f;
+	clock_t m_startTime = 0;
+};
+
+class IdleChaseAttackAction : public Action
+{
+public:
+	IdleChaseAttackAction();
+	~IdleChaseAttackAction();
+
+	bool Execute(clock_t&, Unit*) override;
 
 };
 
+
+class IdleWanderAttackAction : public Action
+{
+public:
+	IdleWanderAttackAction();
+	~IdleWanderAttackAction();
+
+	bool Execute(clock_t&, Unit*) override;
+private:
+	std::list<std::shared_ptr<Action>> m_queuedActions;
+};
 

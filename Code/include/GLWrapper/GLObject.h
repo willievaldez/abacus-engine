@@ -32,7 +32,7 @@ public:
 	const glm::vec3& GetPosition();
 	virtual void SetPosition(const glm::vec3&);
 	const glm::vec3& GetDirection();
-	void SetDirection(const glm::vec3&);
+	void SetDirection(const glm::vec3& direction, bool normalize=true);
 
 	static void useShaderProgram(const glm::mat4&, const glm::mat4&, const glm::vec3&);
 	static void Initialize();

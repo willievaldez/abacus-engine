@@ -1,8 +1,8 @@
 sprite_path=demongrunt_run.png
 num_sprite_rows=1
-speed=7
+speed=5
 health=45.0
 mana_loss_per_sec=0.0
-idle_action=Attack
+idle_action=WanderAttack
 hitbox_radius=0.5
-basic_attack=BasicMelee
+basic_attack=BasicGruntRanged

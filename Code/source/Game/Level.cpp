@@ -12,11 +12,14 @@
 
 #include <Utility/Config.h>
 
-// TODO TEMP:
-float attenuationUniform = 50.0f;
-int attenuationType = 2;
-bool debugHighlight = false;
-const Config& config = GetConfig("Shared");
+namespace
+{
+	// TODO TEMP:
+	float attenuationUniform = 50.0f;
+	int attenuationType = -1; // no attenuation
+	const Config& config = GetConfig("Shared");
+	bool debugHighlight = config.debugHighlight;
+}
 
 Level* Level::Get()
 {
@@ -116,12 +119,25 @@ void Level::MakeLevelFromFile()
 	}
 	else
 	{
-		glm::vec3 spawnPoint;
 		// now that the m_tileGrid size is known, parse real position of player spawn location
+		glm::vec3 spawnPoint;
 		spawnPoint.x = (playerSpawn.first * tileSize) + (tileSize / 2.0f);
 		spawnPoint.y = ((m_tileGrid.size() - playerSpawn.second) * tileSize) + (tileSize / 2.0f);
 		spawnPoint.z = 0.0f;
-		Window::SetCameraPos(spawnPoint);
+
+		if (config.cameraBehavior == CameraBehavior::PlayerCentered)
+		{
+			Window::SetCameraPos(spawnPoint);
+		}
+		else
+		{
+			// camera position should be the center of the map
+			glm::vec3 cameraPos;
+			cameraPos.x = (m_tileGrid[0].size() * tileSize / 2.0f);
+			cameraPos.y = (m_tileGrid.size() * tileSize / 2.0f) + (tileSize);
+			cameraPos.z = 0.0f;
+			Window::SetCameraPos(cameraPos);
+		}
 		m_spawns.push_back(std::move(spawnPoint));
 	}
 
@@ -147,7 +163,7 @@ void Level::MakeLevelFromFile()
 		structurePos.y = ((m_tileGrid.size() - structureLocation.second.second) * tileSize) + (tileSize / 2.0f);
 
 		Tile* tile = GetTileFromCoords(structurePos);
-		if (tile && !tile->Collision(structurePos))
+		if (tile && tile->Traversable())
 		{
 			Structure* structure = nullptr;
 			if (structureLocation.first == "Wretch")
@@ -170,10 +186,6 @@ void Level::MakeLevelFromFile()
 void Level::Update(const KeyMap& keyMap)
 {
 	clock_t tick = clock();
-	//static clock_t lastTick = clock();
-	//printf("seconds since last tick: %f\n", (tick - lastTick) / (float)CLOCKS_PER_SEC);
-	//lastTick = tick;
-
 	if (m_levelState == LevelState::WON)
 	{
 		return;
@@ -219,80 +231,36 @@ void Level::Update(const KeyMap& keyMap)
 			}
 		}
 
-		// get player input and update behavior
-		const Camera& cam = Window::GetCamera();
+		// TODO: TEMP
+		if (keyMap[GLFW_KEY_MINUS])
+		{
+			attenuationUniform--;
+		}
+		else if (keyMap[GLFW_KEY_EQUAL])
+		{
+			attenuationUniform++;
+		}
+
+		if (keyMap[GLFW_KEY_1])
+		{
+			attenuationType = 0;
+		}
+		else if (keyMap[GLFW_KEY_2])
+		{
+			attenuationType = 1;
+		}
+		else if (keyMap[GLFW_KEY_3])
+		{
+			attenuationType = 2;
+		}
+
+		if (keyMap[GLFW_KEY_4])
+		{
+			debugHighlight = !debugHighlight;
+		}
 
 		prevTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
-		if (keyMap[GLFW_KEY_SPACE] && (playerUnit->GetState() == Unit::State::IDLE || playerUnit->GetState() == Unit::State::MOVING)) // dodge
-		{
-			playerUnit->StartDodge();
-		}
-
-		glm::vec3 direction(0.0f);
-		if (playerUnit->GetState() == Unit::State::IDLE || playerUnit->GetState() == Unit::State::MOVING) // move
-		{
-			glm::vec3 cam_direction_no_y(cam.direction.x, 0.0f, cam.direction.z);
-			if (keyMap[GLFW_KEY_W] || keyMap[GLFW_KEY_UP])
-			{
-				direction.y += 1.0f;
-			}
-			if (keyMap[GLFW_KEY_A] || keyMap[GLFW_KEY_LEFT])
-			{
-				direction += glm::cross(cam.up, cam_direction_no_y);
-			}
-			if (keyMap[GLFW_KEY_S] || keyMap[GLFW_KEY_DOWN])
-			{
-				direction.y -= 1.0f;
-			}
-			if (keyMap[GLFW_KEY_D] || keyMap[GLFW_KEY_RIGHT])
-			{
-				direction += glm::cross(cam_direction_no_y, cam.up);
-			}
-
-			// TODO: TEMP
-			if (keyMap[GLFW_KEY_MINUS])
-			{
-				attenuationUniform--;
-			}
-			else if (keyMap[GLFW_KEY_EQUAL])
-			{
-				attenuationUniform++;
-			}
-
-			if (keyMap[GLFW_KEY_1])
-			{
-				attenuationType = 0;
-			}
-			else if (keyMap[GLFW_KEY_2])
-			{
-				attenuationType = 1;
-			}
-			else if (keyMap[GLFW_KEY_3])
-			{
-				attenuationType = 2;
-			}
-
-			if (keyMap[GLFW_KEY_4])
-			{
-				debugHighlight = !debugHighlight;
-			}
-
-			if (glm::length(direction) != 0.0f)
-			{
-				playerUnit->SetState(Unit::State::MOVING);
-				playerUnit->SetDirection(direction);
-			}
-			else
-			{
-				playerUnit->SetState(Unit::State::IDLE);
-			}
-		}
-
-		if (playerUnit->GetState() == Unit::State::DODGING || playerUnit->GetState() == Unit::State::MOVING)
-		{
-			playerUnit->MoveToNextPosition(tick);
-		}
-
+		playerUnit->ProcessInput(keyMap, tick);
 		currTiles = GetTilesFromCoords(playerUnit->GetPosition(), playerUnit->GetMetadata().hitbox_radius);
 
 		// remove player unit from old tiles, add to new tiles TODO inefficient
@@ -311,23 +279,46 @@ void Level::Update(const KeyMap& keyMap)
 			}
 		}
 
-		Window::SetCameraPos(playerUnit->GetPosition()); // always update cam to player position
+		if (config.cameraBehavior == CameraBehavior::PlayerCentered)
+		{
+			Window::SetCameraPos(playerUnit->GetPosition()); // always update cam to player position
+		}
 
 		// basic attack
 		if (keyMap[GLFW_MOUSE_BUTTON_1] && (playerUnit->GetState() == Unit::State::IDLE || playerUnit->GetState() == Unit::State::MOVING))
 		{
-			glm::vec3 mouseWorldSpace = Window::GetCursorPosWorldSpace();
-			glm::vec3 attackDirection = glm::normalize(mouseWorldSpace - cam.pos);
-			attackDirection.z = 0.0f;
-			BasicAttack(attackDirection);
+			glm::vec3 attackDirection(1.0f, 0.0f, 0.0f);
+			if (config.attackTargeting == AttackTargeting::Mouse)
+			{
+				glm::vec3 mouseWorldSpace = Window::GetCursorPosWorldSpace();
+				glm::vec3 attackDirection = glm::normalize(mouseWorldSpace - playerUnit->GetPosition());
+				attackDirection.z = 0.0f;
+			}
+			playerUnit->BasicAttack(attackDirection);
 		}
 
+		int numEnemyUnits = 0;
 		for (std::vector<Tile*> tileRow : m_tileGrid)
 		{
 			for (Tile* tile : tileRow)
 			{
 				tile->Update(tick);
+
 			}
+		}
+
+		// TODO: expensive - iterate over all units to check victory condition
+		for (auto& unit : m_units)
+		{
+			if (!unit->GetMetadata().friendly)
+			{
+				++numEnemyUnits;
+			}
+		}
+		if (numEnemyUnits == 0)
+		{
+			Level::Get()->SetLevelState(LevelState::WON);
+			return;
 		}
 
 		if (playerUnit->GetHealth() <= 0.0)
@@ -410,7 +401,7 @@ Unit* Level::GetPlayerUnit()
 
 Unit* Level::GetClosestPlayerUnit(const glm::vec3& pos)
 {
-	float distToNearestPlayer = std::numeric_limits<float>::max();
+	static constexpr float distToNearestPlayer = std::numeric_limits<float>::max();
 	Unit* nearestPlayer = nullptr;
 	for (const auto& player : m_players)
 	{
@@ -475,11 +466,6 @@ bool Level::RemoveLight(PointLight* light)
 	}
 
 	return false;
-}
-
-void Level::BasicAttack(const glm::vec3& direction)
-{
-	GetPlayerUnit()->BasicAttack(direction);
 }
 
 Tile* Level::GetTileFromCoords(const glm::vec3& dest)

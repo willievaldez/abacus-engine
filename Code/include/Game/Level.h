@@ -38,8 +38,6 @@ public:
 	std::vector<Tile*> GetTilesFromCoords(const glm::vec3& pos, float radius, const glm::vec3& dir = glm::vec3(0.0f));
 	bool getCoordsFromTile(std::pair<int, int>, glm::vec3&);
 
-	void BasicAttack(const glm::vec3& direction);
-
 	void Update(const KeyMap& keyMap);
 
 	void Render();

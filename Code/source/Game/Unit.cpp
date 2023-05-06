@@ -7,7 +7,12 @@
 #include <fstream>
 #include <sstream>
 
-static const int ticksPerSecond = GetConfig("Shared").ticksPerSecond;
+namespace
+{
+	const Config& config = GetConfig("Shared");
+	static const int ticksPerSecond = config.ticksPerSecond;
+	static const float unitRenderOffset = config.unitRenderOffset;
+}
 
 Unit* Unit::Create(const char* entityName)
 {
@@ -69,17 +74,21 @@ Unit::~Unit()
 
 void Unit::Render()
 {
+	// shift render position up by the specified
+	glm::vec3 renderPosition = m_position;
+	renderPosition.y += unitRenderOffset;
+
 	if (m_currentState == State::IDLE)
 	{
 		UniformContainer uniforms;
 		uniforms.AddObject("animationFrame", 0);
-		m_asset->Render(m_position, uniforms);
+		m_asset->Render(renderPosition, uniforms);
 	}
 	else if (m_currentState == State::MOVING || m_currentState == State::DODGING || m_currentState == State::ATTACKING)
 	{
 		UniformContainer uniforms;
 		uniforms.AddObject("animationFrame", m_animationFrame);
-		m_asset->Render(m_position, uniforms);
+		m_asset->Render(renderPosition, uniforms);
 	}
 
 	for (auto& attack : m_activeAttacks)
@@ -87,7 +96,7 @@ void Unit::Render()
 		attack->Render();
 	}
 
-	m_asset->DrawStatusBar(m_position, m_currentHealth / m_metadata.health);
+	m_asset->DrawStatusBar(renderPosition, m_currentHealth / m_metadata.health);
 }
 
 void Unit::Update(clock_t tick)
@@ -169,7 +178,6 @@ void Unit::MoveToNextPosition(const clock_t& tick)
 	glm::vec3 destination(m_position);
 	if (m_currentState == State::MOVING || m_currentState == State::DODGING)
 	{
-		// TODO: only update animation frame if actually moving
 		if ((tick - m_lastFrameTick) / (float)CLOCKS_PER_SEC > 0.043f)
 		{
 			m_animationFrame++;
@@ -188,31 +196,34 @@ void Unit::MoveToNextPosition(const clock_t& tick)
 	{
 		if ((tick - m_dodgeStartTime) / (float)CLOCKS_PER_SEC < m_metadata.dodge_duration)
 		{
-			destination = m_position + (m_direction * m_metadata.dodge_speed / (float)ticksPerSecond);
+			destination = m_position + (m_direction * (m_metadata.dodge_dist / m_metadata.dodge_duration) / (float)ticksPerSecond);
 		}
 		else // dodge ended
 		{
-			m_currentState = State::IDLE;
+			//printf("dest: %f, %f, %f\n", m_position.x, m_position.y, m_position.z);
+			SetPosition(m_dodgeDestination);
+			SetState(State::IDLE);
+			return;
 		}
 	}
 
 	Tile* destTile = Level::Get()->GetTileFromCoords(destination);
-
 	if (destTile)
 	{
-		if (destTile->Collision(destination))
+		Tile::TraversalType traversalType = m_metadata.friendly ? Tile::TraversalType::Friendly : Tile::TraversalType::Enemy;
+		if (!destTile->Traversable(traversalType))
 		{
 			Tile* srcTile = Level::Get()->GetTileFromCoords(GetPosition());
 			glm::vec3 tileChangeDirection = destTile->GetPosition() - srcTile->GetPosition();
 			destTile = nullptr; // reset dest tile
+			printf("dest is not traversable: %f, %f, %f\n", destination.x, destination.y, destination.z);
 
 			if (tileChangeDirection.x)
 			{
 				glm::vec3 newDest = destination;
 				newDest.x = GetPosition().x;
 				destTile = Level::Get()->GetTileFromCoords(newDest);
-
-				if (destTile && !destTile->Collision(newDest))
+				if (destTile && destTile->Traversable(traversalType))
 				{
 					destination = newDest;
 				}
@@ -227,7 +238,7 @@ void Unit::MoveToNextPosition(const clock_t& tick)
 				newDest.y = GetPosition().y;
 				destTile = Level::Get()->GetTileFromCoords(newDest);
 
-				if (destTile && !destTile->Collision(destination))
+				if (destTile && destTile->Traversable(traversalType))
 				{
 					destination = newDest;
 				}
@@ -250,9 +261,103 @@ void Unit::MoveToNextPosition(const clock_t& tick)
 	}
 }
 
-void Unit::StartDodge()
+bool Unit::StartDodge(const glm::vec3& destination, const clock_t& tick)
 {
-	m_dodgeStartTime = clock();
+	if (GetState() == State::DODGING)
+	{
+		return false;
+	}
+
+	m_dodgeStartTime = tick;
+	m_dodgeDestination = destination;
+	SetDirection(m_dodgeDestination - GetPosition());
 	TakeDamage(m_metadata.dodge_cost);
 	SetState(State::DODGING);
+
+	return true;
+
+}
+
+void Unit::ProcessInput(const KeyMap& rawKeyMap, const clock_t& tick)
+{
+	// if returning to idle, process input buffer first
+	const KeyMap* keyMapPtr = &rawKeyMap;
+	bool inputBufferUsed = false;
+	if (GetState() == State::IDLE && !m_inputBuffer.empty())
+	{
+		//printf("using input buffer for this tick\n");
+		keyMapPtr = &m_inputBuffer.front();
+		inputBufferUsed = true;
+	}
+
+	// get player direction
+	glm::vec3 direction(0.0f);
+	if (!keyMapPtr->IsNull())
+	{
+		if ((*keyMapPtr)[GLFW_KEY_W] || (*keyMapPtr)[GLFW_KEY_UP])
+		{
+			direction.y += config.tileSize;
+		}
+		else if ((*keyMapPtr)[GLFW_KEY_A] || (*keyMapPtr)[GLFW_KEY_LEFT])
+		{
+			direction.x -= config.tileSize;
+		}
+		else if ((*keyMapPtr)[GLFW_KEY_S] || (*keyMapPtr)[GLFW_KEY_DOWN])
+		{
+			direction.y -= config.tileSize;
+		}
+		else if ((*keyMapPtr)[GLFW_KEY_D] || (*keyMapPtr)[GLFW_KEY_RIGHT])
+		{
+			direction.x += config.tileSize;
+		}
+	}
+
+	bool validInput = !rawKeyMap.IsNull() || inputBufferUsed;
+	if (validInput && !inputBufferUsed)
+	{
+		// destination is invalid, discard input
+		glm::vec3 destPosition = m_position + direction;
+		Tile::TraversalType traversalType = m_metadata.friendly ? Tile::TraversalType::Friendly : Tile::TraversalType::Enemy;
+
+		Tile* destTile = Level::Get()->GetTileFromCoords(destPosition);
+		if (!destTile || !destTile->Traversable(traversalType))
+		{
+			printf("dest position invalid, discarding input: current pos: (%f, %f, %f), dest pos: (%f, %f, %f)\n",
+				m_position.x, m_position.y, m_position.z, destPosition.x, destPosition.y, destPosition.z);
+			validInput = false;
+		}
+	}
+
+	// if not idle, check if we should add the new input to the buffer
+	bool inputBuffered = false;
+	if (validInput && GetState() != State::IDLE && m_inputBuffer.size() < config.inputBufferSize)
+	{
+		float msSpentInCurrentAction = ((tick - m_dodgeStartTime) * 1000 / (float)CLOCKS_PER_SEC);
+		float msUntilCurrentActionEnds = (m_metadata.dodge_duration * 1000) - msSpentInCurrentAction;
+		//printf("duration: %f, ms spent: %f, ms remaining: %f\n", m_metadata.dodge_duration, msSpentInCurrentAction, msUntilCurrentActionEnds);
+		if (msUntilCurrentActionEnds < config.inputBufferWindowMS)
+		{
+			//printf("input buffered\n");
+			m_inputBuffer.push_back(rawKeyMap);
+			inputBuffered = true;
+		}
+	}
+
+	if (!inputBuffered && validInput)
+	{
+		printf("starting dodge. current pos: (%f, %f, %f), direction: (%f, %f, %f)\n",
+			m_position.x, m_position.y, m_position.z, direction.x, direction.y, direction.z);
+		StartDodge(m_position+direction, tick);
+	}
+
+	if (GetState() == Unit::State::DODGING || GetState() == Unit::State::MOVING)
+	{
+		MoveToNextPosition(tick);
+	}
+
+	// pop from input buffer if necessary
+	if (inputBufferUsed)
+	{
+		m_inputBuffer.pop_front();
+	}
 }

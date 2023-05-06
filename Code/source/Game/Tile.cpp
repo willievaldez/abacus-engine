@@ -16,36 +16,47 @@ Tile::Tile(std::string token)
 	if (token == "WR" || token == "W")
 	{
 		m_asset = GLObject::GLAsset("wallassetright.png");
-		m_traversable = false;
+		m_traversalType = TraversalType::None;
 	}
 	else if (token == "CR")
 	{
 		m_asset = GLObject::GLAsset("ticornrasset.png");
-		m_traversable = false;
+		m_traversalType = TraversalType::None;
 	}
 	else if (token == "CL")
 	{
 		m_asset = GLObject::GLAsset("ticornlasset.png");
-		m_traversable = false;
+		m_traversalType = TraversalType::None;
 	}
 	else if (token == "WT")
 	{
 		m_asset = GLObject::GLAsset("topwallasset.png");
-		m_traversable = false;
+		m_traversalType = TraversalType::None;
 	}
 	else if (token == "WL")
 	{
 		m_asset = GLObject::GLAsset("wallassetleft.png");
-		m_traversable = false;
+		m_traversalType = TraversalType::None;
 	}
 	else if (token == "0")
 	{
-		m_traversable = false;
+		m_traversalType = TraversalType::None;
+	}
+	else if (token == "Enter" || token == "1")
+	{
+		m_asset = GLObject::GLAsset("floorasset1.png");
+		m_traversalType = TraversalType::Friendly;
+	}
+	else if (token == "2")
+	{
+		m_asset = GLObject::GLAsset("floorasset2.png");
+		m_traversalType = TraversalType::Enemy;
 	}
 	else
 	{
-		m_asset = GLObject::GLAsset("floorasset1.png");
-		m_traversable = true;
+		printf("unknown level key %s\n", token.c_str());
+		m_asset = GLObject::GLAsset("floorasset.png");
+		m_traversalType = TraversalType::Any;
 	}
 }
 
@@ -128,21 +139,35 @@ void Tile::RemoveUnit(Unit* unit) // TODO: inefficient
 	}
 }
 
-bool Tile::Collision(const glm::vec3& pt, float radius)
+bool Tile::Traversable(TraversalType type)
 {
-	return !m_traversable;
+	if (type == TraversalType::Friendly)
+	{
+		return m_traversalType == TraversalType::Friendly || m_traversalType == TraversalType::Any;
+	}
+	else if (type == TraversalType::Enemy)
+	{
+		return m_traversalType == TraversalType::Enemy || m_traversalType == TraversalType::Any;
+	}
+	else if (type == TraversalType::Any)
+	{
+		return m_traversalType == TraversalType::Friendly || m_traversalType == TraversalType::Enemy || m_traversalType == TraversalType::Any;
+	}
+
+	return false;
 }
 
-bool Tile::Collision(const glm::vec3& pt, std::set<Unit*>& hitUnits, float radius)
+bool Tile::Collision(const glm::vec3& pt, std::set<Unit*>& hitUnits, float radius/*=0.0f*/)
 {
-	if (m_traversable)
+	bool traversable = Traversable();
+	if (traversable)
 	{
 		// check for collision with units
 		float closestHit = -1.0f;
 		for (Unit* unit : m_units)
 		{
 			float dist = glm::length(pt - unit->GetPosition());
-			if (dist <= unit->GetMetadata().hitbox_radius + radius)
+			if (radius == 0.0f || dist <= unit->GetMetadata().hitbox_radius + radius)
 			{
 				if (closestHit < 0.0f || dist < closestHit)
 				{
@@ -151,7 +176,7 @@ bool Tile::Collision(const glm::vec3& pt, std::set<Unit*>& hitUnits, float radiu
 			}
 		}
 	}
-	return !m_traversable;
+	return !traversable;
 }
 
 void Tile::Interact(Unit* player)

@@ -5,9 +5,11 @@
 #include <Utility/AttributeContainer.h>
 
 #include <time.h>
+#include <vector>
 
 class Unit;
 class Attack;
+class Tile;
 class PointLight;
 
 #define REGISTER_ATTACK(TYPE_NAME, CLASS) REGISTER(Attack, TYPE_NAME, CLASS)
@@ -78,6 +80,7 @@ protected:
 	clock_t m_stateStart;
 	State m_state = State::CHANNELING;
 	void SetState(State);
+	std::vector<Tile*> m_tilesAffected;
 
 	static AttackClassMap& AccessAttacks() { static AttackClassMap attackClassMap; return attackClassMap; };
 };

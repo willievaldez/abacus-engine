@@ -182,15 +182,6 @@ void Window::IdleCallback3D(GLFWwindow* window, clock_t time)
 
 void Window::IdleCallback2D(GLFWwindow* window, clock_t time)
 {
-	KeyMap& keyMap = AccessKeyMap();
-	for (int i = 0; i < keyMap.size(); i++)
-	{
-		const KeyPress& keyPress = keyMap[i];
-		if (keyPress.m_state == KeyPress::State::Triggered)
-		{
-			keyMap.Set(i, KeyPress::State::Depressed);
-		}
-	}
 	//Level::Get()->Update(time);
 }
 
@@ -228,11 +219,11 @@ void Window::KeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 {
 	if (action == GLFW_PRESS)
 	{
-		AccessKeyMap().Set(key, KeyPress::State::Triggered);
+		AccessKeyMap().Set(key, true);
 	}
 	else if (action == GLFW_RELEASE)
 	{
-		AccessKeyMap().Set(key, KeyPress::State::Released);
+		AccessKeyMap().Set(key, false);
 	}
 }
 

@@ -3,8 +3,10 @@
 #include <GLWrapper/GLObject.h>
 #include <Game/Action.h>
 #include <Utility/AttributeContainer.h>
+#include <Utility/KeyMap.h>
 
 #include <chrono>
+#include <list>
 
 class Action; // lawsuit
 class Attack;
@@ -50,7 +52,8 @@ public:
 	bool TakeDamage(float);
 	float GetHealth() const { return m_currentHealth; };
 	void MoveToNextPosition(const clock_t& tick);
-	void StartDodge();
+	bool StartDodge(const glm::vec3& direction, const clock_t& tick);
+	void ProcessInput(const KeyMap& keyMap, const clock_t& tick);
 private:
 	Unit(const UnitMetadata&);
 
@@ -65,6 +68,8 @@ private:
 	clock_t m_lastFrameTick;
 	int m_animationFrame = 0;
 	clock_t m_dodgeStartTime;
+	glm::vec3 m_dodgeDestination;
 	clock_t m_lastAttack;
 	std::vector<std::shared_ptr<Attack>> m_activeAttacks;
+	std::list<KeyMap> m_inputBuffer;
 };

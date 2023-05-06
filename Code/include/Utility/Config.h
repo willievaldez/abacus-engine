@@ -11,9 +11,19 @@ enum class MovementType {
 	Controller
 };
 
+enum class AttackTargeting {
+	Forward,
+	Mouse,
+};
+
 enum class FrustumType {
 	Perspective,
 	Orthographic
+};
+
+enum class CameraBehavior {
+	Static,
+	PlayerCentered
 };
 
 struct Config

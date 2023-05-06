@@ -17,6 +17,15 @@ public:
 	Tile() {};
 	~Tile();
 
+	// TODO: turn into a bitmask instead. enums are messy for this
+	enum class TraversalType
+	{
+		Any, // any thing can traverse this tile
+		Friendly, // only friendly units can traverse this tile
+		Enemy, // only enemy units can traverse this tile
+		None // nothing can traverse this tile
+	};
+
 	void Update(clock_t);
 	void Render(const UniformContainer&) override;
 	void Render(std::vector<GLObject*>&);
@@ -24,10 +33,11 @@ public:
 	void AddItem(Item*);
 	void AddUnit(Unit*);
 	void RemoveUnit(Unit*);
-	bool Collision(const glm::vec3& pt, float radius = 0.0f);
+	bool Traversable(TraversalType type=TraversalType::Any);
 	bool Collision(const glm::vec3& pt, std::set<Unit*>& hitUnits, float radius = 0.0f);
 	void Interact(Unit* player);
 	void SetDebugHighlight(const glm::vec3&);
+	const std::vector<Unit*> GetUnits() const { return m_units; }
 
 	template<typename T>
 	static size_t RegisterTileType(const char* typeName)
@@ -44,7 +54,7 @@ public:
 
 private:
 	Structure* m_structure = nullptr;
-	bool m_traversable = false;
+	TraversalType m_traversalType = TraversalType::None;
 	std::vector<Item*> m_items;
 	std::vector<Unit*> m_units;
 	glm::vec3 m_debugHighlight = glm::vec3(0.0f);

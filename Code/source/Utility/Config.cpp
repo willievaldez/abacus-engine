@@ -85,3 +85,43 @@ FROM_STRING_IMPL(FrustumType)
 
 	return true;
 }
+
+FROM_STRING_IMPL(CameraBehavior)
+{
+	static const char* s_cameraBehaviors[] = {
+		"Static",
+		"PlayerCentered"
+	};
+
+	for (int i = 0; i < sizeof(s_cameraBehaviors) / sizeof(char*); ++i)
+	{
+		if (rawVal == s_cameraBehaviors[i])
+		{
+			*m_data = (CameraBehavior)i;
+			return true;
+		}
+	}
+
+	printf("Unknown CameraBehavior: %s\n", rawVal.c_str());
+	return false;
+}
+
+FROM_STRING_IMPL(AttackTargeting)
+{
+	static const char* s_attackTargets[] = {
+		"Forward",
+		"Mouse"
+	};
+
+	for (int i = 0; i < sizeof(s_attackTargets) / sizeof(char*); ++i)
+	{
+		if (rawVal == s_attackTargets[i])
+		{
+			*m_data = (AttackTargeting)i;
+			return true;
+		}
+	}
+
+	printf("Unknown CameraBehavior: %s\n", rawVal.c_str());
+	return false;
+}

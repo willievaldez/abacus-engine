@@ -38,7 +38,7 @@ void main()
 		color = vec4(colorOverride, 1.0f);
 	}
 
-	float attenuation = 0.0f;
+	float attenuation = 1.0f;
 	for(int i = 0; i < numLights; i++)
 	{
 		PointLight light = lights[i];
